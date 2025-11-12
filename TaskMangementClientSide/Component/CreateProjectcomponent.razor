@@ -1,0 +1,18 @@
+﻿<div class="card shadow-sm p-4" style="max-width: 500px;">
+    <div class="mb-3">
+        <label for="projectName" class="form-label fw-semibold">Project Name</label>
+        <input id="projectName" type="text" class="form-control" @bind="projectName" placeholder="Enter project name" />
+    </div>
+
+    <div class="d-flex justify-content-end">
+        <button class="btn btn-secondary me-2" @onclick="() => OnCancel.InvokeAsync()">Cancel</button>
+        <button class="btn btn-primary" @onclick="() => OnSave.InvokeAsync(projectName)">Save</button>
+    </div>
+</div>
+
+@code {
+    private string projectName = string.Empty;
+
+    [Parameter] public EventCallback<string> OnSave { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+}

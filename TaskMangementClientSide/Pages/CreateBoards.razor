@@ -1,0 +1,11 @@
+﻿@page "/project/{ProjectId:int}/boards"
+
+@using TaskMangementClientSide.Component
+
+<BoardComponent ProjectId="@ProjectId"/>
+
+
+@code {
+    [Parameter]
+    public int ProjectId { get; set; }
+}

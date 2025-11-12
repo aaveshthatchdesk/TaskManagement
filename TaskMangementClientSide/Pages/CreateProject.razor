@@ -1,0 +1,74 @@
+﻿@page "/createproject"
+@using Task.Application.DTOs
+@using TaskMangementClientSide.Component
+
+@inject HttpClient Http;
+@inject NavigationManager navigationManager;
+
+<style>
+    .slide-form {
+        transition: all 0.3s ease-in-out;
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+
+        .slide-form.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+</style>
+
+@* <div class="container mt-5">
+    <h3 class="fw-bold text-primary mb-4">Create New Project</h3>
+    <CreateProjectcomponent OnSave="HandleSave" Oncancel="HandleCancel"/>
+</div> *@
+@* <div class="slide-form @(showCreateForm ? "show" : "")">
+    <div class="form-container bg-white shadow-lg p-4">
+        <h5 class="fw-bold mb-3 text-primary">Create New Project</h5>
+        <CreateProjectcomponent OnSave="HandleSave" OnCancel="HandleCancel" />
+    </div>
+</div> *@
+<div class="container mt-5">
+    <h3 class="fw-bold text-primary mb-4">Create New Project</h3>
+
+    @if (showCreateForm)
+    {
+        <div class="slide-form show">
+            <div class="form-container bg-white shadow-lg p-4 rounded-3">
+                <CreateProjectComponent OnSave="HandleSave" OnCancel="HandleCancel" />
+            </div>
+        </div>
+    }
+    else
+    {
+        <button class="btn btn-primary" @onclick="ShowCreateForm">
+            + Create New Project
+        </button>
+    }
+</div>
+@code {
+    private bool showCreateForm = false;
+
+    private void ShowCreateForm()
+    {
+        showCreateForm = true;
+    }
+    private async Task HandleSave(string projectName)
+    {
+        var newProject = new ProjectDto { Name = projectName };
+        var response = await Http.PostAsJsonAsync("api/Project",newProject);
+        if (response.IsSuccessStatusCode)
+        {
+            Console.WriteLine("Project created successfully!");
+            navigationManager.NavigateTo("/home",forceLoad:true); 
+        }
+        else
+        {
+            Console.WriteLine($"Error: {response.StatusCode}");
+        }
+    }
+    private void HandleCancel()
+    {
+        showCreateForm = false;
+    }
+}

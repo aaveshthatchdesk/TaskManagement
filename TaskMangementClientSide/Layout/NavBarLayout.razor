@@ -1,0 +1,129 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager nav
+@inject IHttpClientFactory HttpClientFactory
+@inject IJSRuntime JS
+@using Task.Application.DTOs
+
+<style>
+    .dropdown-item:hover
+    {
+        background-color: #2c3e50 !important; 
+        color:white !important; 
+    }
+</style>
+
+<header class="app-header shadow-lg px-3 py-2 position-fixed top-0 start-0 w-100 bg-white" style="z-index:1050;">
+    <div class="d-flex align-items-center justify-content-between w-100">
+
+        <div class="d-flex align-items-center">
+            <button class="btn btn-outline-secondary me-3" @onclick="()=>OnToggleSidebar.InvokeAsync()">
+                <i class="bi bi-list"></i>
+            </button>
+        </div>
+        <div class="d-flex align-items-center ps-3">
+            <img src="images/TaskMa.png" alt="Logo" width="40" height="40"
+                 class="me-2 rounded-circle border border-black" />
+            <span class="fw-bolder fs-6 text-dark">Taskma</span>
+        </div>
+
+        <form class="d-flex align-items-center flex-grow-1 justify-content-center mx-4" role="search">
+            <div class="position-relative w-100" style="max-width: 450px;">
+                <input class="form-control ps-3 pe-5"
+                       type="search"
+                       placeholder="Search..."
+                       aria-label="Search"
+                       style="width: 100%; background-color: #ecf0f1;" />
+                <span class="position-absolute top-50 end-0 translate-middle-y me-3 text-muted">
+                    <i class="bi bi-search"></i>
+                </span>
+            </div>
+        </form>
+
+        <div class="d-flex align-items-center gap-3">
+            <button class="border-0 bg-transparent p-0" title="Settings">
+                <i class="bi bi-gear fs-5 text-dark"></i>
+            </button>
+
+            <div class="dropdown">
+                <button class="btn border-0 bg-transparent dropdown-toggle d-flex align-items-center"
+                        id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+
+                    <div class="rounded-circle text-white fw-semibold d-flex align-items-center justify-content-center"
+                         style="width: 36px; height: 36px; background:#2c3e50">
+                        @GetInitials(currentUser?.Name)
+                    </div>
+                </button>
+
+                <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
+                    <li><button class="dropdown-item">Profile</button></li>
+                    <li><button class="dropdown-item " @onclick="OnLogout">Logout</button></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</header>
+                    
+<div class="app-body pt-5 mt-4">
+    @Body
+</div>
+
+@code {
+    [Parameter] public EventCallback OnToggleSidebar { get; set; }
+    private AppUserDto? currentUser;
+    private HttpClient Http => HttpClientFactory.CreateClient("AuthClient");
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserInfo();
+    }
+
+    private async Task LoadUserInfo()
+    {
+        try
+        {
+            currentUser = await Http.GetFromJsonAsync<AppUserDto>("api/Account/me");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading user info: {ex.Message}");
+        }
+    }
+
+    private string GetInitials(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return string.Empty;
+
+        var initials = string.Join("", name
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Select(n => n[0]))
+            .ToUpper();
+
+        return initials;
+    }
+
+    private async Task OnLogout()
+    {
+        try
+        {
+            var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                var request = new HttpRequestMessage(HttpMethod.Post, "api/Auth/logout");
+                request.Headers.Add("token", token);
+
+                var client = HttpClientFactory.CreateClient("AuthClient");
+                await client.SendAsync(request);
+            }
+
+            await JS.InvokeVoidAsync("localStorage.removeItem", "authToken");
+            await JS.InvokeVoidAsync("eval", "window.location.href = '/'");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Logout error: {ex.Message}");
+        }
+    }
+}
+

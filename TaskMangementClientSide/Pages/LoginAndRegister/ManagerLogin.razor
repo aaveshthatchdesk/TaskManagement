@@ -1,0 +1,28 @@
+﻿@page "/manager"
+@layout EmptyLayout
+
+@using Task.Application.DTOs
+
+@using TaskMangementClientSide.Component.LoginAndRegisterComponents
+
+<ManagerComponent loginModel="@loginData" OnLoginResult="HandleLoginResult" />
+@if (!string.IsNullOrEmpty(statusMessage))
+{
+    <div class="alert alert-warning mt-3">@statusMessage</div>
+}
+@code {
+    private LoginDto loginData = new();
+    private string? statusMessage;
+    private void HandleLoginResult(bool success)
+    {
+        if (success)
+        {
+            statusMessage = "Login Successfully";
+
+        }
+        else
+        {
+            // statusMessage = "Login failed";
+        }
+    }
+}

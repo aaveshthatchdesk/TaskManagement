@@ -1,0 +1,66 @@
+﻿using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Task.Domain.Entities;
+
+namespace Task.Infrastructure.DbContext
+{
+    public  class TaskDbContext:Microsoft.EntityFrameworkCore.DbContext
+    {
+        public TaskDbContext(DbContextOptions<TaskDbContext> options) 
+            : base(options) 
+        {  
+        }
+
+        public DbSet<Project> projects { get; set; }
+
+        public DbSet<Board> boards { get; set; }
+        public DbSet<TaskItem> tasks {  get; set; }
+
+        public DbSet<AppUser> appUsers { get; set; }
+
+        public DbSet<AppUserAuth>appUserAuths { get; set; }
+
+        public DbSet<TaskAssignment> taskAssignments { get; set; }
+        public DbSet<Sprint> sprints { get; set; }
+
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Many-to-many: TaskItem ↔ AppUser
+            modelBuilder.Entity<TaskAssignment>()
+                .HasKey(ta => new { ta.TaskItemId, ta.AppUserId });
+
+            modelBuilder.Entity<TaskAssignment>()
+                .HasOne(ta => ta.TaskItem)
+                .WithMany(t => t.TaskAssignments)
+                .HasForeignKey(ta => ta.TaskItemId);
+
+            modelBuilder.Entity<TaskAssignment>()
+                .HasOne(ta => ta.AppUser)
+                .WithMany(u => u.TaskAssignments)
+                .HasForeignKey(ta => ta.AppUserId);
+
+            modelBuilder.Entity<Board>()
+                .HasMany(b => b.TaskItems)
+                .WithOne(t => t.Board)
+                .HasForeignKey(t => t.BoardId)
+                .OnDelete(DeleteBehavior.Cascade);  // When a board is deleted, delete its tasks
+
+            // Sprint → TaskItem (One-to-Many)
+            modelBuilder.Entity<Sprint>()
+                .HasMany(s => s.TaskItems)
+                .WithOne(t => t.Sprint)
+                .HasForeignKey(t => t.SprintId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Project>().Ignore(p => p.Progress);
+            modelBuilder.Entity<Project>().Ignore(p => p.TeamMembers);
+        }
+    }
+}

@@ -1,0 +1,32 @@
+﻿
+
+
+
+@inherits LayoutComponentBase
+
+<NavBarLayout OnToggleSidebar="ToggleSidebar"/>
+
+<div class="page-body d-flex">
+   
+    
+        <!-- Sidebar -->
+    <aside class="sidebar  @(isSidebarCollapsed ? "collapsed" : "")">
+            <NavMenu />
+        </aside>
+
+        <!-- Main Body -->
+        <main class="main-content @(isSidebarCollapsed? "expanded" : "")">
+            <div class="p-4">
+            @Body
+        </div>
+        </main>
+    
+</div>
+
+@code{
+    private bool isSidebarCollapsed=false;
+    private void ToggleSidebar()
+    {
+        isSidebarCollapsed = !isSidebarCollapsed;
+    }
+}

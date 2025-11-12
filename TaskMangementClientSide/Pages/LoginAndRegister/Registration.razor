@@ -1,0 +1,22 @@
+﻿@page "/register"
+@layout EmptyLayout
+@using Task.Application.DTOs
+
+@using TaskMangementClientSide.Component.LoginAndRegisterComponents
+
+<RegisterComponent registerModel="@registerData" OnRegisterResult="HandleRegisterResult" />
+
+@if (!string.IsNullOrEmpty(statusMessage))
+{
+    <div class="alert alert-warning mt-3 text-center">@statusMessage</div>
+}
+
+@code {
+    private RegisterDto registerData = new();
+    private string? statusMessage;
+
+    private void HandleRegisterResult(bool success)
+    {
+       
+}
+}

@@ -1,0 +1,119 @@
+﻿@using Task.Application.DTOs
+@inject HttpClient Http
+@inject IJSRuntime JS
+@inject NavigationManager nav;
+<style>
+    .btn-outline-dark {
+        background-color: #2c3e50 !important;
+        color: white !important;
+    }
+
+        .btn-outline-dark:hover {
+            background-color: #0d6efd !important;
+            color: white !important;
+        }
+
+    .role-badge {
+        display: inline-block;
+        background: #f0f0f0;
+        padding: 6px 18px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 15px;
+    }
+ 
+</style>
+
+<div class="d-flex justify-content-center align-items-center vh-100 bg-light">
+    <div class="card p-5 shadow-lg border-0 rounded-4" style="max-width: 400px; width: 100%">
+
+        <!-- Logo or Title -->
+        <div class="text-center mb-4">
+            <img src="images/TaskMa.png" alt="Logo" width="90" class="mb-3 rounded-circle shadow-sm" />
+            <h4 class="fw-bold" style="color:#2c3e50;">Admin</h4>
+            <div class="role-badge">System administration</div>
+            <p class="text-muted small mb-0">Please login to your account</p>
+            
+        </div>
+
+        <!-- Login Form -->
+        <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+
+
+            <!-- Email -->
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="bi bi-envelope"></i></span>
+                    <InputText class="form-control" @bind-Value="loginModel.Email" placeholder="Enter your email" />
+                </div>
+                <ValidationMessage For="@(() => loginModel.Email)" class="text-danger small" />
+            </div>
+
+            <!-- Password -->
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="bi bi-lock"></i></span>
+                    <InputText type="password" class="form-control" @bind-Value="loginModel.Password" placeholder="Enter your password" />
+                </div>
+                <ValidationMessage For="@(() => loginModel.Password)" class="text-danger small" />
+            </div>
+
+            <button class="btn btn-outline-dark w-100 py-2 fw-semibold" type="submit">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Login
+            </button>
+        </EditForm>
+        
+
+
+        <!-- Message -->
+        @if (!string.IsNullOrEmpty(message))
+        {
+            <div class="alert alert-info mt-3 text-center">@message</div>
+        }
+
+       
+    </div>
+</div>
+
+@code {
+    [Parameter] public LoginDto loginModel { get; set; } = new();
+    [Parameter] public EventCallback<bool> OnLoginResult { get; set; }
+    private string? message;
+    private async Task HandleLogin()
+    {
+        try
+        {
+            message = "Logging in...";
+            loginModel.LoginAs = "Admin";
+            var response = await Http.PostAsJsonAsync("api/Auth/login", loginModel);
+            if (response.IsSuccessStatusCode)
+            {
+                var token = await response.Content.ReadAsStringAsync();
+                if (token != null)
+                {
+                    await JS.InvokeVoidAsync("localStorage.setItem", "authToken", token);
+                    message = "Login successful!";
+                    await OnLoginResult.InvokeAsync(true);
+                    nav.NavigateTo("/dashboard");
+                }
+            }
+            else
+            {
+                message = "Invalid username or password.";
+                await OnLoginResult.InvokeAsync(false);
+            }
+        }
+        catch (Exception ex)
+        {
+            message = $"Error: {ex.Message}";
+            await OnLoginResult.InvokeAsync(false);
+        }
+    }
+
+}
+

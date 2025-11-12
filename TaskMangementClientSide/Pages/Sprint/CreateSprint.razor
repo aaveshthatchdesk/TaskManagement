@@ -1,0 +1,21 @@
+﻿@page "/createSprint"
+@using TaskMangementClientSide.Component.Sprint
+@inject NavigationManager Nav
+
+
+<AddSprint OnSaved="HandleSaved" oncancel="HandleCancel"/>
+
+
+
+@code {
+    private void HandleSaved()
+    {
+        Nav.NavigateTo("/sprints", forceLoad: true);
+
+    }
+    private void HandleCancel()
+    {
+        Nav.NavigateTo("/sprints");
+    }
+
+}

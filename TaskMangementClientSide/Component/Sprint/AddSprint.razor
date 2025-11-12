@@ -1,0 +1,87 @@
+﻿@using Task.Application.DTOs
+@using TaskMangementClientSide.Services
+@inject SprintService SprintService
+
+
+
+<div class="modal-overlay">
+    <div class="modal-content shadow-lg rounded-4 p-4 bg-white">
+        <h5 class="fw-bolder mb-3 text-center" style="color:#2c3e50;">Create New Sprint</h5>
+<EditForm Model="@newSprint" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator/>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold" style="color:#2c3e50;">Sprint Name<span class="text-danger">*</span></label>
+                <InputText class="form-control" style="background-color:#ecf0f1;" @bind-Value="newSprint.Name" placeholder="Enter sprint name" />
+                <ValidationMessage For="@(() => newSprint.Name)" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold" style="color:#2c3e50;">Start Date<span class="text-danger">*</span></label>
+                <InputDate class="form-control w-50" style="background-color:#ecf0f1;" @bind-Value="newSprint.StartDate" />
+                <ValidationMessage For="@(() => newSprint.StartDate)" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold" style="color:#2c3e50;">End Date<span class="text-danger">*</span></label>
+                <InputDate class="form-control w-50" style="background-color:#ecf0f1;" @bind-Value="newSprint.EndDate" />
+                <ValidationMessage For="@(() => newSprint.EndDate)" />
+            </div>
+
+           
+        
+        <div class="mt-4 d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary me-2" @onclick="Cancel">Cancel</button>
+                <button type="submit" class="btn btn-primary px-4 " style="background-color:#2c3e50;" disabled="@isSubmitting">
+                @if (isSubmitting)
+                {
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                }
+                Save 
+            </button>
+        </div>
+    
+</EditForm>
+</div>
+ </div>
+@code {
+    [Parameter] public EventCallback OnSaved{ get; set; }
+    [Parameter] public EventCallback  OnCancel{ get; set; }
+    private SprintDto newSprint = new SprintDto
+        {
+            StartDate = DateTime.Now,
+            EndDate = DateTime.Now.AddDays(7)
+        };
+    private bool isSubmitting = false;
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            isSubmitting = true;
+            bool isAdded = await SprintService.AddSprintAsync(newSprint);
+            if(isAdded)
+            {
+                await OnSaved.InvokeAsync();
+            }
+            else
+            {
+                Console.WriteLine("Failed to add sprint");
+            }
+        }
+        catch(Exception)
+        {
+
+        }
+        finally
+        {
+            await OnCancel.InvokeAsync();
+        }
+
+    }
+    private async Task Cancel()
+    {
+        await OnCancel.InvokeAsync();
+    }
+
+}
+

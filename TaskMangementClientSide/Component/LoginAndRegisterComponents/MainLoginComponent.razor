@@ -1,0 +1,136 @@
+﻿@inject NavigationManager nav
+@inject IJSRuntime JS
+
+<style>
+    .card {
+        width: 300px;
+        text-align: center;
+        transition: transform 0.2s, box-shadow 0.2s;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between; 
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+
+    .card-icon {
+        font-size: 40px;
+        color: #0d6efd;
+        margin-top: 20px;
+    }
+
+    .card-body {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        justify-content: space-between;
+    }
+
+        .card-body p {
+            flex-grow: 1;
+        }
+
+    /* .btn-custom {
+        border-radius: 20px;
+        padding: 6px 18px;
+    } */
+
+    .btn.btn-custom {
+        border-radius: 20px;
+        padding: 6px 18px;
+        background-color: #2c3e50;
+        color: white;
+        transition: all 0.3s ease;
+        border: none;
+       
+       
+    }
+
+        /* ✅ Hover effect for buttons */
+        .btn.btn-custom:hover {
+            background-color: #0d6efd; /* Change to blue on hover */
+            color:white;
+           
+            
+        }
+
+        /* Optional: active (click) effect */
+      .btn.btn-custom:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+</style>
+
+
+
+    <div class=" container d-flex justify-content-center">
+
+        <img src="images/TaskMa.png" alt="Logo" width="190" height="190" class="rounded-circle border border-black mt-3" />
+        
+    </div>
+    <div class="text-center  my-3">
+        <h3 class="fw-bold"> Welcome to Taskma</h3>
+    </div>
+
+    <div class="d-flex justify-content-center gap-2 flex-wrap">
+        <div class="card shadow">
+            <div class="card-icon">
+            <i class="fas fa-user"></i>
+            </div>
+          
+
+            <div class="card-body">
+                <h5 class="card-title fw-bold">Member Portal</h5>
+                <p>Access your personal account to manage your profile, view your data, and perform user-specific tasks.</p>
+                <button  class="btn  btn-custom" @onclick="MemberLogin" >Go to User Login</button>
+            </div>
+
+        </div>
+        <div class="card shadow">
+            <div class="card-icon">
+                <i class="fas fa-user-tie"></i>
+            </div>
+            
+            <div class="card-body">
+                <h5 class="card-title fw-bold">Manager Portal</h5>
+               
+                <p>Manage your team, track performance, and oversee project progress.</p>
+
+            <button class="btn  btn-custom" @onclick="ManagerLogin">Go to Manager Login</button>
+            </div>
+        </div>
+    @* <div class="card shadow">
+        <div class="card-icon">
+            <i class="fas fa-user-shield"></i>
+        </div>
+
+        <div class="card-body">
+            <h5 class="card-title fw-bold">Admin Portal</h5>
+
+            <p>Full system administration, user management, and security controls.</p>
+
+            <button class="btn  btn-custom" @onclick="AdminLogin">Go to Admin Login</button>
+        </div>
+    </div> *@
+    </div>
+   
+
+@code {
+
+    private void MemberLogin()
+    {
+        nav.NavigateTo("/member");
+    }
+    private void ManagerLogin()
+    {
+        nav.NavigateTo("/manager");
+    }
+    private void AdminLogin()
+    {
+        nav.NavigateTo("/admin");
+    }
+
+}

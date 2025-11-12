@@ -1,0 +1,58 @@
+﻿
+
+
+<div class="nav-menu-container">
+    <!-- Brand Header -->
+    <div class="nav-brand-header text-center py-4">
+        <div class="my-3">
+            <img src="images/TaskMa.png" alt="Logo" width="120" height="120"
+                 class="rounded-circle border border-2 border-primary shadow-sm" />
+        </div>
+        <h4 class="brand-text mb-0">Taskma</h4>
+    </div>
+
+    <!-- Navigation Links - Moved upward -->
+    <nav class="nav flex-column nav-links-container">
+        <!-- Dashboard -->
+        <div class="nav-item px-3">
+            <NavLink class="nav-link d-flex align-items-center gap-3" href="dashboard">
+                <i class="bi bi-speedometer2 fs-5 text-dark" style="min-width: 24px;"></i>
+                <span class="flex-grow-1">Dashboard</span>
+            </NavLink>
+        </div>
+
+        <!-- Projects -->
+        <div class="nav-item px-3">
+            <NavLink class="nav-link d-flex align-items-center gap-3" href="sprints" >
+                <i class="bi bi-kanban-fill fs-5 text-success" style="min-width: 24px;"></i>
+                <span class="flex-grow-1">Sprints</span>
+            </NavLink>
+        </div>
+
+        <!-- Members -->
+        <div class="nav-item px-3">
+            <NavLink class="nav-link d-flex align-items-center gap-3" href="members">
+                <i class="bi bi-people-fill fs-5 text-info" style="min-width: 24px;"></i>
+                <span class="flex-grow-1">Members</span>
+            </NavLink>
+        </div>
+
+        <!-- Teams -->
+        <div class="nav-item px-3">
+            <NavLink class="nav-link d-flex align-items-center gap-3" >
+                <i class="bi bi-person-badge-fill fs-5 text-warning" style="min-width: 24px;"></i>
+                <span class="flex-grow-1">Teams</span>
+            </NavLink>
+        </div>
+    </nav>
+</div>
+
+@code {
+    // private bool collapseNavMenu = true;
+    // private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    // private void ToggleNavMenu()
+    // {
+    //     collapseNavMenu = !collapseNavMenu;
+    // }
+}
