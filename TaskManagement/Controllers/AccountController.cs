@@ -50,6 +50,9 @@ namespace TaskManagementServerAPi.Controllers
                     user.Role,
                     Initials = initials
                 });
+
+
+
             }
             catch (Exception ex)
             {
