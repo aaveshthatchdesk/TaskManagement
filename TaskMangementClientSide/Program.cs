@@ -1,9 +1,12 @@
 using Blazored.LocalStorage;
+
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using TaskMangementClientSide.Services;
+
+
 
 
 namespace TaskMangementClientSide
@@ -18,6 +21,10 @@ namespace TaskMangementClientSide
 
             builder.Services.AddBlazoredLocalStorage();
             builder.Services.AddScoped<SprintService>();
+            builder.Services.AddSingleton<SpinnerService>();
+
+
+
             //builder.Services.AddAuthorizationCore();
             //builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 

@@ -1,67 +1,1136 @@
 ﻿@using Task.Application.DTOs
+@using TaskMangementClientSide.Component.Sprint
+@inject NavigationManager nav;
 @inject HttpClient Http
+<style>
+    .card {
+        /* border: 1px solid #2c3e50 !important; */
+        border-radius: 12px !important;
+        overflow: hidden; 
+        box-shadow: none !important;
+    }
+    /* .card-header
+    {
+        height:10px; 
 
-<h2>Boards</h2>
+    } */
 
-<div class="container-fluid py-4 bg-light min-vh-100">
+    /* .task-card {
+        height: 220px;
+        display: flex;
+        flex-direction: column;
+    }
 
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div class="input-group w-25">
-            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-            <input type="text" class="form-control border-start-0" placeholder="Search tasks..." />
-        </div>
-        <button class="btn btn-primary rounded-pill px-4" @onclick="ShowAddBoardForm">
-            <i class="bi bi-plus-lg me-1"></i> New Board
+    
+    .task-desc {
+        flex-grow: 1;
+        overflow-y: auto;
+        margin-bottom: 6px;
+        min-height: 40px;
+    } */
+    .task-card {
+        min-height: 240px;
+        max-height:400px;/* consistent height */
+        display: flex;
+        flex-direction: column;
+        justify-content: start;
+        gap:6px;
+        overflow:visible;
+    }
+
+    .kanban-column {
+        position: relative;
+        overflow: visible !important;
+    }
+
+   
+
+    /* .kanban-tasks {
+        height: calc(100vh - 250px); 
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-right: 6px;
+    } */
+
+    .kanban-tasks {
+        max-height: 60vh; /* sets a cap but allows natural shrinking */
+        overflow-y: auto;
+        padding-right: 6px;
+    }
+
+
+    .modal-backdrop-custom {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        z-index: 1040;
+    }
+
+   
+    .custom-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        width: 420px;
+        border-radius: 12px;
+        overflow:hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        z-index: 1050;
+        padding: 0;
+    }
+
+  
+    .custom-modal-header {
+        padding: 15px 20px;
+        background: #ffffff;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top-left-radius: 12px; /
+        border-top-right-radius: 12px;
+    }
+ 
+    .custom-modal-body {
+        padding: 20px;
+    }
+
+   
+    .custom-modal-footer {
+        padding: 12px 20px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        border-top: 1px solid #eee;
+    }
+
+    .delete-btn:hover i {
+        color: red !important; 
+    }
+    .deletebtn{
+        background-color:#2c3e50;
+        color:white;
+    }
+    .deletebtn:hover{
+            background-color: #22303A;
+            color:white;
+    }
+
+    .savebtn {
+        background-color: #2c3e50;
+        color: white;
+    }
+
+        .savebtn:hover {
+            background-color: #22303A;
+            color: white;
+        }
+        
+    .dropdown-submenu {
+        position: relative;
+    }
+
+        /* Show submenu on hover */
+        .dropdown-submenu:hover > .dropdown-submenu-menu {
+            display: block;
+        }
+
+    /* Submenu box */
+    .dropdown-submenu-menu {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 100%;
+        min-width: 180px;
+        background: white;
+        border-radius: 0.3rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        z-index: 2000;
+        transform: translateY(-5px);
+    }
+
+    /* Fix clipping */
+    .dropdown-menu {
+        overflow: visible !important;
+    }
+
+    /* Align arrow + text */
+    .dropdown-submenu > a.dropdown-toggle {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+        /* Replace default arrow with custom right arrow */
+        .dropdown-submenu > a.dropdown-toggle::after {
+            content: "⯈" !important;
+            font-size: 16px;
+            margin-left: 8px;
+            margin-right: 1px;
+            border: none !important;
+        }
+
+    .priority-low-border {
+        border-left: 5px solid #27ae60 !important;
+    }
+
+    .priority-medium-border {
+        border-left: 5px solid #f1c40f !important;
+    }
+
+    .priority-high-border {
+        border-left: 5px solid #e67e22 !important;
+    }
+
+  
+
+   
+
+    .badge-circle {
+        width: 44px; /* adjust size */
+        height: 25px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        padding: 0 !important;
+        margin-top: -2px;
+       
+    }
+    /* .kanban-dropzone
+    {
+        min-height:80px;
+    } */
+
+        /* .kanban-dropzone.drag-over {
+            background: #f4f6f8;
+            border: 2px dashed #90a4ae;
+        } */
+
+
+    .kanban-tasks:empty {
+        min-height: 10px;
+    }
+
+    .badge-tall {
+        padding: 2px 8px !important;
+        font-size: 0.9rem !important;
+        line-height: 1.1rem !important;
+    }
+
+    .form-control:focus {
+        box-shadow: none !important;
+        border-color: #ccc !important;
+    }
+
+    .form-check-input:checked {
+        background-color: #2c3e50 !important;
+        border-color: #2c3e50 !important;
+    }
+    /* Overlapping Task Member Avatars */
+    .task-avatar-stack {
+        display: flex;
+        align-items: center;
+    }
+
+    .task-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #546476;
+        color: white;
+        font-size: 12px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        margin-left: -8px; /* 👈 overlap effect */
+        border: 2px solid white; /* clean ring */
+    }
+
+        .task-avatar:first-child {
+            margin-left: 0;
+        }
+
+    .delete-circle-btn {
+        /* width: 24px;
+        height: 24px;
+        border-radius: 50%; 
+   
+        color: #cc0000;
+        background: transparent;
+        font-size: 18px;
+        font-weight: 700;
+        line-height: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding-bottom:0;
+        transition: transform 0.2s ease; */
+
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: transparent;
+        color: #cc0000;
+        font-size: 25px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 !important;
+        /* ⭐ Move whole circle upward */
+        margin-top: -25px;
+        line-height: 30px;
+        transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+        .delete-circle-btn:hover {
+            /* background: rgba(204, 0, 0, 0.15);
+          
+            border-color: #a30000;
+            color: #2c3e50; */
+
+            background: rgba(204, 0, 0, 0.15);
+            /* transform: translateY(-2px); */
+        }
+        .deletemember-circle-btn
+        {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+
+            color: #cc0000;
+            background: transparent;
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-bottom:0;
+        margin-top: -15px;
+            transition: transform 0.2s ease;
+
+        }
+
+    .deletemember-circle-btn:hover {
+        /* background: rgba(204, 0, 0, 0.15);
+
+                border-color: #a30000;
+                color: #2c3e50; */
+
+        background: rgba(204, 0, 0, 0.15);
+        /* transform: translateY(-2px); */
+    }
+
+    .task-title {
+        display: -webkit-box;
+        -webkit-line-clamp: 2; /* ⬅ show max 2 lines */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 160px; /* adjust as needed */
+        line-height: 1.3rem;
+    }
+    /* .task-description
+    {
+        display: -webkit-box;
+        -webkit-line-clamp: 2; 
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 160px; 
+        line-height: 1.2rem;
+
+    } */
+
+    .desc-toggle-btn {
+        font-size: 12px;
+        border: none;
+        background: #d5dfe6;
+        color: black;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+    }
+
+        .desc-toggle-btn:hover {
+            text-decoration: underline;
+        }
+
+    .description-expanded {
+        white-space: pre-line;
+    }
+    .task-no-desc-gap {
+    margin-top: 12px;   
+    display: block;
+}
+
+.task-actions {
+    margin-top: auto;   
+    padding-top: 8px;   
+}
+
+</style>
+
+@* <div class="d-flex justify-content-start gap-2">
+    <button class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center"
+            style="width: 40px; height: 40px; padding: 0;"
+            @onclick="Back">
+        <i class="bi bi-arrow-left"></i>
+    </button>
+
+    <h3 class="fw-bold text-dark"> Projects</h3>
+</div> *@
+
+<div style="display: inline-block;">
+    <div class="d-flex justify-content-start gap-2">
+        <button class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center"
+                style="width: 40px; height: 40px; padding: 0;"
+                @onclick="Back">
+            <i class="bi bi-arrow-left"></i>
         </button>
+        <h2 class="fw-bold text-dark mb-0" style="font-family: 'Poppins', sans-serif;">
+        <i class="bi bi-kanban me-2"></i> @CurrentProject.Name
+    </h2>
     </div>
 
-    <!-- Show message if no boards -->
+    <div style="text-align: right; padding-left:110px; margin-top: 2px;">
+        <small class="text-dark">
+            Created on: @CurrentProject.CreatedDate?.ToString("dd MMM yyyy")
+        </small>
+    </div>
+</div>
+
+
+<div class="d-grid gap-4 mb-4 mt-4"
+     style="grid-template-columns: 2fr 2fr; align-items:start;">
+
+    <!-- Managers Card (Top-Left) -->
+     <div class="card shadow-sm rounded-4"
+         style="min-width: 530px;">
+
+       
+        <div class="d-flex justify-content-between align-items-center px-3 py-1 rounded-top"
+             style="background: linear-gradient(135deg, #283048, #859398);
+ color:white;">
+            <h6 class="fw-bold m-0">Managers</h6>
+            <div class="d-flex gap-3 ">
+                <div class="d-flex align-items-center">
+                    <span class="badge  badge-tall bg-light text-dark">@managers.Count</span>
+                </div>
+            <button class="btn  btn-light"
+                        style=" width:25px; height:25px; border-radius:50%; padding:0;"
+                    @onclick="ShowMangerModal">
+                <i class="bi bi-plus-lg"></i>
+            </button>
+            </div>
+
+
+        </div>
+        
+
+       <div class="card-body p-3">
+            <div class="d-flex gap-3 overflow-x-auto py-2">
+        @foreach (var manager in managers)
+        {
+            <div class="d-flex align-items-center">
+                  <div class="rounded-circle   me-3 d-flex align-items-center justify-content-center"
+                             style="width:50px; height:50px; border:1px solid #283048 ;">
+
+                            <span class="fw-bold fs-5">@GetInitials(manager.Name)</span>
+                        </div>
+                <div>
+                            <div class="fw-semibold" style="padding-top:0.6rem; padding-bottom:0.3rem">@manager.Name</div>
+                    @* <div class="text-muted small">@manager.Role</div> *@
+                </div>
+                        <button type="button"
+                                class="btn btn-sm delete-circle-btn"
+                                @onclick="() => OpenDeleteManagerConfirm(manager.Id)">
+                            <span padding-bottom:2px;>-</span>
+                        </button>
+              
+              
+                
+                    <div class="vr mx-3" style="height: 40px;"></div>
+                
+                        
+            </div>
+        }
+    </div>
+</div>
+    </div>
+    @if (showManagerModal)
+    {
+        
+
+
+        <div class="modal-overlay d-flex justify-content-center align-items-center">
+            <div class="modal-content shadow-lg rounded-4 p-4"
+                 style="width: 500px; background-color:#ecf0f1;">
+
+                <h5 class="fw-bold mb-3 text-center" style="color:#2c3e50;">
+                    Select Managers
+                </h5>
+
+                <!-- Manager Select Form -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="color:#2c3e50;">
+                        Choose Managers
+                    </label>
+
+                    <select class="form-select" @bind="selectedManagerId" @key="selectedManagerId">
+                        <option value="0" disabled selected hidden>Select managers</option>
+                       
+
+                        @foreach (var m in allManagers)
+                        {
+                            <option value="@m.Id">@m.Name</option>
+                        }
+                    </select>
+                    @if (managerError != null)
+                    {
+                        <div class="text-danger mb-2">@managerError</div>
+                    }
+                </div>
+
+                <button class="btn btn-primary mb-3"
+                        style="background-color:#2c3e50;"
+                        @onclick="AddManagerToSelection">
+                    Add Manager
+                </button>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="color:#2c3e50;">
+                        Selected Managers:
+                    </label>
+
+                    @if (selectedManagers.Count == 0)
+                    {
+                        <div class="text-muted">No managers selected</div>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var m in selectedManagers)
+                            {
+                                <span class="tag-item">
+                                    @m.Name
+                                    <button type="button" class="remove-tag"
+                                            @onclick="() => RemoveManager(m.Id)">
+                                        ×
+                                    </button>
+                                </span>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <!-- Footer Buttons -->
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <button class="btn btn-secondary" @onclick="() => showManagerModal = false">
+                        Cancel
+                    </button>
+
+                    <button class="btn savebtn"
+                            
+                            @onclick="SaveManagerSelection">
+                        Save Selection
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    }
+    @if (showDeleteManagerConfirm)
+    {
+        <div class="modal-backdrop-custom"></div>
+
+        <div class="custom-modal">
+            <div class="custom-modal-header">
+                <h5 class="m-0 fw-bold">Confirm Delete</h5>
+                <button class="btn-close" @onclick="CloseDeleteConfirm"></button>
+            </div>
+
+            <div class="custom-modal-body">
+                <p class="text-dark">
+                    Are you sure you want to remove this manager from the project?
+                </p>
+            </div>
+
+            <div class="custom-modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseDeleteConfirm">
+                    Cancel
+                </button>
+
+                <button class="btn deletebtn" @onclick="DeleteManagerConfirmed">
+                    Remove
+                </button>
+            </div>
+        </div>
+    }
+
+
+
+
+    <!-- Members Card (Right Column — Spans Whole Height) -->
+ @*    <div class="card shadow-sm  rounded-4"
+         style="min-width: 200px; grid-row: span 2;">
+
+        <div class="d-flex justify-content-between align-items-center px-3 py-1 rounded-top"
+             style="background: linear-gradient(135deg, #283048, #859398);
+ color:white;">
+            <h6 class="fw-bold m-0">Members</h6>
+            <div class="d-flex gap-3 ">
+                <div class="d-flex align-items-center">
+                    <span class="badge badge-tall bg-light text-dark">@members.Count</span>
+                </div>
+                <button class="btn  btn-light"
+                        style=" width:25px; height:25px; border-radius:50%; padding:0;"
+                        @onclick="showMembermodel">
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+            </div>
+        </div>
+
+
+        <div class="card-body p-0" style="max-height: 360px; overflow-y: auto;">
+            @foreach (var mem in members)
+            {
+                
+
+                <div class="d-flex align-items-center justify-content-between px-3 py-1">
+                    <div class="d-flex align-items-center">
+                    <div class="rounded-circle   me-3 d-flex align-items-center justify-content-center"
+                         style="width:25px; height:25px; background: linear-gradient(135deg,#4a687f
+     );">
+
+                        <span class="fw-bold fs-7">@GetInitials(mem.Name)</span>
+                    </div>
+                    
+                    
+                        <div class="fw-semibold  fs-7 me-2">@mem.Name</div>
+                        </div>
+                 
+                        <button type="button"
+                            class="btn btn-sm delete-btn d-flex align-items-center" style="color:#2c3e50;"
+                        @onclick="() => OpenDeleteMemberConfirm(mem.Id)">
+                            <i class="bi bi-trash fs-6"></i>
+                        </button>
+
+                    </div>
+                    
+                
+
+               
+
+                @if (mem != members.Last())
+                {
+                    <hr class="m-0" />
+                }
+            }
+        </div>
+    </div>
+    @if (showMemberModel)
+    {
+        <div class="modal-overlay d-flex justify-content-center align-items-center">
+            <div class="modal-content shadow-lg rounded-4 p-4"
+                 style="width: 500px; background-color:#ecf0f1;">
+
+                <h5 class="fw-bold mb-3 text-center" style="color:#2c3e50;">
+                    Select Team Members
+                </h5>
+
+             
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="color:#2c3e50;">
+                        Choose Members
+                    </label>
+
+                    <select class="form-select"
+                            @bind="selectedMemberId" @key="selectedMemberId">
+                        <option value="0" disabled selected hidden>Select  members</option>
+
+                        @foreach (var m in allMembers)
+                        {
+                            <option value="@m.Id">@m.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <button class="btn btn-primary mb-3 "
+                        style="background-color:#2c3e50;"
+                        @onclick="AddMember">
+                    Add Member
+
+                </button>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="color:#2c3e50;">
+                        Selected Members:
+                    </label>
+
+                    @if (selectedMembers.Count == 0)
+                    {
+                        <div class="text-muted">No members selected</div>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var m in selectedMembers)
+                            {
+                                <span class="tag-item">
+                                    @m.Name
+                                    <button type="button" class="remove-tag"
+                                            @onclick="() => RemoveMember(m.Id)">
+                                        ×
+                                    </button>
+                                </span>
+                            }
+                        </div>
+                    }
+                </div>
+
+               
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <button class="btn btn-secondary"
+                            @onclick="() => showMemberModel = false">
+                        Cancel
+                    </button>
+
+                    <button class="btn savebtn"
+                            
+                            @onclick="SaveSelection"  >
+                        Save Selection
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    }
+    @if (showDeleteMemberConfirm)
+    {
+        <div class="modal-backdrop-custom"></div>
+
+        <div class="custom-modal">
+            <div class="custom-modal-header">
+                <h5 class="m-0 fw-bold">Confirm Delete</h5>
+                <button class="btn-close" @onclick="CloseDeleteMemberConfirm"></button>
+            </div>
+
+            <div class="custom-modal-body">
+                <p class="text-dark">
+                    Are you sure you want to remove this member from the project?
+                </p>
+            </div>
+
+            <div class="custom-modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseDeleteMemberConfirm">
+                    Cancel
+                </button>
+
+                <button class="btn deletebtn" @onclick="DeleteMemberConfirmed">
+                    Remove
+                </button>
+            </div>
+        </div>
+    } *@
+
+    <!-- Sprints Card (Below Manager, Left Column) -->
+    <div class="card shadow-sm rounded-4"
+         style="min-width: 520px; ">
+
+        <div class="d-flex justify-content-between align-items-center px-3 py-1 rounded-top"
+             style="background: linear-gradient(135deg, #283048, #859398);
+ color:white;">
+            <h6 class="fw-bold m-0">Active Sprints</h6>
+           
+            <div class="d-flex gap-3 ">
+                @* <div class="d-flex align-items-center">
+                    <span class="badge badge-tall bg-light text-dark">@projectSprints.Count</span>
+                </div> *@
+                @if (projectSprints.Count == 0)
+                {
+                    <button class="btn btn-sm btn-light"
+                    style=" width:25px; height:25px; border-radius:50%; padding:0;"
+                    @onclick="ShowSprintCreateForm"> 
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                }
+                else
+                {
+                    <button class="btn btn-sm btn-light"
+                            style=" width:25px; height:25px; border-radius:50%; padding:0;"
+                            @onclick="()=>OpenSprintEdit(projectSprints.First())">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                }
+            </div>
+        </div>
+
+
+        <div class="card-body p-0" style="max-height: 300px; overflow-y: auto;">
+            @foreach (var s in projectSprints)
+            {
+                <div class="p-3">
+                    <div class="fw-semibold">@s.Name</div>
+
+                    <div class="text-muted small">
+                        @s.StartDate.ToString("MMM dd") - @s.EndDate.ToString("MMM dd, yyyy")
+                    </div>
+
+             
+
+                    <span class="badge mt-2
+                                @(s.Status == "Active" ? "bg-success"
+                                                        : s.Status == "Planning" ? "bg-info"
+                                                        : "bg-secondary")">
+                    @s.Status
+                </span>
+            </div>
+
+            @if (s != projectSprints.Last())
+                {
+                    <hr class="m-0" />
+                }
+            }
+        </div>
+    </div>
+
+     @if (showSprintCreateForm)
+     {
+
+    <div class="mt-4">
+        <AddSprint  ProjectId="@ProjectId" OnSaved="HandleSprintSaved" OnCancel="HandleSprintCancelled" />
+    </div>
+}
+@if (showSprintEditForm)
+{
+    <EditSprintcomponent SprintToEdit="@sprintToEdit"
+                OnUpdated="HandleSprintUpdated"
+                OnCancel="CancelSprintEdit" />
+
+                
+    
+}
+
+</div>
+
+
+<div class="d-grid gap-4 mb-4 mt-4"
+     style="grid-template-columns: 2fr 1fr; align-items:start;">
+<div class="card shadow-sm  rounded-4 mb-4" style="min-width: 850px;">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center px-3 py-1 rounded-top"
+         style="background: linear-gradient(135deg, #283048, #859398);
+ color:white;">
+        <h6 class="fw-bold m-0">Boards</h6>
+        <div class="d-flex gap-3 ">
+            <div class="d-flex align-items-center">
+                <span class="badge badge-tall bg-light text-dark">@Boards.Count</span>
+            </div>
+            <button class="btn btn-sm btn-light"
+                    style=" width:25px; height:25px; border-radius:50%; padding:0;"
+                     @onclick="ShowAddBoardForm" >
+                <i class="bi bi-plus-lg"></i>
+            </button>
+        </div>
+       
+    </div>
+
+
+
+
     @if (Boards.Count == 0)
     {
         <div class="text-center text-muted mt-5">
             <i class="bi bi-kanban fs-1 mb-3 d-block"></i>
             <h5>No boards yet</h5>
-            <p class="small">Click <strong>"New Board"</strong> to create your first board.</p>
+            @* <p class="small">Click <strong>"New Board"</strong> to create your first board.</p> *@
         </div>
     }
     else
     {
-        <!-- Board Columns -->
+       
         <div class="d-flex flex-nowrap gap-3 overflow-auto">
             @foreach (var board in Boards)
             {
+              
                 <div class="kanban-column bg-white rounded-4 shadow-sm p-3 flex-shrink-0" style="width: 270px;">
+                   
+                     
+                     
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="fw-bold">@board.Name</h6>
+                            @if (editingBoardId == board.Id)
+                            {
+                                <input class="form-control form-control-sm"
+                                       style="width:130px;"
+                                       @bind="editingBoardName"
+                                       @bind:event="oninput"
+                                       @onblur="() => SaveBoardName(board)"
+                                       @onkeydown="(e => OnBoardNameKeyDown(e, board))" />
+                            }
+                            else
+                            {
+                                <h6 class="fw-bold" @onclick="() => StartEditingBoard(board)">
+                                    @board.Name
+                                </h6>
+                            }
+
+                        <div class="d-flex gap-2 align-items-center">
+                        <button class="btn btn-sm delete-btn" style="color:#2c3e50;"
+                                @onclick="() => OpenDeleteBoardConfirm(board)">
+                                <i class="bi  bi-x-lg fs-5"></i>
+                        </button>
                         <span class="badge bg-secondary">@board.TaskItems.Count task@(board.TaskItems.Count > 1 ? "s" : "")</span>
+                        </div>
                     </div>
-
-                    <div class="kanban-tasks" style="max-height: 400px; overflow-y: auto;">
-                        @foreach (var task in board.TaskItems)
+                    <hr class="border border-dark">
+                    <div class="kanban-dropzone"
+                         @ondragover="OnTaskDragOver"
+                         @ondragover:preventDefault
+                         @ondrop="@(e => OnTaskDropToEmpty(e, board))" @ondrop:stopPropagation
+                         >
+                    <div class="kanban-tasks">
+                        @foreach (var task in board.TaskItems.OrderBy(t=>t.Order))
                         {
-                            <div class="task-card bg-light rounded-3 p-3 mb-3 shadow-sm">
-                                <h6 class="fw-semibold">@task.Title</h6>
-                                <p class="text-muted small">@task.Description</p>
+                                    <div class="task-card bg-light rounded-3 p-3 mb-3 shadow-sm @GetPriorityBorder(task.Priority)"
+                                 draggable="true"
+                                
+                                  @ondragstart="(e) => OnTaskDragStart(e, board, task)"
+                               
+                                 @ondrop="(e) => OnTaskDrop(e, board, task)" @ondrop:preventDefault
+                                     @ondrop:stopPropagation>
+                               <div class="d-flex justify-content-between ">
+                                    
+                                        <h6 class="fw-semibold mb-1 task-title">@task.Title</h6>
 
-                                @if (task.Status == "Done")
+                                    <div class="dropdown" data-bs-auto-close="false" @onclick:stopPropagation @onmousedown:stopPropagation>
+                                            <button class="btn btn-sm btn-light" type="button" data-bs-toggle="dropdown" >
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+
+                                            <ul class="dropdown-menu shadow rounded-3">
+
+                                                <!-- ASSIGN USERS -->
+                                                <li class="dropdown-submenu">
+                                                    <a class="dropdown-item dropdown-toggle">
+                                                        <i class="bi bi-person-plus me-2"></i>Members
+                                                    </a>
+                                                        <ul class="dropdown-menu dropdown-submenu-menu p-2" style="width:220px;">
+                                                            <div class="fw-semibold small mb-2">Select Members</div>
+
+                                                            @foreach (var user in members)
+                                                            {
+                                                                <div class="form-check mb-1">
+                                                                    <input class="form-check-input"
+                                                                           type="checkbox"
+                                                                           value="@user.Id"
+                                                                           checked="@IsUserAssigned(task, user.Id)"
+                                                                           @onchange="(e) => ToggleMemberSelection(task, user.Id, e.Value)">
+                                                                    <label class="form-check-label">
+                                                                        @user.Name
+                                                                    </label>
+                                                                </div>
+                                                            }
+
+                                                            <button class="btn btn-sm mt-2 w-100"
+                                                                    @onclick="() => SaveMultiMemberAssignment(task)" style="background-color:#2c3e50;color:white">
+                                                                Save
+                                                            </button>
+                                                        </ul>
+                                                 
+                                                </li>
+
+                                              
+
+                                            </ul>
+                                </div>
+                              </div>
+
+                                        @if (task.TaskAssignments != null && task.TaskAssignments.Any())
+                                        {
+
+                                            var assignedMembers = members
+                                            .Where(m => task.TaskAssignments.Any(a => a.AppUserId == m.Id))
+                                            .ToList();
+
+
+                                            <div class="task-avatar-stack mt-2">
+
+
+                                                @foreach (var mem in assignedMembers.Take(3))
+                                                {
+
+                                                    <div class="task-avatar" title="@mem.Name">
+                                                        @GetInitials(mem.Name)
+                                                    </div>
+                                                }
+
+
+                                                @if (assignedMembers.Count > 3)
+                                                {
+
+                                                    <div class="task-avatar">
+                                                        +@(assignedMembers.Count - 3)
+                                                    </div>
+
+                                                }
+
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="fw-normal">0 members </div>
+                                        }
+
+
+                                        <div>
+
+                                            @if (!string.IsNullOrWhiteSpace(task.Description))
+                                            {
+                                                bool showPreview = task.Description.Length > 60;
+
+                                                <!-- Description -->
+                                            @if (expandedDescriptions.Contains(task.Id))
+                                            {
+                                                <p class="text-muted small mt-1 description-expanded">
+                                                    @task.Description
+                                                </p>
+                                            }
+                                            else
+                                            {
+                                                <p class="text-muted small mt-1"
+                                                   style="
+                                                  max-height: 40px;
+                                                  overflow: hidden;
+                                                  display: -webkit-box;
+                                                 -webkit-line-clamp: 1;
+                                                   -webkit-box-orient: vertical;">
+                                                    @task.Description
+                                                </p>
+                                            }
+                                                @if (showPreview)
+                                                {
+                                            <button class="desc-toggle-btn"
+                                                    @onclick="() => ToggleDescription(task)">
+                                                @(expandedDescriptions.Contains(task.Id) ? "Hide Description ↑" : "Preview ↓")
+                                            </button>
+                                            }
+                                            }
+                                            else
+                                            {
+                                                 <div class="task-no-desc-gap"></div> <!-- ⭐ ADD THIS -->
+                                                  }
+
+                                        </div>
+
+
+                                @* <div class="d-flex justify-content-between align-items-start"> 
+                                <p class="text-muted small task-description">@task.Description</p>
+                                <button class="btn btn-sm btn-outline-secondary ms-2" @onclick="()=>OpenDescriptionPreview(task)"> Preview</button>
+                                        </div>
+
+                                        @if (showDescriptionModal)
+                                        {
+                                            <div class="modal-backdrop-custom"></div>
+
+                                            <div class="custom-modal" style="width:450px;">
+                                                <div class="custom-modal-header">
+                                                    <h5 class="m-0 fw-bold">Task Description</h5>
+                                                    <button class="btn-close" @onclick="closeDescriptionPreview"></button>
+                                                </div>
+
+                                                <div class="custom-modal-body">
+                                                    <p class="text-dark" style="white-space: pre-line;">
+                                                        @selectedDescription
+                                                    </p>
+                                                </div>
+
+                                                <div class="custom-modal-footer">
+                                                    <button class="btn btn-secondary" @onclick="closeDescriptionPreview">
+                                                        Close
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        } *@
+
+                                  
+
+                                @*     @if (task.Status == "Done")
                                 {
                                     <small class="text-success fw-semibold">Completed: @task.DueDate?.ToString("MMM dd")</small>
                                 }
                                 else
                                 {
                                     <small class="text-danger fw-semibold">Due: @task.DueDate?.ToString("MMM dd")</small>
-                                }
+                                } *@
+                                        @* @if (task.Status == "Done")
+                                        {
+                                            <small class="text-success fw-semibold">
+                                                Completed: @task.DueDate?.ToString("MMM dd")
+                                            </small>
+                                        }
+                                        else
+                                        {
+                                            if (task.DueDate.HasValue && task.DueDate.Value.Date < DateTime.Today)
+                                            {
+                                                <small class="text-danger fw-bold">
+                                                    Overdue: @task.DueDate?.ToString("MMM dd")
+                                                </small>
+                                            }
+                                            else
+                                            {
+                                                <small class="text-warning fw-semibold">
+                                                    Due: @task.DueDate?.ToString("MMM dd")
+                                                </small>
+                                            }
+                                        } *@
+                                        @if (task.IsCompleted)
+                                        {
+                                            <small class="text-success fw-semibold">
+                                                Completed: @task.CompletedDate?.ToString("MMM dd")
+                                            </small>
+                                        }
+                                        else
+                                        {
+                                            if (task.DueDate.HasValue && task.DueDate.Value.Date < DateTime.Today)
+                                            {
+                                                <small class="text-danger fw-bold">
+                                                    Overdue: @task.DueDate?.ToString("MMM dd")
+                                                </small>
+                                            }
+                                            else
+                                            {
+                                                <small class="text-warning fw-semibold">
+                                                    Due: @task.DueDate?.ToString("MMM dd")
+                                                </small>
+                                            }
+                                        }
+                                
 
+                                    
+                                <div class="task-actions">
                                 <div class="d-flex justify-content-end gap-2 mt-2">
-                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></button>
-                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveTask(board, task)">
+                                    <button class="btn btn-sm btn-outline-primary" @onclick="()=>OpenUpdateTaskModal(board,task)"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => OpenTaskDeleteConfirm(board, task)">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </div>
+                                </div>
+                            
                             </div>
+                           
                         }
-                    </div>
+                        </div>
+                        </div>
+
 
                     <!-- Add Task -->
                     <button class="btn btn-outline-secondary w-100 border-dashed mt-2" @onclick="() => OpenAddTaskModal(board)">
@@ -69,25 +1138,31 @@
                     </button>
 
                 </div>
+
+
             }
         </div>
     }
     @if (showAddBoard)
     {
         <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center" style="z-index:1050;">
+             <EditForm Model="@boardModel" OnValidSubmit="ConfirmAddBoard">
+        <DataAnnotationsValidator />
             <div class="bg-white rounded-4 shadow-lg p-4" style="width:400px;">
                 <h5 class="fw-bold mb-3 text-center">Add New Board</h5>
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Board Name</label>
-                    <input type="text" class="form-control" @bind="newBoardName" placeholder="Enter board name" />
+                    <label class="form-label fw-semibold">Board Name<span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" @bind="boardModel.Name" placeholder="Enter board name" />
+                        <ValidationMessage For="@(() => boardModel.Name)" />
                 </div>
 
                 <div class="d-flex justify-content-end gap-2">
                     <button class="btn btn-outline-secondary" @onclick="CancelAddBoard">Cancel</button>
-                    <button class="btn btn-primary" @onclick="ConfirmAddBoard">Add Board</button>
+                    <button class="btn btn-board savebtn"  >Add Board</button> 
                 </div>
             </div>
+            </EditForm>
         </div>
     }
 
@@ -96,75 +1171,466 @@
         <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center" style="z-index:1050;">
             <div class="bg-white rounded-4 shadow-lg p-4" style="width:400px;">
                 <h5 class="fw-bold mb-3 text-center">Add New Task</h5>
-
+          <EditForm Model="newTask" OnValidSubmit="ConfirmAddTask">
+                <DataAnnotationsValidator />
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Title</label>
-                    <input type="text" class="form-control" @bind="newTask.Title" placeholder="Enter task title" />
+                    <label class="form-label fw-semibold">Title<span class="text-danger">*</span></label>
+                    <InputText class="form-control" @bind-Value="newTask.Title" placeholder="Enter task title" />
+                        <ValidationMessage For="@(() => newTask.Title)" />
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Description</label>
-                    <textarea class="form-control" rows="3" @bind="newTask.Description" placeholder="Enter task details..."></textarea>
+                    <InputTextArea class="form-control" rows="3" @bind-Value="newTask.Description" placeholder="Enter task details..."></InputTextArea>
+                        <ValidationMessage For="@(() => newTask.Description)" />
+                    
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Due Date</label>
-                    <input type="date" class="form-control" @bind="newTask.DueDate" />
+
+                    <label class=" form-label fw-semibold">Priority<span class="text-danger">*</span></label>
+                    <InputSelect class="form-select" @bind-Value="newTask.Priority">
+                            <option value="">-- Select Priority --</option>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                    </InputSelect>
+                        <ValidationMessage For="@(() => newTask.Priority)" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Due Date<span class="text-danger">*</span></label>
+                    <InputDate class="form-control" @bind-Value="newTask.DueDate" />
+                        <ValidationMessage For="@(() => newTask.DueDate)" />
                 </div>
 
                 <div class="d-flex justify-content-end gap-2">
                     <button class="btn btn-outline-secondary" @onclick="CancelAddTask">Cancel</button>
-                    <button class="btn btn-primary" @onclick="ConfirmAddTask">Add Task</button>
+                    <button class="btn savebtn" type="submit">Add Task</button>
                 </div>
+                </EditForm>
+            </div>
+            
+        </div>
+        }
+
+        @if (showUpdateTaskModal)
+        {
+            <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50
+                    d-flex align-items-center justify-content-center" style="z-index:1050;">
+                <div class="bg-white rounded-4 shadow-lg p-4" style="width:400px;">
+
+                    <h5 class="fw-bold mb-3 text-center">Update Task</h5>
+
+                    <EditForm Model="@editTask" OnValidSubmit="ConfirmUpdateTask">
+                        <DataAnnotationsValidator />
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Title<span class="text-danger">*</span></label>
+                            <InputText class="form-control" @bind-Value="editTask.Title" />
+                            <ValidationMessage For="@(() => editTask.Title)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Description</label>
+                            <InputTextArea class="form-control" rows="3" @bind-Value="editTask.Description" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Priority<span class="text-danger">*</span></label>
+                            <InputSelect class="form-select" @bind-Value="editTask.Priority">
+                                <option value="">-- Select Priority --</option>
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                            </InputSelect>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Due Date<span class="text-danger">*</span></label>
+                            <InputDate class="form-control" @bind-Value="editTask.DueDate" />
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-3">
+                            <button class="btn btn-outline-secondary" @onclick="CloseUpdateTaskModal">Cancel</button>
+                            <button class="btn savebtn" type="submit">Update</button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        }
+
+    @if (showDeleteBoardConfirm)
+    {
+        <div class="modal-backdrop-custom"></div>
+
+        <div class="custom-modal">
+            <div class="custom-modal-header">
+                <h5 class="m-0 fw-bold">Delete Board</h5>
+                <button class="btn-close" @onclick="CloseDeleteBoardConfirm"></button>
+            </div>
+
+            <div class="custom-modal-body">
+                <p class="text-dark">
+                    Are you sure you want to delete the board <strong>@boardToDelete?.Name</strong>?
+                    All tasks inside this board will also be removed.
+                </p>
+            </div>
+
+            <div class="custom-modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseDeleteBoardConfirm">Cancel</button>
+                <button class="btn deletebtn" @onclick="DeleteBoardConfirmed">Delete</button>
             </div>
         </div>
     }
 
+    @if (showTaskDeleteConfirm)
+    {
+        <div class="modal-backdrop-custom"></div>
 
-</div>
+        <div class="custom-modal">
+            <div class="custom-modal-header">
+                <h5 class="m-0 fw-bold">Confirm Delete</h5>
+                <button class="btn-close" @onclick="CloseTaskDeleteConfirm"></button>
+            </div>
 
-<style>
-    .kanban-column:hover {
-        transform: translateY(-3px);
-        transition: all 0.2s ease-in-out;
+            <div class="custom-modal-body">
+                <p class="text-dark">
+                    Are you sure you want to delete this task?
+                </p>
+            </div>
+
+            <div class="custom-modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseTaskDeleteConfirm">
+                    Cancel
+                </button>
+
+                <button class="btn deletebtn" @onclick="DeleteTaskConfirmed">
+                    Delete
+                </button>
+            </div>
+        </div>
     }
+    </div>
+           <div class="card shadow-sm  rounded-4"
+         style="min-width: 200px; grid-row: span 2;">
 
-    .task-card:hover {
-        background-color: #f8f9fa;
-        transform: translateY(-2px);
-        transition: all 0.2s ease-in-out;
-    }
+        <div class="d-flex justify-content-between align-items-center px-3 py-1 rounded-top"
+             style="background: linear-gradient(135deg, #283048, #859398);
+ color:white;">
+            <h6 class="fw-bold m-0">Members</h6>
+            <div class="d-flex gap-3 ">
+                <div class="d-flex align-items-center">
+                    <span class="badge badge-tall bg-light text-dark">@members.Count</span>
+                </div>
+                <button class="btn  btn-light"
+                        style=" width:25px; height:25px; border-radius:50%; padding:0;"
+                        @onclick="showMembermodel">
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+            </div>
+        </div>
 
-    .border-dashed {
-        border-style: dashed;
-    }
 
-    .kanban-tasks::-webkit-scrollbar {
-        width: 6px;
-    }
+        <div class="card-body p-0" style="max-height: 360px; overflow-y: auto;">
+            @foreach (var mem in members)
+            {
+                
 
-    .kanban-tasks::-webkit-scrollbar-thumb {
-        background: #ccc;
-        border-radius: 4px;
+                <div class="d-flex align-items-center justify-content-between  px-3 py-2 ">
+                    <div class="d-flex align-items-center">
+                    <div class="rounded-circle   me-3 d-flex align-items-center justify-content-center"
+                             style="width:25px; height:25px; border:1px solid #283048" >
+
+                        <span class="fw-bold fs-8">@GetInitials(mem.Name)</span>
+                    </div>
+
+
+                        <div class=" fw-semibold  fs-6 me-2">@mem.Name</div>
+                        </div>
+                 
+                        <button type="button"
+                            class="btn btn-sm deletemember-circle-btn d-flex align-items-center" 
+                        @onclick="() => OpenDeleteMemberConfirm(mem.Id)">
+                            <span>-</span>
+                        </button>
+
+                    </div>
+                    
+                
+
+               
+
+                @if (mem != members.Last())
+                {
+                    <hr class="m-0" />
+                }
+            }
+        </div>
+    </div>
+    @if (showMemberModel)
+    {
+        <div class="modal-overlay d-flex justify-content-center align-items-center">
+            <div class="modal-content shadow-lg rounded-4 p-4"
+                 style="width: 500px; background-color:#ecf0f1;">
+
+                <h5 class="fw-bold mb-3 text-center" style="color:#2c3e50;">
+                    Select Team Members
+                </h5>
+
+             
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="color:#2c3e50;">
+                        Choose Members
+                    </label>
+
+                    <select class="form-select"
+                            @bind="selectedMemberId" @key="selectedMemberId">
+                        <option value="0" disabled selected hidden>Select  members</option>
+
+                        @foreach (var m in allMembers)
+                        {
+                            <option value="@m.Id">@m.Name</option>
+                        }
+                    </select>
+                    @if (!string.IsNullOrEmpty(memberError))
+                    {
+                        <div class="text-danger mt-1">@memberError</div>
+                    }
+                </div>
+
+                <button class="btn btn-primary mb-3 "
+                        style="background-color:#2c3e50;"
+                        @onclick="AddMember">
+                    Add Member
+
+                </button>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="color:#2c3e50;">
+                        Selected Members:
+                    </label>
+
+                    @if (selectedMembers.Count == 0)
+                    {
+                        <div class="text-muted">No members selected</div>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var m in selectedMembers)
+                            {
+                                <span class="tag-item">
+                                    @m.Name
+                                    <button type="button" class="remove-tag"
+                                            @onclick="() => RemoveMember(m.Id)">
+                                        ×
+                                    </button>
+                                </span>
+                            }
+                        </div>
+                    }
+                </div>
+
+               
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <button class="btn btn-secondary"
+                            @onclick="() => showMemberModel = false">
+                        Cancel
+                    </button>
+
+                    <button class="btn savebtn"
+                            
+                            @onclick="SaveSelection"  >
+                        Save Selection
+                    </button>
+                </div>
+
+            </div>
+        </div>
     }
-</style>
+    @if (showDeleteMemberConfirm)
+    {
+        <div class="modal-backdrop-custom"></div>
+
+        <div class="custom-modal">
+            <div class="custom-modal-header">
+                <h5 class="m-0 fw-bold">Confirm Delete</h5>
+                <button class="btn-close" @onclick="CloseDeleteMemberConfirm"></button>
+            </div>
+
+            <div class="custom-modal-body">
+                <p class="text-dark">
+                    Are you sure you want to remove this member from the project?
+                </p>
+            </div>
+
+            <div class="custom-modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseDeleteMemberConfirm">
+                    Cancel
+                </button>
+
+                <button class="btn deletebtn" @onclick="DeleteMemberConfirmed">
+                    Remove
+                </button>
+            </div>
+        </div>
+    }
+    </div>
+   
+
+
+
 
 @code {
     [Parameter]
     public int ProjectId { get; set; }
     private bool showAddBoard = false;
-    private string newBoardName = "";
+    // private string newBoardName = "";
     private List<BoardDto> Boards = new();
     private ProjectDto CurrentProject = new();
     private bool showTaskModal = false;
     private BoardDto? selectedBoard;
     private TaskItemDto newTask = new();
+    private int editingBoardId = 0;
+    private string editingBoardName = "";
+
+    private TaskItemDto draggedTask;
+    private BoardDto draggedFromBoard;
+
+    private bool showAssignUsersModal = false;
+    private bool showAssignSprintModal = false;
+    private TaskItemDto selectedMenuTask;
+    private bool dropHandled = false;
+
+    // User assignment
+    private List<AppUserDto> allUsers = new();
+    private List<int> selectedUserIds = new();
+
+    // Sprint assignment
+    private List<SprintDto> Sprints = new();
+    private int? selectedSprintId;
+
+    private BoardDto boardModel = new();
+
+    private List<ManagerDto> managers = new();
+    private List<SprintDto> projectSprints = new();
+    private List<MemberDto> members = new();
+    private List<MemberDto> allMembers = new();
+    private List<MemberDto> selectedMembers = new();
+    private bool showMemberModel = false;
+    private int selectedMemberId;
+
+    private bool showManagerModal = false;
+    private List<ManagerDto> allManagers=new();
+    private List<ManagerDto> selectedManagers=new();
+    private int selectedManagerId;
+
+    private string? managerError;
+    private bool showDeleteManagerConfirm = false;
+    private int managerToDelete;
+    private bool showDeleteMemberConfirm = false;
+    private int memberToDelete;
+    private bool showTaskDeleteConfirm = false;
+    private TaskItemDto taskToDelete;
+    private BoardDto boardOfTaskToDelete;
+    private bool showDeleteBoardConfirm = false;
+    private BoardDto boardToDelete;
+    private bool showSprintCreateForm = false;
+    private bool showUpdateTaskModal = false;
+    private TaskItemDto editTask = new();
+    private BoardDto? editTaskBoard;
+    // private bool showDescriptionModal=false;
+    // private string selectedDescription = "";
+    private HashSet<int> expandedDescriptions = new();
+    private string? memberError;
+    private bool showSprintEditForm=false;
+    private SprintDto? sprintToEdit;
+
 
     protected override async Task OnInitializedAsync()
     {
 
+        // CurrentProject = await Http.GetFromJsonAsync<ProjectDto>($"api/Project/{ProjectId}");
+        // Boards = CurrentProject.Boards.ToList() ?? new List<BoardDto>();
+        // managers = await Http.GetFromJsonAsync<List<ManagerDto>>($"api/Project/{ProjectId}/Managers")
+        //        ?? new List<ManagerDto>();
+        // projectSprints=await Http.GetFromJsonAsync<List<SprintDto>>($"api/sprint/Project/{ProjectId}") ?? new();
+        // members = await Http.GetFromJsonAsync<List<MemberDto>>
+        //         ($"api/Project/{ProjectId}/Members")
+        //     ?? new List<MemberDto>();
+
+        await LoadProject();
+        // await LoadMembers();
+
+    }
+    private void Back()
+    {
+        nav.NavigateTo("/dashboard");
+    }
+
+    private async Task LoadProject()
+    {
         CurrentProject = await Http.GetFromJsonAsync<ProjectDto>($"api/Project/{ProjectId}");
-        Boards = CurrentProject.Boards.ToList() ?? new List<BoardDto>();
+        Boards = CurrentProject.Boards?.ToList() ?? new();
+        managers = await Http.GetFromJsonAsync<List<ManagerDto>>($"api/Project/{ProjectId}/Managers") ?? new();
+
+        // var sprint = await Http.GetFromJsonAsync<SprintDto>($"api/sprint/project/{ProjectId}");
+        // projectSprints = sprint != null ? new List<SprintDto> { sprint } : new();
+        // projectSprints = await Http.GetFromJsonAsync<List<SprintDto>>($"api/sprint/Project/{ProjectId}") ?? new();
+
+        var response = await Http.GetAsync($"api/sprint/project/{ProjectId}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            var sprintt = await response.Content.ReadFromJsonAsync<SprintDto>();
+            projectSprints = sprintt != null
+                ? new List<SprintDto> { sprintt }
+                : new List<SprintDto>();
+        }
+        else
+        {
+            projectSprints = new List<SprintDto>(); 
+        }
+
+        members = await Http.GetFromJsonAsync<List<MemberDto>>($"api/Project/{ProjectId}/Members") ?? new();
+    }
+    private async Task LoadMembers()
+    {
+
+        allMembers = await Http.GetFromJsonAsync<List<MemberDto>>("api/Member/memberslist")
+                 ?? new List<MemberDto>();
+
+    }
+    // string GetPriorityClass(string priority)
+    // {
+    //     if (string.IsNullOrWhiteSpace(priority))
+    //         return "priority-medium";
+    //     return priority.ToLower() switch
+
+    //     {
+    //         "low" => "priority-low",
+    //         "medium" => "priority-medium",
+    //         "high" => "priority-high"
+
+    //     };
+    // }
+    string GetPriorityBorder(string? priority)
+    {
+        if (string.IsNullOrWhiteSpace(priority))
+            return "priority-low"; 
+
+        switch (priority.Trim().ToLowerInvariant())
+        {
+            case "low":
+                return "priority-low-border";
+            case "medium":
+                return "priority-medium-border";
+            case "high":
+                return "priority-high-border";
+            default:
+                return "priority-low-border"; 
+        }
     }
 
     private void ShowAddBoardForm() => showAddBoard = true;
@@ -174,14 +1640,452 @@
         showAddBoard = false;
 
     }
+    private void StartEditingBoard(BoardDto board)
+    {
+        editingBoardId = board.Id;
+        editingBoardName = board.Name;
+    }
+    private async Task OnBoardNameKeyDown(KeyboardEventArgs e, BoardDto board)
+    {
+        if (e.Key == "Enter")
+            await SaveBoardName(board);
+    }
+    private async Task SaveBoardName(BoardDto board)
+    {
+        if (string.IsNullOrWhiteSpace(editingBoardName))
+        {
+            editingBoardId = 0;
+            return;
+        }
+
+        if (board.Name != editingBoardName)
+        {
+            var response = await Http.PutAsJsonAsync(
+                $"api/Board/{board.Id}/Rename",
+                editingBoardName
+            );
+
+            if (response.IsSuccessStatusCode)
+            {
+                board.Name = editingBoardName;
+            }
+            else
+            {
+                Console.WriteLine("Failed to update board name!");
+            }
+        }
+
+        editingBoardId = 0;
+    }
+
+
+    private void OpenDeleteBoardConfirm(BoardDto board)
+    {
+        boardToDelete=board;
+        showDeleteBoardConfirm = true;
+    }
+    private void CloseDeleteBoardConfirm()
+    {
+        boardToDelete = null;
+        showDeleteBoardConfirm = false;
+    }
+
+    private async Task DeleteBoardConfirmed()
+    {
+        if (boardToDelete != null)
+        {
+            Boards.Remove(boardToDelete);
+            CurrentProject.Boards = Boards;
+
+            await SaveProject(); // already implemented
+
+
+        }
+
+        showDeleteBoardConfirm = false;
+        boardToDelete = null;
+    }
+
+    private void ShowSprintCreateForm()
+    {
+        showSprintCreateForm = true;
+    }
+    private async Task HandleSprintSaved()
+    {
+        showSprintCreateForm = false;
+
+
+        // Sprints = await Http.GetFromJsonAsync<List<SprintDto>>("api/sprint") ?? new();
+        @* FilterSprints(); *@
+        await LoadProject();
+    }
+
+    private Task HandleSprintCancelled()
+    {
+        showSprintCreateForm = false;
+        return Task.CompletedTask;
+    }
+    private void OpenSprintEdit(SprintDto sprint)
+    {
+        sprintToEdit = sprint;
+        showSprintEditForm = true;
+    }
+    private async Task HandleSprintUpdated()
+    {
+        showSprintEditForm = false;
+        sprintToEdit = null;
+
+        await LoadProject();   
+        StateHasChanged();
+    }
+
+    private void CancelSprintEdit()
+    {
+        showSprintEditForm = false;
+        sprintToEdit = null;
+    }
+
+    private bool IsUserAssigned(TaskItemDto task, int userId)
+    {
+        return task.TaskAssignments != null &&
+               task.TaskAssignments.Any(a => a.AppUserId == userId);
+    }
+
+
+    private void ToggleMemberSelection(TaskItemDto task, int memberId, object value)
+    {
+        bool isChecked = (bool)value;
+
+        if (task.TaskAssignments == null)
+            task.TaskAssignments = new List<TaskAssignmentDto>();
+
+        if (isChecked)
+        {
+            if (!task.TaskAssignments.Any(a => a.AppUserId == memberId))
+            {
+                task.TaskAssignments.Add(new TaskAssignmentDto
+                {
+                    AppUserId = memberId,
+                    TaskItemId = task.Id
+                });
+            }
+        }
+        else
+        {
+            var existing = task.TaskAssignments.FirstOrDefault(a => a.AppUserId == memberId);
+            if (existing != null)
+                task.TaskAssignments.Remove(existing);
+        }
+    }
+    private async Task SaveMultiMemberAssignment(TaskItemDto task)
+    {
+        // update project boards structure
+        foreach (var board in Boards)
+        {
+            var t = board.TaskItems.FirstOrDefault(x => x.Id == task.Id);
+            if (t != null)
+            {
+                t.TaskAssignments = task.TaskAssignments;
+                break;
+            }
+        }
+
+        await SaveProject();
+    }
+
+
+
+    // private async Task AssignUserToTask(TaskItemDto task, int userId)
+    // {
+    //     selectedMenuTask = task;
+
+    //     selectedUserIds = new() { userId };
+    //     await SaveAssignedUsers();
+    // }
+
+    private async Task AssignSprintToTask(TaskItemDto task, int sprintId)
+    {
+        selectedMenuTask = task;
+
+        selectedSprintId = sprintId;
+        await SaveAssignedSprint();
+    }
+
+    private void OpenUpdateTaskModal(BoardDto board, TaskItemDto task)
+    {
+        editTaskBoard = board;
+
+
+        editTask = new TaskItemDto
+        {
+            Id = task.Id,
+            Title = task.Title,
+            Description = task.Description,
+            Priority = task.Priority,
+            DueDate = task.DueDate,
+            BoardId = task.BoardId,
+
+
+            Order = task.Order,
+
+        };
+
+        showUpdateTaskModal = true;
+    }
+
+    // private void OpenDescriptionPreview(TaskItemDto task)
+    // {
+    //     selectedDescription = task.Description ?? "";
+    //     showDescriptionModal = true;
+    // }
+    // private void closeDescriptionPreview()
+    // {
+    //     showDescriptionModal=false;
+    //     selectedDescription = "";
+    // }
+    private void ToggleDescription(TaskItemDto task)
+    {
+        if (expandedDescriptions.Contains(task.Id))
+            expandedDescriptions.Remove(task.Id);
+        else
+            expandedDescriptions.Add(task.Id);
+    }
+    private async Task ConfirmUpdateTask()
+    {
+        if (editTaskBoard == null) return;
+
+        var response = await Http.PutAsJsonAsync($"api/TaskItem/{editTask.Id}", editTask);
+
+        if (response.IsSuccessStatusCode)
+        {
+            // Update UI
+            var original = editTaskBoard.TaskItems.FirstOrDefault(t => t.Id == editTask.Id);
+
+            if (original != null)
+            {
+                original.Title = editTask.Title;
+                original.Description = editTask.Description;
+                original.Priority = editTask.Priority;
+                original.DueDate = editTask.DueDate;
+                original.Order = editTask.Order;
+
+            }
+
+            showUpdateTaskModal = false;
+
+            await SaveProject(); 
+            StateHasChanged();
+        }
+        else
+        {
+            Console.WriteLine("Task update failed!");
+        }
+    }
+
+    private void CloseUpdateTaskModal()
+    {
+        showUpdateTaskModal = false;
+    }
+
+    private async Task ShowMangerModal()
+    {
+        allManagers = await Http.GetFromJsonAsync<List<ManagerDto>>("api/Manager/All")
+                 ?? new List<ManagerDto>();
+
+        // selectedManagers = managers      
+        //     .Select(m => new ManagerDto { Id = m.Id, Name = m.Name })
+        //     .ToList();
+        showManagerModal = true;
+    }
+
+    private void AddManagerToSelection()
+    {
+        managerError = null;
+
+        if (selectedManagerId == 0)
+        {
+            managerError = "Please select a manager before adding.";
+            return;
+        }
+        // if (selectedManagerId == 0) return;
+
+        var manager = allManagers.FirstOrDefault(m => m.Id == selectedManagerId);
+
+        if (manager != null && !selectedManagers.Any(s => s.Id == manager.Id))
+            selectedManagers.Add(manager);
+
+        selectedManagerId = 0;
+    }
+
+    private void RemoveManager(int id)
+    {
+        var m = selectedManagers.FirstOrDefault(x => x.Id == id);
+        if (m != null) selectedManagers.Remove(m);
+    }
+
+    private async Task SaveManagerSelection()
+    {
+        managerError = null; // reset first
+
+        // VALIDATION: At least 1 manager must be selected
+        if (selectedManagers.Count == 0)
+        {
+            managerError = "Please select at least one manager.";
+            StateHasChanged();   // re-render modal
+            return;              // STOP here → do not close modal
+        }
+        showManagerModal = false;
+
+        // StateHasChanged();
+
+
+        var managerIds = selectedManagers.Select(m => m.Id).ToList();
+
+        // Send to backend
+        await Http.PostAsJsonAsync(
+            $"api/Manager/{ProjectId}/Manager/Assign",
+            managerIds
+        );
+
+        // Refresh project
+        await LoadProject();
+        // StateHasChanged();
+    }
+
+    private void OpenDeleteManagerConfirm(int id)
+    {
+        managerToDelete = id;
+        showDeleteManagerConfirm = true;
+    }
+
+    private void CloseDeleteConfirm()
+    {
+        showDeleteManagerConfirm = false;
+    }
+
+    private async Task DeleteManagerConfirmed()
+    {
+        showDeleteManagerConfirm = false;
+
+        var response = await Http.DeleteAsync(
+            $"api/Manager/RemoveFromProject?projectId={ProjectId}&managerId={managerToDelete}"
+        );
+
+        if (response.IsSuccessStatusCode)
+        {
+            await LoadProject();
+            StateHasChanged();
+        }
+        else
+        {
+            Console.WriteLine("Failed to delete manager.");
+        }
+    }
+
+    async Task showMembermodel()
+    {
+        await LoadMembers();
+        showMemberModel = true;
+    }
+
+    private string GetInitials(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return string.Empty;
+
+        return string.Join("", name.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                   .Select(n => n[0]))
+                                   .ToUpper();
+    }
+    private void AddMember()
+    {
+        memberError = null;
+
+        if (selectedMemberId == 0) 
+        {
+            memberError = "Please select a member before adding.";
+            return;
+        }
+
+        var member = allMembers.FirstOrDefault(m => m.Id == selectedMemberId);
+
+        if (member != null && !selectedMembers.Any(s => s.Id == member.Id))
+        {
+            selectedMembers.Add(member);
+        }
+
+        selectedMemberId = 0;
+    }
+
+    private void RemoveMember(int id)
+    {
+        var m = selectedMembers.FirstOrDefault(x => x.Id == id);
+        if (m != null) selectedMembers.Remove(m);
+    }
+
+    private void OpenDeleteMemberConfirm(int id)
+    {
+        memberToDelete = id;
+        showDeleteMemberConfirm = true;
+    }
+
+    private void CloseDeleteMemberConfirm()
+    {
+        showDeleteMemberConfirm = false;
+    }
+
+    private async Task DeleteMemberConfirmed()
+    {
+        showDeleteMemberConfirm = false;
+
+        var response = await Http.DeleteAsync(
+            $"api/Member/RemoveFromProject?projectId={ProjectId}&memberId={memberToDelete}"
+        );
+
+        if (response.IsSuccessStatusCode)
+        {
+            await LoadProject();
+            StateHasChanged();
+        }
+        else
+        {
+            Console.WriteLine("Failed to delete manager.");
+        }
+    }
+
+    private async Task SaveSelection()
+    {
+        memberError = null;
+        if (selectedMembers.Count == 0)
+        {
+            memberError = "Please select at least one member.";
+            StateHasChanged();
+            return; // DO NOT close modal
+        }
+        showMemberModel = false;
+
+       
+        // StateHasChanged();
+
+        // 4. Send to backend (optional but required for saving)
+        var memberIds = selectedMembers.Select(m => m.Id).ToList();
+
+        await Http.PostAsJsonAsync(
+            $"api/Project/{ProjectId}/Members/Assign",
+            memberIds
+        );
+        await LoadProject();
+        StateHasChanged();
+    }
+
+
     private async Task ConfirmAddBoard()
     {
-        if (string.IsNullOrWhiteSpace(newBoardName))
-            return;
+        // return;
 
         var newBoard = new BoardDto
         {
-            Name = newBoardName,
+            Name = boardModel.Name,
             ProjectId = CurrentProject.Id,
             TaskItems = new List<TaskItemDto>()
         };
@@ -194,13 +2098,19 @@
 
             var response = await Http.PutAsJsonAsync($"api/Project/{ProjectId}", CurrentProject);
 
+
             if (response.IsSuccessStatusCode)
             {
 
-                CurrentProject = await Http.GetFromJsonAsync<ProjectDto>($"api/Project/{ProjectId}");
+                // CurrentProject = await Http.GetFromJsonAsync<ProjectDto>($"api/Project/{ProjectId}");
+                var responseget = await Http.GetAsync($"api/Project/{ProjectId}");
+                if(responseget.IsSuccessStatusCode)
+                {
+                    CurrentProject = await responseget.Content.ReadFromJsonAsync<ProjectDto>();
+                }
                 Boards = CurrentProject.Boards.ToList() ?? new List<BoardDto>();
                 showAddBoard = false;
-                newBoardName = "";
+                // newBoardName = "";
             }
             else
             {
@@ -212,7 +2122,18 @@
             Console.WriteLine("Error saving board: " + ex.Message);
         }
         showAddBoard = false;
-        newBoardName = "";
+        boardModel = new BoardDto();
+    }
+    // private int GetSprintProgressPercent(SprintDto s)
+    // {
+    //     if (s.TotalTasks == 0) return 0;
+    //     return (int)((double)s.CompletedTasks / s.TotalTasks * 100);
+    // }
+
+    private void OpenAddManagerModal()
+    {
+
+        Console.WriteLine("Add Manager clicked");
     }
 
     private void OpenAddTaskModal(BoardDto board)
@@ -221,6 +2142,8 @@
         newTask = new TaskItemDto
             {
                 BoardId = board.Id,
+            // Priority = "Low",
+            // DueDate = DateTime.UtcNow.AddDays(1)
 
             };
         showTaskModal = true;
@@ -238,21 +2161,313 @@
             return;
 
         selectedBoard.TaskItems.Add(newTask);
-        CurrentProject.Boards = Boards;
+        // CurrentProject.Boards = Boards;
+        UpdateOrderNumbers(selectedBoard);
+        Console.WriteLine("SENT PRIORITY = " + newTask.Priority);
+        Console.WriteLine("SENT DUEDATE = " + newTask.DueDate);
 
-        var response = await Http.PutAsJsonAsync($"api/Project/{ProjectId}", CurrentProject);
-        if (response.IsSuccessStatusCode)
-        {
-            CurrentProject = await Http.GetFromJsonAsync<ProjectDto>($"api/Project/{ProjectId}");
-            Boards = CurrentProject.Boards.ToList() ?? new List<BoardDto>();
-        }
+        await SaveProject();
+
+
 
         showTaskModal = false;
         newTask = new TaskItemDto();
     }
 
-    private void RemoveTask(BoardDto board, TaskItemDto task)
+    private void OpenTaskDeleteConfirm(BoardDto board,TaskItemDto task)
     {
-        board.TaskItems.Remove(task);
+        boardOfTaskToDelete=board;
+        taskToDelete=task;
+        showTaskDeleteConfirm = true;
     }
+    private void CloseTaskDeleteConfirm()
+    {
+        showTaskDeleteConfirm=false;
+        taskToDelete=null;
+        boardOfTaskToDelete = null;
+    }
+    private async Task DeleteTaskConfirmed()
+    {
+        if(boardOfTaskToDelete!=null&&taskToDelete!=null)
+        {
+            boardOfTaskToDelete.TaskItems.Remove(taskToDelete);
+            UpdateOrderNumbers(boardOfTaskToDelete);
+            await SaveProject();
+
+        }
+        showTaskDeleteConfirm = false;
+        taskToDelete=null;
+        boardOfTaskToDelete = null;
+    }
+    // private async void RemoveTask(BoardDto board, TaskItemDto task)
+    // {
+
+    //     board.TaskItems.Remove(task);
+    //     UpdateOrderNumbers(board);
+    //     await SaveProject();
+
+
+    // }
+
+
+    private void OnTaskDragStart(DragEventArgs e, BoardDto fromBoard, TaskItemDto task)
+    {
+
+        draggedTask = task;
+        draggedFromBoard = fromBoard;
+    }
+
+    private void OnTaskDragOver(DragEventArgs e)
+    {
+
+    }
+
+    private async Task OnTaskDrop(DragEventArgs e, BoardDto toBoard, TaskItemDto targetTask)
+    {
+        try
+        {
+
+            if (draggedTask == null||draggedFromBoard==null)
+            {
+
+                return;
+            }
+
+            var fromBoard = draggedFromBoard;
+
+
+            var removeItem = fromBoard.TaskItems.FirstOrDefault(t => t.Id == draggedTask.Id);
+            if (removeItem != null)
+                fromBoard.TaskItems.Remove(removeItem);
+
+
+            var list = toBoard.TaskItems
+                .OrderBy(t => t.Order)
+                .ToList();
+
+
+            int targetIndex = list.FindIndex(t => t.Id == targetTask.Id);
+            if (targetIndex < 0) targetIndex = list.Count;
+
+            list.Insert(targetIndex, draggedTask);
+
+
+            toBoard.TaskItems.Clear();
+            foreach (var t in list)
+                toBoard.TaskItems.Add(t);
+            draggedTask.BoardId = toBoard.Id;
+
+            if (toBoard.Name.Equals("Done", StringComparison.OrdinalIgnoreCase))
+            {
+                draggedTask.IsCompleted = true;
+                draggedTask.CompletedDate = DateTime.Today;   // ⭐ Set completed date
+            }
+            else
+            {
+                draggedTask.IsCompleted =false;
+                draggedTask.CompletedDate = null; // optional
+            }
+
+            NormalizeOrder(fromBoard);
+
+            NormalizeOrder(toBoard);
+
+            await SaveProject();
+
+            draggedTask = null;
+            draggedFromBoard = null;
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+
+
+    }
+    private void NormalizeOrder(BoardDto board)
+    {
+        int order = 1;
+        foreach (var t in board.TaskItems.OrderBy(t => t.Order))
+        {
+            t.Order = order++;
+        }
+
+    }
+
+
+    private async Task OnTaskDropToEmpty(DragEventArgs e, BoardDto toBoard)
+    {
+
+
+        if (draggedTask == null)
+        {
+
+            return;
+        }
+
+        var fromBoard = draggedFromBoard;
+        if (fromBoard == null) return;
+
+
+        var removeItem = fromBoard.TaskItems.FirstOrDefault(t => t.Id == draggedTask.Id);
+        if (removeItem != null)
+            fromBoard.TaskItems.Remove(removeItem);
+
+
+
+
+
+
+        toBoard.TaskItems.Add(draggedTask);
+        draggedTask.BoardId = toBoard.Id;
+
+        if (toBoard.Name.Equals("Done", StringComparison.OrdinalIgnoreCase))
+        {
+            draggedTask.IsCompleted = true;
+            draggedTask.CompletedDate = DateTime.Today;
+        }
+        else
+        {
+            draggedTask.IsCompleted = false;
+            draggedTask.CompletedDate = null; // or keep old value
+        }
+
+
+
+        NormalizeOrder(fromBoard);
+        NormalizeOrder(toBoard);
+
+        await SaveProject();
+
+        draggedTask = null;
+        draggedFromBoard = null;
+
+    }
+
+    private void UpdateOrderNumbers(BoardDto board)
+    {
+        int order = 1;
+        foreach (var t in board.TaskItems)
+        {
+            t.Order = order;
+            order++;
+        }
+    }
+
+    private async Task<bool> SaveProject()
+    {
+        CurrentProject.Boards = Boards;
+
+        Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(CurrentProject));
+
+
+        var response = await Http.PutAsJsonAsync($"api/Project/{ProjectId}", CurrentProject);
+
+        if (response.IsSuccessStatusCode)
+        {
+            CurrentProject = await Http.GetFromJsonAsync<ProjectDto>($"api/Project/{ProjectId}");
+            Boards = CurrentProject.Boards.ToList();
+            await LoadProject();
+            StateHasChanged();
+            return true;
+        }
+        return false;
+    }
+    private void OnUsersChanged(ChangeEventArgs e)
+    {
+        var selectedValues = e.Value as IEnumerable<string>;
+
+        if (selectedValues != null)
+        {
+            selectedUserIds = selectedValues
+                .Select(int.Parse)
+                .ToList();
+        }
+    }
+    private void OnSprintChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int sprintId))
+            selectedSprintId = sprintId;
+    }
+
+
+    // private async void OpenAssignUsersModal(TaskItemDto task)
+    // {
+    //     selectedMenuTask = task;
+
+    //     allUsers = await Http.GetFromJsonAsync<List<AppUserDto>>("api/member");
+
+    //     selectedUserIds = task.TaskAssignments?
+    //                   .Select(a => a.AppUserId)
+    //                   .ToList()
+    //                   ?? new List<int>();
+    //     showAssignUsersModal = true;
+    //     StateHasChanged();
+    // }
+
+    // private void CloseAssignUsersModal()
+    // {
+    //     showAssignUsersModal = false;
+    //     selectedUserIds.Clear();
+    // }
+
+    private async Task SaveAssignedUsers()
+    {
+        selectedMenuTask.TaskAssignments = selectedUserIds
+        .Select(id => new TaskAssignmentDto
+        {
+            TaskItemId = selectedMenuTask.Id,
+            AppUserId = id
+        })
+        .ToList();
+
+        foreach(var board in CurrentProject.Boards)
+        {
+            var task = board.TaskItems.FirstOrDefault(t => t.Id == selectedMenuTask.Id);
+            if (task != null)
+            {
+                task.TaskAssignments = selectedMenuTask.TaskAssignments;
+                break;
+            }
+        }
+
+        await SaveProject();  
+
+
+    }
+    // private async void OpenAssignSprintModal(TaskItemDto task)
+    // {
+    //     selectedMenuTask = task;
+
+    //     allSprints = await Http.GetFromJsonAsync<List<SprintDto>>("api/Sprint");
+
+    //     selectedSprintId = task.SprintId;
+
+    //     showAssignSprintModal = true;
+    //     StateHasChanged();
+    // }
+
+    // private void CloseAssignSprintModal()
+    // {
+    //     showAssignSprintModal = false;
+    // }
+    private async Task SaveAssignedSprint()
+    {
+        selectedMenuTask.SprintId = selectedSprintId;
+        foreach (var board in CurrentProject.Boards)
+        {
+            var task = board.TaskItems.FirstOrDefault(t => t.Id == selectedMenuTask.Id);
+            if (task != null)
+            {
+                task.SprintId = selectedSprintId;
+                break;
+            }
+        }
+
+        await SaveProject();
+
+        
+    }
+
+    
 }

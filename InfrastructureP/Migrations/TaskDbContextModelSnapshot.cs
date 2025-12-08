@@ -57,6 +57,9 @@ namespace Task.Infrastructure.Migrations
                     b.Property<int>("AppUserId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsTemporaryPassword")
+                        .HasColumnType("bit");
+
                     b.Property<byte[]>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("varbinary(max)");
@@ -105,6 +108,10 @@ namespace Task.Infrastructure.Migrations
                     b.Property<DateTime?>("CreatedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -128,6 +135,36 @@ namespace Task.Infrastructure.Migrations
                     b.ToTable("projects");
                 });
 
+            modelBuilder.Entity("Task.Domain.Entities.ProjectManager", b =>
+                {
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AppUserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ProjectId", "AppUserId");
+
+                    b.HasIndex("AppUserId");
+
+                    b.ToTable("ProjectManagers");
+                });
+
+            modelBuilder.Entity("Task.Domain.Entities.ProjectMember", b =>
+                {
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AppUserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ProjectId", "AppUserId");
+
+                    b.HasIndex("AppUserId");
+
+                    b.ToTable("ProjectMembers");
+                });
+
             modelBuilder.Entity("Task.Domain.Entities.Sprint", b =>
                 {
                     b.Property<int>("Id")
@@ -143,10 +180,17 @@ namespace Task.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("ProjectId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ProjectId")
+                        .IsUnique()
+                        .HasFilter("[ProjectId] IS NOT NULL");
 
                     b.ToTable("sprints");
                 });
@@ -177,6 +221,9 @@ namespace Task.Infrastructure.Migrations
                     b.Property<int>("BoardId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("CompletedDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -189,6 +236,10 @@ namespace Task.Infrastructure.Migrations
 
                     b.Property<int>("Order")
                         .HasColumnType("int");
+
+                    b.Property<string>("Priority")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("SprintId")
                         .HasColumnType("int");
@@ -224,6 +275,53 @@ namespace Task.Infrastructure.Migrations
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Task.Domain.Entities.ProjectManager", b =>
+                {
+                    b.HasOne("Task.Domain.Entities.AppUser", "AppUser")
+                        .WithMany("ManagedProjects")
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Task.Domain.Entities.Project", "Project")
+                        .WithMany("Managers")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Task.Domain.Entities.ProjectMember", b =>
+                {
+                    b.HasOne("Task.Domain.Entities.AppUser", "AppUser")
+                        .WithMany("ProjectMembers")
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Task.Domain.Entities.Project", "Project")
+                        .WithMany("ProjectMembers")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Task.Domain.Entities.Sprint", b =>
+                {
+                    b.HasOne("Task.Domain.Entities.Project", "Project")
+                        .WithOne("Sprint")
+                        .HasForeignKey("Task.Domain.Entities.Sprint", "ProjectId");
 
                     b.Navigation("Project");
                 });
@@ -267,6 +365,10 @@ namespace Task.Infrastructure.Migrations
 
             modelBuilder.Entity("Task.Domain.Entities.AppUser", b =>
                 {
+                    b.Navigation("ManagedProjects");
+
+                    b.Navigation("ProjectMembers");
+
                     b.Navigation("TaskAssignments");
                 });
 
@@ -278,6 +380,13 @@ namespace Task.Infrastructure.Migrations
             modelBuilder.Entity("Task.Domain.Entities.Project", b =>
                 {
                     b.Navigation("Boards");
+
+                    b.Navigation("Managers");
+
+                    b.Navigation("ProjectMembers");
+
+                    b.Navigation("Sprint")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Task.Domain.Entities.Sprint", b =>

@@ -13,5 +13,7 @@ namespace Task.Application.Interaces
         //public Task<AppUser> RegisterUserAsync(Register register);
         public Task<AppUser> RegisterUserAsync(AppUser appUser,AppUserAuth auth);
         public  Task<AppUserAuth?> GetUserAuthByEmailAsync(string email);
+        Task<AppUserAuth?> GetUserAuthByUserIdAsync(int userId);    
+        Task<AppUserAuth?> UpdateUserAuthAsync(AppUserAuth userAuth);
     }
 }

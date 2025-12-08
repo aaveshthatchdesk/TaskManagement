@@ -1,22 +1,29 @@
-﻿
+﻿@using TaskMangementClientSide.Component.SpinnerComponent
 
 
 
 @inherits LayoutComponentBase
 
-<NavBarLayout OnToggleSidebar="ToggleSidebar"/>
+<NavBarLayout OnToggleSidebar="ToggleSidebar" IsSidebarCollapsed="@isSidebarCollapsed" />
 
 <div class="page-body d-flex">
    
     
         <!-- Sidebar -->
     <aside class="sidebar  @(isSidebarCollapsed ? "collapsed" : "")">
+        @if (!isSidebarCollapsed)
+        {
+            <button class="sidebar-close-btn" @onclick="ToggleSidebar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        }
             <NavMenu />
         </aside>
 
         <!-- Main Body -->
         <main class="main-content @(isSidebarCollapsed? "expanded" : "")">
             <div class="p-4">
+                <SpinnerComponent />
             @Body
         </div>
         </main>

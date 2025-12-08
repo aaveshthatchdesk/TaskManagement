@@ -25,17 +25,17 @@ namespace Task.Application.DTOs
         
         public DateTime EndDate { get; set; }
 
-     
-        public ICollection<TaskItemDto> TaskItems { get; set; } = new List<TaskItemDto>();
-        public List<BoardDto> Boards { get; set; }=new List<BoardDto>();
-        public List<ProjectDto> Projects { get; set; } = new List<ProjectDto>();
+
+        //public ICollection<TaskItemDto> TaskItems { get; set; } = new List<TaskItemDto>();
+        //public List<BoardDto> Boards { get; set; }=new List<BoardDto>();
+        //public List<ProjectDto> Projects { get; set; } = new List<ProjectDto>();
 
 
 
-        public string? ProjectName { get; set; }
-        public string Status { get; set; } = "Pending";  
-        public int CompletedTasks { get; set; }
-        public int TotalTasks { get; set; }
-        public List<AppUserDto> AssignedUsers { get; set; } = new();
+        //public string? ProjectName { get; set; }
+        public string Status { get; set; } = "Pending";
+        //public int CompletedTasks { get; set; }
+        //public int TotalTasks { get; set; }
+        //public List<AppUserDto> AssignedUsers { get; set; } = new();
     }
 }

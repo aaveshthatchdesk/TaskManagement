@@ -45,6 +45,7 @@
 </div>
  </div>
 @code {
+    [Parameter] public int ProjectId{ get; set; }
     [Parameter] public EventCallback OnSaved{ get; set; }
     [Parameter] public EventCallback  OnCancel{ get; set; }
     private SprintDto newSprint = new SprintDto
@@ -58,7 +59,7 @@
         try
         {
             isSubmitting = true;
-            bool isAdded = await SprintService.AddSprintAsync(newSprint);
+            bool isAdded = await SprintService.AddSprintAsync(ProjectId,newSprint);
             if(isAdded)
             {
                 await OnSaved.InvokeAsync();

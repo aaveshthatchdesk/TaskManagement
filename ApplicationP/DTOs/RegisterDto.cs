@@ -23,6 +23,6 @@ namespace Task.Application.DTOs
         [Required(ErrorMessage = "Confirm Password is required")]
         [Compare("Password", ErrorMessage = "Passwords do not match")]
         public string ConfirmPassword { get; set; } = string.Empty;
-        public string? Role { get; set; }
+        public string? Role { get; set; } = "Member";
     }
 }

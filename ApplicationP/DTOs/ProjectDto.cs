@@ -16,6 +16,8 @@ namespace Task.Application.DTOs
         [Required(ErrorMessage="Project name is required")]
         [StringLength(100,ErrorMessage="Project name cannot exceed 100 characters")]
         public string Name { get; set; } = string.Empty;
+        [StringLength(100, ErrorMessage = "Project name cannot exceed 200 characters")]
+        public string Description { get; set; }=string.Empty;   
         [Required(ErrorMessage ="Priority is required")]
         [RegularExpression("^(Low|Medium|High)$",ErrorMessage ="Priority must be Low,Medium, or High")]
         public string Priority { get; set; } = "Medium";
@@ -31,6 +33,17 @@ namespace Task.Application.DTOs
         public List<string> MemberIntials { get; set; } = new();
         public string Status { get; set; } = string.Empty;
         public ICollection<BoardDto> Boards { get; set; } = new List<BoardDto>();
+
+        public List<MemberDto> Members { get; set; } = new();
+
+        public List<string> TeamMembers { get; set; } = new();
+        public List<string> Tasks { get; set; } = new();
+
+        [Required(ErrorMessage = "Please select at least one manager.")]
+        [MinLength(1, ErrorMessage = "Please select at least one manager.")]
+        public List<int> ManagerIds { get; set; } = new();
+        public string? ManagerNames { get; set; } 
+        public string ManagerEmail { get; set; } = string.Empty;
     }
  
 }

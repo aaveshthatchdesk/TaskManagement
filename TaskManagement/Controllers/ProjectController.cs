@@ -19,13 +19,17 @@ namespace TaskManagementServerAPi.Controllers
         }
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProjectDto>>> GetProjectsAsync( string? filter="All")
+        public async Task<ActionResult<PagedResult<ProjectDto>>> GetProjectsAsync(string? filter = "All", int page = 1, int pageSize = 6, string? search = null,
+                                                                                   int? managerId = null,
+                                                                                  DateTime? createdDate = null,
+                                                                                DateTime? startDate = null,
+                                                                                  DateTime? endDate = null)
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
             var isAdmin = User.IsInRole("Admin");
             Console.WriteLine($"UserId: {userId}, IsAdmin: {isAdmin}");
-            var result = await _taskService.GetAllProjectsAsync(userId,isAdmin,filter);
+            var result = await _taskService.GetAllProjectsPagedAsync(userId, isAdmin, filter, page, pageSize, search, managerId, createdDate, startDate, endDate);
             if (result == null)
             {
                 return NotFound();
@@ -33,9 +37,33 @@ namespace TaskManagementServerAPi.Controllers
             return Ok(result);
         }
 
+        [HttpGet("{projectId}/Members")]
+        public async Task<IActionResult> GetProjectMembers(int projectId)
+        {
+            var members = await _taskService.GetProjectMembersAsync(projectId);
+            return Ok(members);
+        }
+
+        //[HttpGet("{projectId}/MembersAssigned")]
+        //public async Task<IActionResult> GetProjectMembersAssigned(int projectId)
+        //{
+        //    var members = await _taskService.GetProjectMembersAssignedAsync(projectId);
+        //    return Ok(members);
+        //}
+
+
+        [HttpGet("{projectId}/Managers")]
+        public async Task<IActionResult> GetManagersByProject(int projectId)
+        {
+            var managers = await _taskService.GetManagersByProjectAsync(projectId);
+            return Ok(managers);
+        }
+
+
+
         [HttpGet("{id}")]
 
-        public async Task<ActionResult<ProjectDto>>GetProjectIdAsync(int id)
+        public async Task<ActionResult<ProjectDto>> GetProjectIdAsync(int id)
         {
 
 
@@ -47,10 +75,22 @@ namespace TaskManagementServerAPi.Controllers
             return Ok(result);
         }
 
-        //[Authorize(Policy = "RequireAdminRole")]
+        [HttpPost("{projectId}/Members/Assign")]
+        public async Task<IActionResult> AssignMembers(int projectId, List<int> memberIds)
+        {
+            var result = await _taskService.AssignMembersAsync(projectId, memberIds);
+
+            if (!result)
+                return NotFound("Project not found.");
+
+            return Ok(new { message = "Members assigned successfully!" });
+        }
+
+
+
         [HttpPost]
 
-        public async Task<ActionResult<ProjectDto>>AddAsync([FromBody]ProjectDto projectDto)
+        public async Task<ActionResult<ProjectDto>> AddAsync([FromBody] ProjectDto projectDto)
         {
             var data = await _taskService.AddProjectAsync(projectDto);
             if (data == null)
@@ -61,9 +101,9 @@ namespace TaskManagementServerAPi.Controllers
         }
 
         [Authorize(Policy = "RequireAdminRole")]
-        
+
         [HttpPut("{id}")]
-         public async Task <ActionResult<ProjectDto>>UpdateProjectAsync(int id, [FromBody]ProjectDto projectDto)
+        public async Task<ActionResult<ProjectDto>> UpdateProjectAsync(int id, [FromBody] ProjectDto projectDto)
         {
             if (id != projectDto.Id)
                 return BadRequest("ID mismatch");
@@ -80,6 +120,7 @@ namespace TaskManagementServerAPi.Controllers
             }
             catch (Exception ex)
             {
+                var error = ex.InnerException?.Message ?? ex.Message;
                 return BadRequest(ex.Message);
             }
         }

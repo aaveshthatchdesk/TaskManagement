@@ -35,6 +35,47 @@
         animation: fadeIn 0.3s ease-in-out;
     }
 
+    .toast-container {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        z-index: 2000;
+        animation: slideIn 0.4s ease;
+    }
+
+    .toast-message {
+        background: #2c3e50;
+        color: white;
+        padding: 14px 22px;
+        border-radius: 8px;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(0,0,0,.18);
+        animation: fadeOut 0.5s ease 2.5s forwards;
+    }
+
+
+    @@keyframes slideIn {
+        from {
+            transform: translateX(120%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @@keyframes fadeOut {
+        from {
+            opacity: 1;
+        }
+
+        to {
+            opacity: 0;
+        }
+    }
+
     @@keyframes fadeIn {
         from
 
@@ -154,7 +195,7 @@
                             <InputSelect class="form-select border-0 shadow-sm" style="background-color:#ecf0f1;"
                                          @bind-Value="currentUser.Role">
                                 <option value="">Select role</option>
-                                <option value="Admin">Admin</option>
+                             
                                 <option value="Manager">Manager</option>
                                 <option value="Member">Member</option>
                             </InputSelect>
@@ -187,9 +228,14 @@
                 </tr>
             </thead>
             <tbody>
-                @if (appUsers == null)
+                @if (isLoading)
                 {
-                    <tr><td colspan="5" class="text-center text-muted py-3">Loading...</td></tr>
+                    <tr>
+                        <td colspan="5" class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <div class="mt-2 text-secondary">Loading members...</div>
+                        </td>
+                    </tr>
                 }
                 else if (!PagedUsers.Any())
                 {
@@ -285,12 +331,21 @@
     </div>
 
 </div>
-
+@if (showToast)
+{
+    <div class="toast-container">
+        <div class="toast-message">
+            @toastMessage
+        </div>
+    </div>
+}
 
 
 @code {
+
     private List<AppUserDto>? appUsers=new();
     private AppUserDto currentUser = new();
+    private bool isLoading = false;
 
     private bool showForm = false;
     private string? message;
@@ -298,6 +353,8 @@
     private bool showDeleteConfirm = false;
     private int userIdToDelete;
     private int pageSize = 4;
+    private bool showToast = false;
+    private string toastMessage = "";
     private IEnumerable<AppUserDto> PagedUsers => GetPagedUsers();
 
     private int TotalPages=> CalculateTotalPages();
@@ -308,11 +365,12 @@
     }
     private async Task LoadappUsers()
     {
+        isLoading = true;
         try
         {
             var appUser = await Http.GetAsync("api/Member");
-          
-            
+
+
             var json = await appUser.Content.ReadAsStringAsync();
             Console.WriteLine("API Response: " + json);
 
@@ -325,6 +383,11 @@
         {
             message = "Error loading members.";
         }
+
+        isLoading = false;
+        StateHasChanged();
+
+
     }
     private void ShowAddForm()
     {
@@ -354,17 +417,21 @@
         {
             var response = await Http.PostAsJsonAsync("api/Member", currentUser);
             if (response.IsSuccessStatusCode)
-                message = "User added successfully.";
+                showForm = false;
+                await ShowToast("User added successfully.");
         }
         else
         {
             var response = await Http.PutAsJsonAsync($"api/Member/{currentUser.Id}", currentUser);
             if (response.IsSuccessStatusCode)
-                message = "User updated successfully.";
+                showForm = false;
+               await ShowToast("User updated successfully.");
         }
 
-        showForm = false;
+       
+        isLoading = true;
         await LoadappUsers();
+
     }
 
     private void ShowDeleteConfirm(int id)
@@ -381,11 +448,15 @@
         {
             var response = await Http.DeleteAsync($"api/Member/{userIdToDelete}");
             if (response.IsSuccessStatusCode)
-                message = "Member deleted successfully.";
+            {
+                showForm = false;
+                await ShowToast("Member deleted successfully.");
+            }
             else
                 message = "Failed to delete member.";
-
+            isLoading = true;
             await LoadappUsers();
+
         }
         catch (Exception ex)
         {
@@ -449,18 +520,33 @@
             return (int)totalPages;
         }
     }
-    private void NextPage()
+    private async  void NextPage()
     {
         if (currentPage < TotalPages)
-            currentPage++;
+        
+        currentPage++;
+        isLoading = true;
+        await LoadappUsers();
     }
 
-    private void PreviousPage()
+    private  async void  PreviousPage()
     {
         if (currentPage > 1)
-            currentPage--;
+          
+        currentPage--;
+        isLoading = true;
+        await LoadappUsers();
     }
+    private async Task ShowToast(string msg)
+    {
+        toastMessage = msg;
+        showToast = true;
+        StateHasChanged();
 
+        await Task.Delay(1000);
+        showToast = false;
+        StateHasChanged();
+    }
 
 
 

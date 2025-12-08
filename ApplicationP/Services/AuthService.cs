@@ -39,7 +39,7 @@ namespace Task.Application.Services
             {
                 Name = registerDto.Name,
                 Email = registerDto.Email,
-                Role = null,
+                Role = registerDto.Role,
             };
             using var hmac=new System.Security.Cryptography.HMACSHA512();
             var auth = new AppUserAuth
@@ -59,7 +59,7 @@ namespace Task.Application.Services
             };
         }
 
-        public async System.Threading.Tasks.Task<string> LoginAsync(LoginDto loginDto)
+        public async System.Threading.Tasks.Task<LoginResponseDto> LoginAsync(LoginDto loginDto)
         {
             var userAuth = await _authRepository.GetUserAuthByEmailAsync(loginDto.Email);
             if (userAuth == null)
@@ -78,7 +78,7 @@ namespace Task.Application.Services
 
             var tokenHandler = new JwtSecurityTokenHandler();
                 var key = Encoding.UTF8.GetBytes(configuration["Jwt:Key"]);
-
+            //var tokenExpiresAt = DateTime.UtcNow.AddHours(2);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]
@@ -97,8 +97,40 @@ namespace Task.Application.Services
                 };
 
                 var token = tokenHandler.CreateToken(tokenDescriptor);
-                return tokenHandler.WriteToken(token);
-            }
+                //return tokenHandler.WriteToken(token);
+            return new LoginResponseDto
+            {
+                Token = tokenHandler.WriteToken(token),
+                //ExpiresIn = tokenExpiresAt,
+                IsTemporaryPassword = userAuth.IsTemporaryPassword,
+                UserId = userAuth.AppUser.Id,
+                Role = userAuth.AppUser.Role
+            };
+        }
+
+        public async Task<(bool Success,string Role)>ChangePasswordAsync(ChangePasswordDto dto)
+        {
+            var userAuth = await _authRepository.GetUserAuthByUserIdAsync(dto.UserId);
+            if (userAuth == null)
+                throw new Exception("User not found");
+
+           
+            using var hmac = new System.Security.Cryptography.HMACSHA512(userAuth.PasswordSalt);
+            var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(dto.OldPassword));
+            if (!computedHash.SequenceEqual(userAuth.PasswordHash))
+                throw new Exception("Old password is incorrect");
+
+           
+            using var newHmac = new System.Security.Cryptography.HMACSHA512();
+            userAuth.PasswordHash = newHmac.ComputeHash(Encoding.UTF8.GetBytes(dto.NewPassword));
+            userAuth.PasswordSalt = newHmac.Key;
+            userAuth.IsTemporaryPassword = false;
+
+            await _authRepository.UpdateUserAuthAsync(userAuth);
+            //return true;
+            return (true, userAuth.AppUser.Role);
+
+        }
         public  Task<bool> LogoutAsync(string token)
         {
             // For stateless JWT, logout is client-side (delete token)

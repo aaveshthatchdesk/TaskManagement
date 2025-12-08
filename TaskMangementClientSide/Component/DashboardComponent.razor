@@ -12,62 +12,489 @@
         color: #b02a37 !important;
     }
 
-</style>
+    .detail-btn {
+        padding: 8px 15px;
+        background: #95a5a6;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        /* transition: background 0.3s ease; */
+    }
 
-@* <header class="app-header shadow-lg px-3 py-2 position-fixed top-0 start-0 w-100 bg-white" style="z-index:1050;" >
-    <div class="d-flex align-items-center justify-content-between w-100 ">
+        .detail-btn:hover {
+            background-color: #a9a9a9; 
+            color: white;
+            /* transform: scale(1.05); */
+            cursor: pointer;
+        }
+
+    .view-btn:hover {
+        background-color: #A9A9A9 !important;
+        color: white !important;
+        
+      
+    }
+
+    .edit-btn:hover {
+        background-color: #1a252f !important;
+        color: #ecf0f1 !important;
+       
+    }
+
+    .text-btn {
+        background: none;
+        border: none;
+        color: #2c3e50; /* dark text */
+        font-weight: 600;
+        font-size: 15px;
+        cursor: pointer;
+        padding: 0;
+        /* transition: 0.2s ease; */
+    }
+
+        .text-btn:hover {
+            color: #1a242f; /* slightly darker on hover */
+            text-decoration: underline;
+        }
+
+    .visibility-public, .visibility-private {
+        font-size: 12px; /* Smaller text */
+        padding: 3px 8px; /* Smaller padding */
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+    }
+
+        .visibility-public i,
+        .visibility-private i {
+            font-size: 13px; /* Smaller icon */
+        }
+
+    .visibility-public {
+        background-color: #e8fdf4 !important; /* mint green */
+        color: #27ae60 !important; /* green text */
+        font-weight: 500;
+    }
+
+    .visibility-private {
+        background-color: #fdecec !important; /* light pink */
+        color: #e74c3c !important; /* red text */
+        font-weight: 400;
+    }
+
+ 
+
+        /* .delete-btn:hover {
+            background: rgba(231, 76, 60, 0.8);
+            transform: scale(1.1);
+        } */
+    .delete-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 2px solid #2c3e50; /* Red outline */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: transparent;
+        color: #2c3e50;
+        /* transition: 0.2s ease; */
+        padding: 0;
+    }
+
+        .delete-btn:hover {
+            background: #e74c3c;
+            color: white;
+            /* transform: scale(1.1); */
+        }
+
+    .modal-overlay {
+        /* position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.6); */
+        z-index: 4000 !important;
+    }
+
+
+    .modal-content {
+        /* position: relative;
+        z-index: 5000 !important; */
+        overflow:visible !important;
+        position:relative;
+        z-index:5000;
+    }
+
    
 
-        <div class="d-flex align-items-center">
-            <img src="images/TaskMa.png" alt="Logo" width="40" height="40"
-                 class="me-2 rounded-circle border border-black" />
-            <span class="fw-bolder fs-6 text-dark">Taskma</span>
-        </div>
 
+
+    .multi-select {
+        /* width: 100%;
+        height:auto;
+        min-height: 38px;
+        padding: 6px 10px;
        
-        <form class="d-flex align-items-center flex-grow-1 justify-content-center mx-4" role="search" @onsubmit="OnSearch">
-            <div class="position-relative w-100" style="max-width: 450px;">
-                <input class="form-control ps-3 pe-5"
-                       type="search"
-                       placeholder="Search..."
-                       aria-label="Search"
-                       @bind="searchText"
-                       style="width: 100%; background-color: #ecf0f1;" />
-                <span class="position-absolute top-50 end-0 translate-middle-y me-3 text-muted">
-                    <i class="bi bi-search"></i>
-                </span>
-            </div>
-        </form>
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        position: relative;
+        z-index:6000; */
+        position: relative;
+        width:auto;
+        min-height: 38px;
+        padding: 6px 40px 6px 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        cursor: pointer;
+       background-color:white;
+        z-index: 6000;
+           display: flex;            
+           align-items: center;  
+           
+           
+        
+    }
 
+    
+
+  
+
+    .dropdown-icon {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+     
+    }
+
+
+    .selected-area {
+        flex-grow: 1;
+        /* min-width: 0; */
        
-        <div class="d-flex align-items-center gap-3">
-            <button class="border-0 bg-transparent p-0" title="Settings">
-                <i class="bi bi-gear fs-5 text-dark"></i>
-            </button>
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+        min-height: 24px;
+    }
 
-            <div class="dropdown">
-               
-                    <button class="btn border-0 bg-transparent dropdown-toggle d-flex align-items-center"
-        id="userDropdown"
-        data-bs-toggle="dropdown"
-        aria-expanded="false">
+    /* .placeholder {
+        color: #6c757d;
+        font-size: 14px;
+        opacity: 0.8;
+        white-space: nowrap;
+        pointer-events: none;
+        display:inline-flex
+    } */
 
-                    <div class="rounded-circle text-white fw-semibold d-flex align-items-center justify-content-center"
-                         style="width: 36px; height: 36px; background:#2c3e50">
-                        @GetInitials(currentUser?.Name)
-                    </div>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
-                    <li><a class="dropdown-item" >Profile</a></li>
-                   
-                    <li><a class="dropdown-item text-danger" @onclick:stopPropagation="true" @onclick="OnLogout"> Logout</a></li>
-                    
 
-                </ul>
-            </div>
-        </div>
-    </div>
-</header> *@
+
+    .dropdown-panel {
+        /* position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%; 
+        background: white;
+        border: 1px solid #ccc;
+      
+        border-radius: 6px;
+        
+        max-height: 220px !important; 
+        overflow-y: auto !important; 
+        z-index: 7000 !important; */
+        
+        /* position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: white;
+        border: 1px solid #ccc;
+        border-top: none;
+        border-radius: 0 0 6px 6px;
+        max-height: 220px;
+        overflow-y: auto;
+        z-index: 7000;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1); */
+        position: absolute;
+        bottom: 100%; /* OPEN UPWARDS */
+        top: auto;
+        left: 0;
+        width: 100%;
+        background: white;
+        border: 1px solid #ccc;
+        border-bottom: none;
+        border-radius: 6px 6px 0 0;
+        max-height: 220px;
+        overflow-y: auto;
+        z-index: 7000;
+        box-shadow: 0 -4px 8px rgba(0,0,0,0.1);
+    }
+
+    .multi-select.open {
+        border-top: none;
+        border-radius: 0 0 6px 6px;
+    }
+
+
+    .dropdown-item {
+        padding: 8px 12px;
+        cursor: pointer;
+    }
+
+        .dropdown-item:hover {
+            background: #e9ecef;
+        }
+
+    .tag-item {
+        background: #2c3e50;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .remove-tag {
+        background: none;
+        border: none;
+        color: white;
+        margin-left: 5px;
+        cursor: pointer;
+    }
+
+    /* .project-title {
+        max-height: 48px; 
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        line-height: 1.25rem;
+    } */
+
+    /* .project-title {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        line-height: 1.25rem;
+        margin-bottom: 2px;
+    } */
+
+    .project-title {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.3rem;
+        padding-bottom: 3px; /* prevents cutting when 1 line */
+    }
+
+
+
+    .filter-icon {
+        display: flex;
+        flex-direction: column; /* icon on top, label below */
+        align-items: center; /* centers both horizontally */
+        justify-content: center;
+        cursor: pointer;
+        width: 80px;
+    }
+
+    .icon-circle {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+        background-color:white;
+        border-radius: 50%; /* makes it a perfect circle */
+        display: flex; /* centers icon */
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 0 4px rgba(0,0,0,0.2);
+    }
+
+    .filter-panel {
+        background: #ffffff;
+        border: 1px solid #ccc;
+        padding: 10px 12px;
+        border-radius: 10px;
+        display: inline-block;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+
+    .filter-label {
+        font-size: 14px;
+        font-weight: 500;
+        text-align: center;
+        margin-top:6px;
+        width:100%;
+        white-space:nowrap;
+    }
+
+    .filter-icon:hover .icon-circle {
+        background-color: #2c3e50;
+        color: white;
+        /* transform: scale(1.1); */
+    }
+
+    .filter-icon:hover .filter-label {
+        color: #2c3e50;
+    }
+
+    .filter-container {
+        display: flex;
+        flex-direction: column; /* stack filter box BELOW icons */
+        align-items: flex-start; /* left-align panel under icons */
+    }
+
+    .filter-wrapper {
+        position: relative;
+    }
+
+    .floating-filter-panel {
+        position: absolute;
+        top: 60px; /* show box BELOW icons */
+        left: 50%; /* center it */
+        transform: translateX(-50%);
+        background: white;
+
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 10px 28px;
+        min-width: 220px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 9999; /* stays above everything */
+        justify-content: center; /* CENTER HORIZONTALLY */
+        align-items: center;
+    }
+
+        .floating-filter-panel input,
+        .floating-filter-panel select {
+            width: 100%;
+        }
+
+        .floating-filter-panel .d-flex {
+            justify-content: center; /* Center date range */
+        }
+
+
+    .filter-icon.active .icon-circle {
+        background-color: #2c3e50;
+        color: white;
+        /* transform: scale(1.1); */
+    }
+
+    .filter-icon.active .filter-label {
+        color: #2c3e50;
+    }
+
+    .modal-fixed-footer {
+        display: flex;
+        flex-direction: column;
+        height: 100%; /* Fill modal height */
+    }
+
+    .modal-footer-stick {
+        margin-top: auto; /* Push to bottom */
+    }
+
+    .clear-filter-btn {
+        position: absolute;
+        top: 12px;
+        right: 6px;
+        background: none;
+        border: none;
+       
+        font-size: 22px; /* Increased from 16px → 22px */
+        font-weight: 700;
+        color: #888;
+        cursor: pointer;
+        padding: 0;
+    }
+
+        .clear-filter-btn:hover {
+            color: #000;
+            transform: scale(1.1);
+        }
+
+    .add-btn {
+        height: 30px;
+        width: 40px; 
+        border: none;
+        border-radius: 4px; 
+        background-color: #2c3e50;
+        color: white;
+        /* font-size: 22px;
+        font-weight: bold; */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+          /* line-height: 0;      */
+    padding: 0;  
+        
+    }
+
+    .plus {
+        font-size: 24px; /* increase + size */
+        font-weight: bold;
+        line-height: 1; /* FIX vertical alignment */
+        display: flex; /* ensures perfect center */
+        align-items: center;
+        justify-content: center;
+    }
+
+        /* Hover effect */
+        .add-btn:hover {
+            background-color: #22303A;
+           
+           
+        }
+
+    .btn-create {
+        background-color: #2c3e50;
+        color: white;
+    }
+
+        .btn-create:hover{
+        background-color: #22303A ;
+        color:white;
+    }
+
+    .description-box {
+        white-space: normal;
+        word-break: break-word;
+        min-height: calc(1.25rem * 3); /* 2 lines = 2 × line-height */
+        line-height: 1.25rem; /* default for small text */
+    }
+       .desc-toggle-btn {
+        font-size: 12px;
+        border: none;
+        background: #d5dfe6;
+        color: black;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+    }
+    .desc-toggle-btn:hover{
+        color:blue;
+    }
+
+</style>
+
+
 <div class="container mt-4" >
         <div class="row g-4">
 
@@ -114,82 +541,269 @@
         </div>
     </div>
 
- 
+<div class="container mt-4 d-flex justify-content-end">
 
-<div class="container mt-4">
-    <div class=" p-4 rounded-4" style="background-color:#ecf0f1">
+    <button class="btn btn-secondary fw-semibold  px-3" @onclick="() => showCreateForm = true">
+        <i class="bi bi-plus-lg me-1"></i> Create New Project
+    </button>
+</div>
 
-        <!-- Header and Filters -->
-        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-            <h4 class="fw-bold text-dark mb-0">Project Management</h4>
-            <button class="btn btn-primary fw-semibold shadow-sm px-3" @onclick="()=>showCreateForm=true">
-                <i class="bi bi-plus-lg me-1"></i> Create New Project
-            </button>
-        </div>
+
+  
+    
         @if(showCreateForm)
         {
             <div class="modal-overlay">
-                <div class="modal-content shadow-lg rounded-4 p-4 bg-white" >
+                <div class="modal-content shadow-lg rounded-4 p-4 " style="background-color:#ecf0f1">
                     <h5 class="fw-bold mb-3 text-center"  style="color:#2c3e50;"> Create New Project</h5>
-                    <EditForm Model="@newProject" OnValidSubmit="CreateProjectAsync">
+            <EditForm  EditContext="@formContext" Onsubmit="HandleSubmit">
                         <DataAnnotationsValidator/>
                        
                  
                     <div class="mb-3">
                             <label class="form-label fw-semibold " style="color:#2c3e50;">Project Name<span class="text-danger">*</span></label>
-                            <InputText type="text" class="form-control " style="background-color:#ecf0f1;" @bind-Value="newProject.Name" placeholder="Enter project name" />
+                            <InputText type="text" class="form-control "  @bind-Value="newProject.Name" placeholder="Enter project name" />
                         <ValidationMessage For="@(()=>newProject.Name)"/>
                     </div>
-                    <div class="mb-3">
-                            <label class="form-label fw-semibold" style="color:#2c3e50;">Visibility<span class="text-danger">*</span></label>
-                            <InputSelect class="form-select w-50" style="background-color:#ecf0f1;" @bind-Value="newProject.Visibility">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold " style="color:#2c3e50;">Description</label>
+                            <textarea  class="form-control"  @bind="newProject.Description" placeholder="Enter description"></textarea>
+                            <ValidationMessage For="@(() => newProject.Description)" />
+                        </div>
+              
+                    <div class="mb-3 w-50 ">
+                            <label class="form-label fw-semibold " style="color:#2c3e50;">Visibility<span class="text-danger">*</span></label>
+                            <InputSelect class="form-select "  @bind-Value="newProject.Visibility">
                             <option value="Public">Public</option>
                             <option value="Private">Private</option>
                         </InputSelect>
                         <ValidationMessage For="@(()=>newProject.Visibility)"/>
+                    
+             </div>
+                  
+
+                <div class="mb-3 w-75">
+                    <label class="form-label fw-semibold " style="color:#2c3e50;">
+                        Assign Manager <span class="text-danger">*</span>
+                    </label>
+
+                    <div class="d-flex gap-1 align-items-center" >
+                        <div class="multi-select @(showManagerDropdown ? "open" : "")  " style="flex-grow: 1;" @onclick="ToggleDropdown">
+
+                        <div class="selected-area">
+                            <span>@(newProject.ManagerIds.Count == 0 ? "Select managers..." : "Selected managers:")</span>
+                        </div>
+                        
+
+                        <div class="dropdown-icon">
+                            <i class="bi bi-chevron-down"></i>
+                        </div>
+
+                        @if (showManagerDropdown)
+                        {
+                            <div class="dropdown-panel shadow">
+                                @foreach (var manager in managers)
+                                {
+
+                                    <div class="dropdown-item" @onclick:stopPropagation="true"  @onclick="() => SelectManager(manager.Id)">
+                                        @manager.Name
+                                    </div>
+                                }
+                            </div>
+                        }
+                        </div>
+                        <button type="button" class="add-btn" @onclick="ShowAddForm"><Span class="plus mb-1">+</Span></button>
                     </div>
-                    @* <div class="mb-3">
-                            <label class="form-label fw-semibold" style="color:#2c3e50;"> CreatedOn</label>
-                            <InputDate class="form-control w-50" style="background-color:#ecf0f1;" @bind-Value="newProject.CreatedDate" />
-                        <ValidationMessage For="@(()=>newProject.CreatedDate)"/>
-                    </div> *@
-                    @* <div class="mb-3">
-                            <label class="form-label fw-semibold" style="color:#2c3e50;">Priority<span class="text-danger">*</span></label>
-                            <InputSelect class="form-select w-50" style="background-color:#ecf0f1;" @bind-Value="newProject.Priority">
-                            <option value="High">High</option>
-                            <option value="Medium">Medium</option>
-                            <option value="Low">Low</option>
-                        </InputSelect>
-                        <ValidationMessage For="@(()=>newProject.Priority)"/>
-                    </div> *@
-                    <div class="d-flex justify-content-end gap-2">
-                        <button  type="button" class="btn btn-secondary" @onclick="() => showCreateForm = false">Cancel</button>
-                            <button type="submit" class="btn btn-primary" style="background-color:#2c3e50;">Create</button>
-                    </div>
+
+                 
+
+                    @if (newProject.ManagerIds.Count > 0)
+                    {
+                        <div class="mt-2 d-flex flex-wrap gap-2">
+                            @foreach (var id in newProject.ManagerIds)
+                            {
+                                var mgr = managers.FirstOrDefault(m => m.Id == id);
+                                if (mgr != null)
+                                {
+                                    <span class="tag-item">
+                                        @mgr.Name
+                                        <button type="button" class="remove-tag"
+                                                @onclick:stopPropagation="true"
+                                                @onclick="() => RemoveManager(id)">
+                                            ×
+                                        </button>
+                                    </span>
+                                }
+                            }
+                        </div>
+                    }
+
+                    <ValidationMessage For="@(() => newProject.ManagerIds)" />
+                </div>
+                
+              
+
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-secondary" @onclick="() => showCreateForm = false">Cancel</button>
+                            <button type="submit" class="btn btn-create" >Create</button>
+                        </div>
+
                     </EditForm>
                 </div>
             </div>
         }
+        
+        @if (showConfirmation) 
+        {
+            <div class="modal-overlay d-flex justify-content-center align-items-center">
+        <div class="modal-content shadow-lg rounded-4 p-4 bg-white modal-fixed-footer" style="width: 600px; height:450px">
+                   
+                    <div class="border rounded-4 p-3 mb-4  mt-4 bg-light">
+                        <h5 class="fw-bolder mb-3 text-center">Project Details</h5>
 
+                        <p class="mb-2"><strong>Project Name:</strong> @newProject.Name></p>
+                <p class="mb-2"><strong>Description:</strong> @newProject.Description</p>
+                        <p class="mb-2"><strong>Visibility:</strong> @newProject.Visibility</p>
+                        <p class="mb-2"><strong>Created On:</strong> @DateTime.Now.ToString("MMMM dd, yyyy")</p>
+                        <p class="mb-0"><strong>Mangers:</strong> @newProject.ManagerNames
+                        
+                        
+                        </p>
+                    </div>
+
+            <div class="text-center modal-footer-stick">Do you want to create this project?</div>
+
+            <div class="d-flex justify-content-between modal-footer-stick">
+                        <button class="btn btn-secondary w-50 me-2" @onclick="CancelConfirmation">Cancel</button>
+                        <button class="btn btn-success w-50" @onclick="ConfirmProjectAsync">Create Project</button>
+                    </div>
+
+                 
+                </div>
+            </div>
+        }
+
+     
+
+       <div class="container mt-5  ">
+    <div class=" p-4 rounded-4" style="background-color:#ecf0f1">
        
+        <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
 
-            <div class="d-flex flex-wrap gap-2 mb-4">
-                <button class="btn @(selectedFilter == "All" ? "btn-primary text-white" : "bg-light text-dark") fw-semibold px-3 py-1"
+            <h4 class="fw-bold mb-0 text-dark">RecentProjects</h4>
+
+            <div class="position-relative ms-auto" style="max-width:250px;">
+                <input class="form-control pe-5"
+                       placeholder="Search projects..."
+                       @bind="search"
+                       @bind:event="oninput"
+                       @bind:after="ApplyFilters" />
+                <span class="position-absolute top-50 end-0 translate-middle-y me-3 text-muted">
+                    <i class="bi bi-search"></i>
+                </span>
+            </div>
+            <div class="filter-wrapper position-relative">
+                <div class="d-flex align-items-center justify-content-between w-100 gap-3">
+            <div class="d-flex align-items-center gap-1">
+                @* <h4 class="fw-bolder ">Filters</h4> *@
+
+                    <div class="filter-icon @(activeFilter == "date" ? "active" : "")" @onclick='() => ToggleFilterPanel("date")'>
+                    <div class="icon-circle"><i class="fas fa-calendar-alt"></i></div>
+                    <span class="filter-label">Date</span>
+                </div>
+
+                    <div class="filter-icon @(activeFilter == "manager" ? "active" : "")" @onclick='() => ToggleFilterPanel("manager")'>
+                    <div class="icon-circle"><i class="fas fa-user-tie"></i></div>
+                    <span class="filter-label">Manager</span>
+                </div>
+
+                    <div class="filter-icon @(activeFilter == "range" ? "active" : "")" @onclick='() => ToggleFilterPanel("range")'>
+                            <div class="icon-circle"><i class="fas fa-calendar-week"></i></div>
+                    <span class="filter-label">Date Range</span>
+                </div>
+            </div>
+                   
+                    </div>
+            @if (activeFilter == "date")
+            {
+                <div class="floating-filter-panel mt-2">
+                        <button class="clear-filter-btn"
+                                @onclick="() => { filterCreatedDate = null; ApplyFilters(); }">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
+                    <input type="date" class="form-control w-auto"
+                           @bind="filterCreatedDate"
+                           @bind:after="ApplyFilters" />
+                </div>
+            }
+
+            @if (activeFilter == "manager")
+            {
+                <div class="floating-filter-panel mt-2">
+                     <button class="clear-filter-btn"
+                @onclick='() => { filterManagerId = ""; ApplyFilters(); }'>
+                            <i class="bi bi-arrow-counterclockwise"></i>
+        </button>
+                    <select class="form-select w-auto"
+                            @bind="filterManagerId"
+                            @bind:after="ApplyFilters">
+                        <option value="">All Managers</option>
+                        @foreach (var m in managers)
+                        {
+                            <option value="@m.Id">@m.Name</option>
+                        }
+                    </select>
+                </div>
+            }
+
+            @if (activeFilter == "range")
+            {
+                <div class="floating-filter-panel mt-2 d-flex gap-2">
+                        <button class="clear-filter-btn"
+                                @onclick="() =>
+                                {
+                                    filterStartDate = null;
+                                    filterEndDate = null;
+                                    ApplyFilters();
+                                }">
+                              <i class="bi bi-arrow-counterclockwise"></i>
+                          </button>
+                    <input type="date"
+                           class="form-control w-auto"
+                           @bind="filterStartDate"
+                           @bind:after="ApplyFilters" />
+                    <input type="date"
+                           class="form-control w-auto"
+                           @bind="filterEndDate"
+                           @bind:after="ApplyFilters" />
+                </div>
+            }
+               
+            </div>
+          
+
+
+        </div>
+
+            <div class="d-flex flex-wrap gap-2 mt-4 mb-4">
+                <button class="btn @(selectedFilter == "All" ? "btn-secondary text-white" : "bg-light text-dark") fw-semibold px-3 py-1"
                         @onclick='() => FilterProjects("All")'>
                     All Projects
                 </button>
 
-                <button class="btn @(selectedFilter == "Active" ? "btn-primary text-white" : "bg-light text-dark") fw-semibold px-3 py-1"
+            <button class="btn @(selectedFilter == "Active" ? "btn-secondary text-white" : "bg-light text-dark") fw-semibold px-3 py-1"
                         @onclick='() => FilterProjects("Active")'>
                     Active
                 </button>
 
-                <button class="btn @(selectedFilter == "Completed" ? "btn-primary text-white" : "bg-light text-dark") fw-semibold px-3 py-1"
+            <button class="btn @(selectedFilter == "Completed" ? "btn-secondary text-white" : "bg-light text-dark") fw-semibold px-3 py-1"
                         @onclick='() => FilterProjects("Completed")'>
                     Completed
                 </button>
 
-                <button class="btn @(selectedFilter == "Archived" ? "btn-primary text-white" : "bg-light text-dark") fw-semibold px-3 py-1"
+            <button class="btn @(selectedFilter == "Archived" ? "btn-secondary text-white" : "bg-light text-dark") fw-semibold px-3 py-1"
                         @onclick='() => FilterProjects("Archived")'>
                     Archived
                 </button>
@@ -223,19 +837,55 @@
                             <div class="card border-0 shadow-sm rounded-4 h-100  project-card">
                                 <div class="card-body d-flex flex-column justify-content-between ">
                                     <div>
-                                        <div class="d-flex justify-content-between align-items-start mb-2 gap-2">
-                                            <span class="fw-semibold text-dark mb-0 text-truncate pe-2" style="max-width:70%">@project.Name</span>
-                                            <span class="@GetPriorityBadgeClass(project.Priority) badge  flex-shrink-0">
-                                                @project.Priority
-                                            </span>
+                                        <div class="d-flex  justify-content-between align-items-center mb-2 gap-2" style="min-width:0;">
+
+                                            <h5 class="fw-semibold text-dark mb-0 project-title" > @project.Name</h5>
+                                            
+                                                <button class="btn btn-sm delete-btn " @onclick="() => ConfirmDelete(project.Id)">
+                                                    <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                            </div>
+                                        <p class="@GetVisibilityBadgeClass(project.Visibility) d-inline-flex align-items-center gap-1 px-3 py-1 rounded-pill">
+                                            <i class="@GetVisibilityIcon(project.Visibility)"></i>
+                                            @project.Visibility
+                                        </p>
+
+
                                         </div>
 
-                                        <div class="text-muted small mb-3">
 
-                                            <i class="bi bi-calendar-event me-1"></i>
-                                            CreatedOn: @(project.CreatedDate?.ToString("MMM dd, yyyy") ?? "No due date")
+                                        @* <div class="small mb-3">
+                                        <p class="fw-normal text-dark mb-0 description-box ">@project.Description</p>
+                                        </div> *@
+                                    <div class="small mb-3">
+                                        <p class="fw-normal text-dark mb-0"
+                                           style="
+                    white-space: normal;
+                    word-break: break-word;
+                    display: -webkit-box;
+                    overflow: hidden;
+                    -webkit-box-orient: vertical;
+                    @(showFullDescription ? "" : "-webkit-line-clamp: 1;")
+               ">
+                                            @project.Description
+                                        </p>
+
+                                        @if (!string.IsNullOrWhiteSpace(project.Description) && project.Description.Length > 60)
+                                        {
+                                            <button class=" p-0 mt-1 desc-toggle-btn"
+                                                    @onclick="ToggleDescription">
+                                                @(showFullDescription ? "Hide ↑" : "Preview ↓")
+                                            </button>
+                                        }
+                                    </div>
+
+                                        <div class=" small mb-3 d-flex ">
+
+                                            
+                                           <span class="fw-bold"> CreatedOn:</span> @(project.CreatedDate?.ToString("MMM dd, yyyy") ?? "No due date")
                                             <span class="ms-3"><i class="bi bi-people-fill me-1 text-dark"></i>@project.MemberCount members</span>
                                         </div>
+
 
                                         <div class="progress mb-2" style="height: 8px;">
                                             <div class="progress-bar bg-primary" role="progressbar"
@@ -245,7 +895,10 @@
                                         </div>
 
                                         <div class="d-flex justify-content-between align-items-center mb-3">
-                                            <small class="text-muted">Progress</small>
+                                            <small>
+                                                <span class="text-dark fw-semibold">Manager(s):</span>
+                                            <span class="text-dark" style="white-space:normal; word-break:break-word;">@project.ManagerNames</span>
+                                            </small>
                                             <small class="fw-semibold">@project.Progress%</small>
                                         </div>
 
@@ -256,11 +909,11 @@
                                                 {
                                                     @foreach(var intials in project.MemberIntials.Take(3))
                                                     {
-                                                        <div class="avatar-circle bg-primary text-white">@intials</div>
+                                                        <div class="avatar-circle bg-secondary text-white">@intials</div>
                                                     }
                                                     @if(project.MemberCount>3)
                                                     {
-                                                        <div class="avatar-circle bg-primary text-white">+@(project.MemberCount-3)</div>
+                                                        <div class="avatar-circle bg-secondary text-white">+@(project.MemberCount-3)</div>
                                                     
                                                     }
                                                     }
@@ -275,22 +928,241 @@
                                             <small class="ms-2 text-black fw-medium">Team</small>
                                     </div>
 
-                                    <div class="d-flex justify-content-between mt-3 flex-wrap">
-                                        <button class="btn btn-outline-primary flex-grow-1 me-2 mb-2 mb-sm-0">View Details</button>
-                                        <button class="btn btn-primary flex-grow-1">Edit</button>
+                                    <div class="d-flex justify-content-between mt-3 flex-wrap" style="gap:10px;">
+                                            <button class="btn btn-outline-secondary flex-grow-1 me-2 mb-2 mb-sm-0 view-btn" style=" background-color:#ecf0f1" @onclick="() => ViewProject(project.Id)">View </button>
+                                            <button class="btn  flex-grow-1 edit-btn" style="background-color:#2c3e50; color:white;" @onclick="() => OpenEditPopup(project)">Edit</button>
+                                            
+                                           
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        </div>
+                       
                     }
                 }
             </div>
         </div>
+       
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <small class="text-muted">
+                Showing @(((currentPage - 1) * pageSize) + 1)
+                -
+                @(Math.Min(currentPage * pageSize, totalProjects))
+                of @totalProjects projects
+            </small>
+            <div class="d-flex align-items-center gap-3">
+            <div class="d-flex  align-items-center gap-2 ">
+                    <label class="text-muted small">Entries per page:</label>
+
+                    <select class="form-select form-select-sm"
+                            style="width: 80px;"
+                            @bind="pageSize"
+                            @bind:after="OnPageSizeChanged">
+                        <option value="6">6</option>
+                        <option value="12">12</option>
+                        <option value="18">18</option>
+                        <option value="24">24</option>
+                    </select>
+                </div>
+
+         
+            <nav>
+                <ul class="pagination pagination-sm mb-0 shadow-sm">
+                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                        <button class="page-link" @onclick="PreviousPage">Previous</button>
+                    </li>
+
+                    <li class="page-item active">
+                        <span class="page-link">@currentPage</span>
+                    </li>
+
+                    <li class="page-item @(currentPage == GetTotalPages() ? "disabled" : "")">
+                        <button class="page-link" @onclick="NextPage">Next</button>
+                    </li>
+                </ul>
+            </nav>
         </div>
+        </div>
+        </div>
+        </div>
+       
+@if (showEditForm)
+{
+    <div class="modal-overlay d-flex justify-content-center align-items-center">
+        <div class="modal-content shadow-lg rounded-4 p-4 " style="width: 600px; background-color:#ecf0f1;">
+
+            <h5 class="fw-bold mb-3 text-center" style="color:#2c3e50;">Edit Project</h5>
+
+            <EditForm Model="@editProject" OnValidSubmit="UpdateProjectAsync">
+                <DataAnnotationsValidator />
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="color:#2c3e50;">
+                        Project Name <span class="text-danger">*</span>
+                    </label>
+                    <InputText class="form-control" 
+                               @bind-Value="editProject.Name" />
+                    <ValidationMessage For="@(() => editProject.Name)" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold " style="color:#2c3e50;">Description</label>
+                    <textarea class="form-control" @bind="editProject.Description" placeholder="Enter description"></textarea>
+                    <ValidationMessage For="@(() => editProject.Description)" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="color:#2c3e50;">Visibility</label>
+                    <InputSelect class="form-select w-50" 
+                                 @bind-Value="editProject.Visibility">
+                        <option value="Public">Public</option>
+                        <option value="Private">Private</option>
+                    </InputSelect>
+             </div>
+                <div class="mb-3 w-75 ">
+                    <label class="form-label fw-semibold " style="color:#2c3e50;">
+                        Assign Manager <span class="text-danger">*</span>
+                    </label>
+                    <div class="d-flex gap-1 align-items-center">
+                    <div class="multi-select @(showManagerDropdown ? "open" : "") " @onclick="ToggleDropdown">
+
+                        <div class="selected-area">
+                            <span>@(editProject.ManagerIds.Count == 0 ? "Select managers..." : "Selected managers:")</span>
+                        </div>
+
+
+                        <div class="dropdown-icon">
+                            <i class="bi bi-chevron-down"></i>
+                        </div>
+
+                        @if (showManagerDropdown)
+                        {
+                            <div class="dropdown-panel shadow">
+                                @foreach (var manager in managers)
+                                {
+
+                                    <div class="dropdown-item" @onclick:stopPropagation="true" @onclick="() => SelectManagerEdit(manager.Id)">
+                                        @manager.Name
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                      <button type="button" class="add-btn" @onclick="ShowAddForm"><Span class="plus mb-1">+</Span></button>
+                      </div>
+                    @if (editProject.ManagerIds.Count > 0)
+                    {
+                        <div class="mt-2 d-flex flex-wrap gap-2">
+                            @foreach (var id in editProject.ManagerIds)
+                            {
+                                var mgr = managers.FirstOrDefault(m => m.Id == id);
+                                if (mgr != null)
+                                {
+                                    <span class="tag-item">
+                                        @mgr.Name
+                                        <button type="button" class="remove-tag"
+                                                @onclick:stopPropagation="true"
+                                                @onclick="() => RemoveManagerEdit(id)">
+                                            ×
+                                        </button>
+                                    </span>
+                                }
+                            }
+                        </div>
+                    }
+
+                    <ValidationMessage For="@(() => editProject.ManagerIds)" />
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-secondary" @onclick="() => showEditForm = false">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary" style="background-color:#2c3e50;">
+                        Update
+                    </button>
+                </div>
+
+            </EditForm>
+        </div>
+    </div>
+}
+@if (showForm)
+{
+    <div class="modal-overlay">
+        <div class="modal-content shadow-lg rounded-4 p-4 bg-white">
+            <!-- Header -->
+            <h5 class="fw-bold mb-3 text-center" style="color:#2c3e50;">
+                <i class="bi @(currentUser.Id == 0 ? "bi-person-plus" : "bi-pencil-square") me-2"></i>
+                @(currentUser.Id == 0 ? "Add Manager" : "Edit Manager")
+            </h5>
+
+            <!-- Form -->
+            <EditForm Model="@currentUser" OnValidSubmit="SaveUser">
+                <DataAnnotationsValidator />
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="color:#2c3e50;">Full Name<span class="text-danger">*</span></label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light border-0" style="background-color:#ecf0f1;">
+                            <i class="bi bi-person-fill"></i>
+                        </span>
+                        <InputText class="form-control border-0 shadow-sm" style="background-color:#ecf0f1;"
+                                   @bind-Value="currentUser.Name" placeholder="Enter  name" />
+                    </div>
+                    <ValidationMessage For="@(() => currentUser.Name)" class="text-danger small" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="color:#2c3e50;">Email Address<span class="text-danger">*</span></label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light border-0" style="background-color:#ecf0f1;">
+                            <i class="bi bi-envelope-fill"></i>
+                        </span>
+                        <InputText type="email" class="form-control border-0 shadow-sm" style="background-color:#ecf0f1;"
+                                   @bind-Value="currentUser.Email" placeholder="Enter email" />
+                    </div>
+                    <ValidationMessage For="@(() => currentUser.Email)" class="text-danger small" />
+                </div>
+                @if (!string.IsNullOrWhiteSpace(serverError))
+                {
+                    <div class="text-danger small mt-1">@serverError</div>
+                }
+
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="background-color:#2c3e50;">
+                         Save
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+
+        @if (deletePopupVisible)
+{
+    <div class="modal-overlay d-flex justify-content-center align-items-center">
+        <div class="modal-content shadow-lg rounded-4 p-4 bg-white" style="width:400px;">
+            <h5 class="fw-bold text-center mb-3 text-danger">Delete Project</h5>
+
+            <p class="text-center mb-4">Are you sure you want to delete this project?</p>
+
+            <div class="d-flex justify-content-between">
+                <button class="btn btn-secondary w-50 me-2" @onclick="CancelDelete">Cancel</button>
+                <button class="btn btn-danger w-50" @onclick="DeleteProject">Delete</button>
             </div>
-        
-  
+        </div>
+    </div>
+}
+
+
+
+
+
 
   
 
@@ -305,29 +1177,246 @@
     private List<ProjectDto> recentProjects = new();
     private bool isLoading = true;
     private bool showCreateForm = false;
+    private bool showConfirmation = false;
     private ProjectDto newProject = new();
-    private AppUserDto? currentUser;
+
+
+    private AppUserDto? currentUser=new();
+    private List<ManagerDto> managers = new();
+    private bool isManagersLoading = true;
+    private int currentPage=1;
+    private int pageSize = 6;
+    private bool showEditForm = false;
+    private ProjectDto editProject = new();
+    private bool deletePopupVisible = false;
+    private int projectIdToDelete = 0;
+    private bool showManagerDropdown = false;
+    private EditContext? createProjectContext;
+    private int totalProjects = 0;
+    private string search = "";
+    private string? filterManagerId = "";
+    private DateTime? filterCreatedDate;
+    private DateTime? filterStartDate;
+    private DateTime? filterEndDate;
+    private string activeFilter = "";
+    private EditContext formContext;
+    private bool submitted = false;
+    private bool showForm = false;
+    private string serverError = "";
+    private bool showFullDescription = false;
+
+
+
+
+
+
 
 
 
     protected override async Task OnInitializedAsync()
     {
-        await FilterProjects("Active");
+
+        newProject = new ProjectDto();
+        formContext = new EditContext(newProject);
+        _ = LoadDataAsync();
+        // var projectTask= FilterProjects("Active");
+        // var statsTask= LoadDashboardStats();
+        // var managerTask = LoadManagers();
+        // await Task.WhenAll(projectTask, statsTask,managerTask);
+        createProjectContext = new EditContext(newProject);
+
+
+    }
+    private async Task LoadDataAsync()
+    {
+        await LoadManagers();
         await LoadDashboardStats();
-        // await LoadUserInfo();
+        await FilterProjects("Active");
+    }
+    private void ViewManagerProjects(int managerId, string managerName)
+    {
+        nav.NavigateTo($"/manager/{managerId}/{Uri.EscapeDataString(managerName)}");
     }
 
-    private async Task FilterProjects(string filter)
+    private async Task LoadManagers()
+    {
+        try
+        {
+            isManagersLoading = true;
+            var client=HttpClientFactory.CreateClient("AuthClient");
+
+
+            managers = await client.GetFromJsonAsync<List<ManagerDto>>("api/Manager/All") ?? new List<ManagerDto>();
+        }        
+        catch(Exception ex)
+
+        {
+            Console.WriteLine($"Error loading managers: {ex.Message}");
+        }
+        finally
+        {
+            isManagersLoading = false;
+        }
+    }
+    // private async Task OnManagerClick(int managerId)
+    // {
+    //     isLoading = true;
+    //     StateHasChanged();
+
+    //     try
+    //     {
+    //         var client = HttpClientFactory.CreateClient("AuthClient");
+    //         recentProjects = await client.GetFromJsonAsync<List<ProjectDto>>($"api/Member/{managerId}") ?? new();
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Console.WriteLine($"Error loading projects for manager: {ex.Message}");
+    //     }
+    //     finally
+    //     {
+    //         isLoading = false;
+    //         StateHasChanged();
+    //     }
+    // }
+    private void ShowAddForm()
+    {
+        currentUser = new AppUserDto
+        {
+            Role = "Manager"
+        };
+        showForm = true;
+    }
+    private async Task SaveUser()
+    {
+        serverError = "";
+
+        if (string.IsNullOrWhiteSpace(currentUser.Role))
+            currentUser.Role = "Manager";
+        if (currentUser.Id == 0)
+        {
+            var client = HttpClientFactory.CreateClient("AuthClient");
+            var response = await client.PostAsJsonAsync("api/Member", currentUser);
+            if (response.IsSuccessStatusCode)
+            {
+                showForm = false;
+                
+                await LoadManagers();
+            }
+            else
+            {
+                serverError = await response.Content.ReadAsStringAsync();
+
+            }
+        }
+       
+     
+
+        // showForm = false;
+
+    }
+    private void CancelEdit()
+    {
+        showForm = false;
+        currentUser = new();
+    }
+    void ToggleDescription()
+    {
+        showFullDescription = !showFullDescription;
+    }
+    private string GetInitials(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return string.Empty;
+
+        return string.Join("", name.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                   .Select(n => n[0]))
+                                   .ToUpper();
+    }
+    private async Task OnPageSizeChanged()
+    {
+        currentPage = 1;
+        await FilterProjects(selectedFilter, 1);
+    }
+
+
+    private async Task ApplyFilters()
+    {
+        await FilterProjects(selectedFilter, 1);
+    }
+
+    private async Task ResetFilters()
+    {
+        search = "";
+        filterManagerId = "";
+        filterCreatedDate = null;
+        filterStartDate = null;
+        filterEndDate = null;
+
+        await FilterProjects(selectedFilter, 1);
+    }
+    private void ToggleFilterPanel(string panel)
+    {
+        if (activeFilter == panel)
+            activeFilter = ""; 
+        else
+            activeFilter = panel;
+    }
+    private async Task FilterProjects(string filter, int page=1)
     {
         selectedFilter = filter;
         isLoading = true;
-        StateHasChanged();
+      
         try
         {
             var client = HttpClientFactory.CreateClient("AuthClient");
-            recentProjects = await client.GetFromJsonAsync<List<ProjectDto>>($"api/Project?filter={filter}") ?? new();
-            recentProjects.Reverse();
+            var url = $"api/Project?filter={filter}&page={page}&pageSize={pageSize}";
+
+            if (!string.IsNullOrWhiteSpace(search))
+                url += $"&search={Uri.EscapeDataString(search)}";
+
+            if (!string.IsNullOrWhiteSpace(filterManagerId))
+                url += $"&managerId={filterManagerId}";
+
+            if (filterCreatedDate.HasValue)
+                url += $"&createdDate={filterCreatedDate:yyyy-MM-dd}";
+
+            if (filterStartDate.HasValue)
+                url += $"&startDate={filterStartDate:yyyy-MM-dd}";
+
+            if (filterEndDate.HasValue)
+                url += $"&endDate={filterEndDate:yyyy-MM-dd}";
+
+            var response = await client.GetAsync(url);
+
+
+            // var response = await client.GetAsync($"api/Project?filter={filter}&page={page}&pageSize={pageSize}");
+            if (response.IsSuccessStatusCode)
+            {
+                var paged = await response.Content.ReadFromJsonAsync<PagedResult<ProjectDto>>() ?? new();
+                // recentProjects.Reverse();
+
+                if (paged != null)
+                {
+                    recentProjects = paged.Items;
+                    totalProjects = paged.TotalCount;
+                    currentPage = page;
+                }
+                else
+                {
+                    recentProjects = new();
+                    totalProjects = 0;
+                }
+            }
+            else
+            {
+                Console.WriteLine($"API Error: {response.StatusCode}");
+                recentProjects = new();
+                totalProjects = 0;
+            }
         }
+
+
+
         catch (Exception ex)
         {
             Console.WriteLine($"Error loading filtered projects: {ex.Message}");
@@ -338,39 +1427,150 @@
             StateHasChanged();
         }
     }
-    private string GetPriorityBadgeClass(string? priority)
+    // private void OnManagerChange(ChangeEventArgs e)
+    // {
+    //     var selected = e.Value as IEnumerable<string>;
+
+    //     if (selected != null)
+    //     {
+    //         newProject.ManagerIds = selected
+    //             .Select(int.Parse)
+    //             .ToList();
+    //     }
+    // }
+
+    private string GetVisibilityBadgeClass(string? visibility)
     {
-        return priority?.ToLower() switch
+        return visibility?.ToLower() switch
         {
-            "high" => "badge bg-danger-subtle text-danger fw-semibold rounded-pill px-3 py-1",
-            "medium" => "badge bg-warning-subtle text-warning fw-semibold rounded-pill px-3 py-1",
-            "low" => "badge bg-success-subtle text-success fw-semibold rounded-pill px-3 py-1",
-            _ => "badge bg-secondary-subtle text-secondary fw-semibold rounded-pill px-3 py-1"
+            "public" => "visibility-public",
+            "private" => "visibility-private",
+            _ => "visibility-public"
         };
     }
+    private string GetVisibilityIcon(string? visibility)
+    {
+        return visibility?.ToLower() switch
+        {
+            "public" => "bi bi-globe2",
+            "private" => "bi bi-lock-fill",
+            _ => "bi bi-globe2"
+        };
+    }
+    private void ToggleDropdown()
+    {
+        showManagerDropdown = !showManagerDropdown;
+    }
 
-    private async Task CreateProjectAsync()
+    private void SelectManager(int id)
+    {
+        if (!newProject.ManagerIds.Contains(id))
+            newProject.ManagerIds.Add(id);
+
+        showManagerDropdown = false;
+
+        if (submitted)
+        {
+            formContext?.NotifyFieldChanged(
+                new FieldIdentifier(newProject, nameof(newProject.ManagerIds))
+            );
+        }
+    }
+
+    private void RemoveManager(int id)
+    {
+        newProject.ManagerIds.Remove(id);
+
+        if (submitted)
+        {
+
+            formContext?.NotifyFieldChanged(
+                new FieldIdentifier(newProject, nameof(newProject.ManagerIds))
+            );
+        }
+    }
+    private void SelectManagerEdit(int id)
+    {
+        if (!editProject.ManagerIds.Contains(id))
+            editProject.ManagerIds.Add(id);
+
+        showManagerDropdown = false;
+
+        StateHasChanged();
+    }
+
+    private void RemoveManagerEdit(int id)
+    {
+        editProject.ManagerIds.Remove(id);
+
+        StateHasChanged();
+    }
+
+
+    private void OpenEditPopup(ProjectDto project)
+    {
+        editProject = new ProjectDto
+        {
+            Id = project.Id,
+            Name = project.Name,
+            Description = project.Description,
+            Visibility = project.Visibility,
+            CreatedDate = project.CreatedDate,
+            ManagerIds = project.ManagerIds?.ToList() ?? new List<int>(),
+        };
+
+        showEditForm = true;
+    }
+
+    private void ShowConfirmation()
+    {
+
+        if (!string.IsNullOrWhiteSpace(newProject.Name))
+        {
+            showConfirmation = true;
+        }
+        else
+        {
+            Console.WriteLine("Please fill in all required fields before confirming.");
+        }
+    }
+
+    private void CancelConfirmation()
+    {
+
+        showConfirmation = false;
+        showCreateForm = true;
+    }
+    private async Task ConfirmProjectAsync()
     {
         try
         {
+
             var response = await Http.PostAsJsonAsync("api/Project", newProject);
             if (response.IsSuccessStatusCode)
             {
                 var createdProject = await response.Content.ReadFromJsonAsync<ProjectDto>();
+                Console.WriteLine("Created ID: " + createdProject?.Id);
+
+                showConfirmation = false;
                 showCreateForm = false;
+
                 newProject = new ProjectDto();
+
+
                 await FilterProjects(selectedFilter); // refresh project list
+                // await LoadManagerAsync();
 
 
-                if (createdProject != null)
-                {
-                    // ✅ Navigate using the actual ID
-                    nav.NavigateTo($"/project/{createdProject.Id}/boards");
-                }
-                else
-                {
-                    Console.WriteLine("Project created but no ID returned from API.");
-                }
+                // if (createdProject != null)
+                // {
+
+                //     nav.NavigateTo($"/project/{createdProject.Id}/dashboard");
+                // }
+                // else
+                // {
+                //     Console.WriteLine("Project created but no ID returned from API.");
+                // }
             }
             else
             {
@@ -412,57 +1612,155 @@
         }
     }
 
-    // private async Task LoadUserInfo()
+    private void HandleSubmit(EditContext context)
+    {
+        submitted = true;
+
+        // Run Blazor built-in validation
+        if (context.Validate())
+        {
+            newProject.ManagerNames = string.Join(", ",
+           managers.Where(m => newProject.ManagerIds.Contains(m.Id))
+                   .Select(m => m.Name));
+            showCreateForm = false;
+            showConfirmation = true;
+        }
+        else
+        {
+            showConfirmation = false;
+            Console.WriteLine("Validation failed.");
+        }
+    }
+    private void OnManagerSelected(ChangeEventArgs e)
+    {
+        var selected = e.Value as IEnumerable<string>;
+
+        if (selected != null)
+        {
+            newProject.ManagerIds = selected
+                .Select(int.Parse)
+                .ToList();
+        }
+    }
+    // private IEnumerable<ProjectDto> GetFilteredProjects()
     // {
-    //     try
-    //     {
-    //         currentUser = await Http.GetFromJsonAsync<AppUserDto>("api/Account/me");
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine($"Error loading user info: {ex.Message}");
-    //     }
+    //     return recentProjects;
     // }
 
-    // private string GetInitials(string? name)
-    // {
-    //     if (string.IsNullOrWhiteSpace(name))
-    //         return string.Empty;
 
-    //     var initials = string.Join("", name
-    //         .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-    //         .Select(n => n[0]))
-    //         .ToUpper();
+    private async Task UpdateProjectAsync()
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("AuthClient");
+            var response = await client.PutAsJsonAsync($"api/Project/{editProject.Id}", editProject);
 
-    //     return initials;
-    // }
-    // private async Task OnLogout()
-    // {
-   
-    //     try
-    //     {
-            
-    //         var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+            if (response.IsSuccessStatusCode)
+            {
+                var updatedProject = await response.Content.ReadFromJsonAsync<ProjectDto>();
 
-    //         if (!string.IsNullOrEmpty(token))
-    //         {
-    //             var request = new HttpRequestMessage(HttpMethod.Post, "api/Auth/logout");
-    //             request.Headers.Add("token", token); 
+                // Replace updated project inside the list
+                var index = recentProjects.FindIndex(p => p.Id == editProject.Id);
+                if (index >= 0)
+                    recentProjects[index] = updatedProject;
 
-    //             var client = HttpClientFactory.CreateClient("AuthClient");
-    //             await client.SendAsync(request);
-    //         }
+                // Refresh dashboard stats
+                editProject = updatedProject;
 
-            
-    //         await JS.InvokeVoidAsync("localStorage.removeItem", "authToken");
+                // Refresh dashboard
+               
+                await LoadDashboardStats();
 
-            
-    //         await JS.InvokeVoidAsync("eval", "window.location.href = '/'");
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine($"Logout error: {ex.Message}");
-    //     }
-    // }
+                showEditForm = false;
+                StateHasChanged();
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Console.WriteLine("Edit failed: " + error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error editing project: " + ex.Message);
+        }
+    }
+
+    private void ViewProject(int projectId)
+    {
+        nav.NavigateTo($"/project/{projectId}/boards");
+    }
+    private int GetTotalPages()
+    {
+        
+        return (int)Math.Ceiling((double)totalProjects / pageSize);
+    }
+
+    private async Task NextPage()
+    {
+        if (currentPage < GetTotalPages())
+            await FilterProjects(selectedFilter, currentPage + 1);
+    }
+    
+
+    private async Task PreviousPage()
+    {
+        if (currentPage > 1)
+            await FilterProjects(selectedFilter, currentPage - 1);
+    }
+
+  
+    private void ConfirmDelete(int projectId)
+    {
+        projectIdToDelete = projectId;
+        deletePopupVisible = true;
+    }
+
+    private void CancelDelete()
+    {
+        deletePopupVisible = false;
+        projectIdToDelete = 0;
+    }
+
+    private async Task DeleteProject()
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("AuthClient");
+            var response = await client.DeleteAsync($"api/Project/{projectIdToDelete}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                
+                recentProjects.RemoveAll(p => p.Id == projectIdToDelete);
+
+             
+                var totalPages = GetTotalPages();
+                if (currentPage > totalPages && currentPage > 1)
+                    currentPage--;
+
+                await LoadDashboardStats();
+              
+
+                deletePopupVisible = false;
+                projectIdToDelete = 0;
+
+                StateHasChanged();
+            }
+            else
+            {
+                Console.WriteLine("Failed to delete project.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting project: {ex.Message}");
+        }
+    }
+
+
+
+
+  
 
 }

@@ -13,7 +13,8 @@ namespace Task.Application.Interaces
     {
         //public Task<AppUserDto> RegisterUserAsync(RegisterDto registerDto);
         public Task<AppUserDto> RegisterUserAsync(RegisterDto registerDto);
-        public Task<string> LoginAsync(LoginDto loginDto);
+        public Task<LoginResponseDto> LoginAsync(LoginDto loginDto);
         Task<bool> LogoutAsync(string token);
+         Task<(bool Success, string Role)> ChangePasswordAsync(ChangePasswordDto dto);
     }
 }

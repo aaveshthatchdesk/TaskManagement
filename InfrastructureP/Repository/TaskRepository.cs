@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using Task.Application.DTOs;
 using Task.Application.Interaces;
 using Task.Domain.Entities;
 using Task.Infrastructure.DbContext;
@@ -20,14 +21,17 @@ namespace Task.Infrastructure.Repository
             _taskDbContext = taskDbContext;
         }
 
-       public async Task<IEnumerable<Project>> GetAllProjectsAsync(string currentUserId,bool isAdmin,string? filter="All")
+        public async Task<PagedResult<Project>> GetAllProjectsPagedAsync(string currentUserId, bool isAdmin, string? filter, int page, int pageSize, string? search, int? managerId, DateTime? createdDate, DateTime? startDate, DateTime? endDate)
         {
 
             int UserId = int.Parse(currentUserId);
-            //int UserId = currentUserId;
+
 
             IQueryable<Project> query = _taskDbContext.projects
-               
+                .Include(p => p.Managers)
+                   .ThenInclude(m => m.AppUser)
+                 .Include(p => p.ProjectMembers)
+                     .ThenInclude(m => m.AppUser)
                 .Include(x => x.Boards)
                 .ThenInclude(b => b.TaskItems)
                 .ThenInclude(t => t.TaskAssignments)
@@ -45,29 +49,110 @@ namespace Task.Infrastructure.Repository
                     query = query.Where(p => p.Status == ProjectStatus.Archeived);
                     break;
                 default:
-                    // "All" → no filter applied
+
                     break;
             }
-            if (!isAdmin)
+            if (managerId.HasValue)
+                query = query.Where(p => p.Managers.Any(m => m.AppUserId == managerId.Value));
+
+            if (!string.IsNullOrWhiteSpace(search))
             {
-                query = query.Where(p =>
-            
-                 p.Boards.Any(b =>
-                   b.TaskItems.Any(t =>
-                     t.TaskAssignments.Any(a => a.AppUserId == UserId)))
-);
+                string s = search.ToLower();
+                query = query.Where(p => p.Name.ToLower().Contains(s) ||
+                  p.Description.ToLower().Contains(s));
             }
 
-            //var data = await _taskDbContext.projects.Include(x => x.Boards)
-            //    .ThenInclude(b=>b.TaskItems)
-            //    .ThenInclude(t=>t.TaskAssignments)
-            //    .ThenInclude(a=>a.AppUser).ToListAsync();
-            return await query.ToListAsync();
+            if (createdDate.HasValue)
+            {
+                DateTime date = createdDate.Value.Date;
+                query = query.Where(p => p.CreatedDate.Value.Date == date);
+            }
+
+            if (startDate.HasValue)
+                query = query.Where(p => p.CreatedDate.Value.Date >= startDate.Value.Date);
+
+            if (endDate.HasValue)
+                query = query.Where(p => p.CreatedDate.Value.Date <= endDate.Value.Date);
+
+            if (!isAdmin)
+            {
+
+                query = query.Where(p => p.ProjectMembers.Any(m => m.AppUserId == UserId));
+                //query = query.Where(p =>
+
+                // p.Boards.Any(b =>
+                //   b.TaskItems.Any(t =>
+                //     t.TaskAssignments.Any(a => a.AppUserId == UserId)))
+
+
+//);
+
+            }
+            int totalCount = await query.CountAsync();
+
+            var items = await query.OrderByDescending(p => p.CreatedDate)
+                                                  .ThenByDescending(p => p.Id)
+                                                  .Skip((page - 1) * pageSize)
+                                                  .Take(pageSize)
+                                                  .ToListAsync();
+
+
+            return new PagedResult<Project>
+            {
+                Items = items,
+                TotalCount = totalCount,
+            };
+
         }
+
+        public async Task<bool> AssignMembersAsync(int projectId,List<int>memberIds)
+        {
+            var project = await _taskDbContext.projects
+           .Include(p => p.ProjectMembers)
+           .FirstOrDefaultAsync(p => p.Id == projectId);
+
+            if (project == null)
+                throw new Exception("Project not found");
+
+            //// Clear old member list
+            //project.ProjectMembers.Clear();
+
+            // Get all users to add
+            var users = await _taskDbContext.appUsers
+                .Where(u => memberIds.Contains(u.Id))
+                .ToListAsync();
+
+            // Add new members
+            foreach (var user in users)
+            {
+                project.ProjectMembers.Add(
+                  new ProjectMember
+                  {
+                      ProjectId = project.Id,
+                      AppUserId = user.Id,
+                      AppUser = user
+                  }
+                    );
+            }
+
+            await _taskDbContext.SaveChangesAsync();
+            return true;
+        }
+       // public async Task<List<ProjectMember>> GetProjectMembersAssignedAsync(int projectId)
+       // {
+       //     return await _taskDbContext.ProjectMembers
+       //.Where(pm => pm.ProjectId == projectId)
+       //.Include(pm => pm.AppUser)  
+
+       //.ToListAsync();
+       // }
+
 
         public async Task<Project> GetProjectByIdAsync(int id)
         {
             var data = await _taskDbContext.projects
+                .Include(p => p.Managers)
+                  .ThenInclude(m=>m.AppUser)
                 .Include(x => x.Boards)
                 .ThenInclude(b => b.TaskItems)
                     .ThenInclude(t => t.TaskAssignments)
@@ -76,83 +161,368 @@ namespace Task.Infrastructure.Repository
                         .FirstOrDefaultAsync(x => x.Id == id);
             return data;
         }
+
+        //public async Task<List<AppUser>> GetProjectMembersAsync(int projectId)
+        //{
+        //    return await _taskDbContext.tasks
+        //        .Where(t => t.Board.ProjectId == projectId)
+        //        .SelectMany(t => t.TaskAssignments)
+        //        .Select(a => a.AppUser)
+        //        .Where(u => u.Role != "Manager") 
+        //        .Distinct()
+        //        .ToListAsync();
+        //}
+        public async Task<List<AppUser>> GetProjectMembersAsync(int projectId)
+        {
+            return await _taskDbContext.ProjectMembers
+                .Where(pm => pm.ProjectId == projectId)
+                .Include(pm => pm.AppUser)
+                .Select(pm => pm.AppUser)
+                .ToListAsync();
+        }
+
+        public async Task<List<AppUser>> GetManagersByProjectAsync(int projectId)
+        {
+            //return await _taskDbContext.projects
+            //    .Where(p => p.Id == projectId)
+            //    .Include(p => p.Managers)
+            //    .SelectMany(p => p.Managers)
+            //    .ToListAsync();
+            return await _taskDbContext.projects
+       .Where(p => p.Id == projectId)
+       .Include(p => p.Managers)
+           .ThenInclude(pm => pm.AppUser)   
+       .SelectMany(p => p.Managers)
+       .Select(pm => pm.AppUser)            
+       .ToListAsync();
+        }
+
+
         public async Task<Project> AddProjectAsync(Project project)
         {
-            await _taskDbContext.projects.AddAsync(project);
-            await _taskDbContext.SaveChangesAsync();
-            return project;
-        }
-        public async Task<Project> UpdateProjectAsync(int id, Project project)
-
-        {
-            var existingProject = await _taskDbContext.projects.Include(x => x.Boards)
-                                                                
-                                                                    .ThenInclude(b => b.TaskItems)
-                                                                    .ThenInclude(t => t.TaskAssignments)
-                                                                            .ThenInclude(a => a.AppUser)
-                                                                      .FirstOrDefaultAsync(x => x.Id == id);
-            if (existingProject == null)
+            //foreach (var manager in project.Managers)
+            //{
+            //    _taskDbContext.Attach(manager);
+            //}
+            try
             {
-                throw new Exception("Project not found");
+                foreach (var manager in project.Managers)
+                {
+                    _taskDbContext.Entry(new AppUser { Id = manager.AppUserId })
+                        .State = EntityState.Unchanged;
+                }
+                _taskDbContext.projects.Add(project);
+                await _taskDbContext.SaveChangesAsync();
+                return project;
             }
-                existingProject.Name = project.Name;
-            existingProject.CreatedDate = project.CreatedDate;
+            catch (Exception ex)
+            {
+                Console.WriteLine("DB Error: " + ex);
+                throw;
+            }
+        }
+
+
+
+        //public async Task<Project> UpdateProjectAsync(int id, Project project, ProjectDto projectDto)
+        //{
+        //    var existingProject = await _taskDbContext.projects
+        //        .Include(p => p.Managers)
+        //        .Include(p => p.Boards)
+        //            .ThenInclude(b => b.TaskItems)
+        //                .ThenInclude(t => t.TaskAssignments)
+        //        .Include(p => p.Boards)
+        //            .ThenInclude(b => b.TaskItems)
+        //                .ThenInclude(t => t.Sprint)
+        //        .FirstOrDefaultAsync(x => x.Id == id);
+
+        //    if (existingProject == null)
+        //        throw new Exception("Project not found");
+
+
+        //    existingProject.Name = project.Name;
+        //    existingProject.Description = project.Description;
+        //    existingProject.Visibility = project.Visibility;
+        //    existingProject.Priority = project.Priority;
+        //    existingProject.Status = project.Status;
+
+
+        //    existingProject.Managers.Clear();
+
+        //    if (projectDto.ManagerIds != null && projectDto.ManagerIds.Any())
+        //    {
+        //        existingProject.Managers = projectDto.ManagerIds
+        //            .Select(id => new ProjectManager
+        //            {
+        //                ProjectId = existingProject.Id,
+        //                AppUserId = id
+        //            })
+        //            .ToList();
+        //    }
+        //   existingProject.Managers.Add(m);
+
+
+        //    foreach (var boardDto in projectDto.Boards ?? new List<BoardDto>())
+        //    {
+        //        var board = existingProject.Boards.FirstOrDefault(b => b.Id == boardDto.Id);
+
+
+        //        if (board == null)
+        //        {
+        //            board = new Board
+        //            {
+        //                Name = boardDto.Name,
+        //                ProjectId = existingProject.Id,
+        //                TaskItems = new List<TaskItem>()
+        //            };
+
+        //            existingProject.Boards.Add(board);
+        //            continue;
+        //        }
+
+
+        //        board.Name = boardDto.Name;
+
+
+        //        var incomingTaskIds = boardDto.TaskItems?.Where(t => t.Id != 0).Select(t => t.Id).ToList()
+        //                                ?? new List<int>();
+
+
+        //        var tasksToRemove = board.TaskItems
+        //            .Where(et => !incomingTaskIds.Contains(et.Id))
+        //            .ToList();
+
+        //        foreach (var tRemove in tasksToRemove)
+        //        {
+        //            _taskDbContext.taskAssignments.RemoveRange(tRemove.TaskAssignments);
+        //            _taskDbContext.tasks.Remove(tRemove);
+        //        }
+
+
+        //        foreach (var taskDto in boardDto.TaskItems ?? new List<TaskItemDto>())
+        //        {
+        //            var existingTask = board.TaskItems.FirstOrDefault(t => t.Id == taskDto.Id);
+
+
+        //            if (existingTask == null)
+        //            {
+        //                existingTask = new TaskItem
+        //                {
+        //                    Title = taskDto.Title,
+        //                    Description = taskDto.Description,
+        //                    DueDate = taskDto.DueDate,
+        //                    SprintId = taskDto.SprintId,
+        //                    Order = taskDto.Order,
+        //                    Priority=taskDto.Priority??"Medium",
+
+        //                    BoardId = board.Id,
+        //                    TaskAssignments = new List<TaskAssignment>()
+        //                };
+        //                _taskDbContext.tasks.Add(existingTask);
+        //                board.TaskItems.Add(existingTask);
+        //            }
+
+
+        //            existingTask.Title = taskDto.Title;
+        //            existingTask.Description = taskDto.Description;
+        //            existingTask.DueDate = taskDto.DueDate;
+        //            existingTask.Order = taskDto.Order;
+        //            existingTask.SprintId = taskDto.SprintId;
+        //            existingTask.Priority = taskDto.Priority ?? existingTask.Priority;
+        //            existingTask.BoardId = board.Id;
+
+
+        //            _taskDbContext.taskAssignments.RemoveRange(existingTask.TaskAssignments);
+        //            existingTask.TaskAssignments.Clear();
+
+        //            foreach (var assignDto in taskDto.TaskAssignments ?? new List<TaskAssignmentDto>())
+        //            {
+        //                existingTask.TaskAssignments.Add(new TaskAssignment
+        //                {
+        //                    AppUserId = assignDto.AppUserId
+
+        //                });
+        //            }
+        //        }
+        //    }
+
+        //    await _taskDbContext.SaveChangesAsync();
+        //    return existingProject;
+        //}
+        public async Task<Project> UpdateProjectAsync(int id, Project project, ProjectDto projectDto)
+        {
+            var existingProject = await _taskDbContext.projects
+                .Include(p => p.Managers)
+                .Include(p => p.Boards)
+                    .ThenInclude(b => b.TaskItems)
+                        .ThenInclude(t => t.TaskAssignments)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (existingProject == null)
+                throw new Exception("Project not found");
+
+            // -----------------------------
+            // Update basic project fields
+            // -----------------------------
+            existingProject.Name = project.Name;
+            existingProject.Description = project.Description;
             existingProject.Priority = project.Priority;
+            existingProject.Visibility = project.Visibility;
             existingProject.Status = project.Status;
 
+            // -----------------------------
+            // Update Managers
+            // -----------------------------
+            existingProject.Managers.Clear();
 
-            // Optionally handle Boards updates (if you want to replace boards)
-            //existingProject.Boards = project.Boards;
-
-            foreach (var board in project.Boards)
+            if (projectDto.ManagerIds != null)
             {
-                var existingBoard = existingProject.Boards.FirstOrDefault(b => b.Id == board.Id);
-                if (existingBoard != null)
+                foreach (var managerId in projectDto.ManagerIds)
                 {
-                    existingBoard.Name = board.Name;
-                
-                foreach (var task in board.TaskItems)
-                {
-                    var existingTask = existingBoard.TaskItems.FirstOrDefault(t => t.Id == task.Id);
-
-                    if (existingTask != null)
+                    existingProject.Managers.Add(new ProjectManager
                     {
-                        // Update existing task
-                        existingTask.Title = task.Title;
-                        existingTask.Description = task.Description;
-
-                        existingTask.DueDate = task.DueDate;
-                        existingTask.Order = task.Order;
-                    }
-                    else
-                    {
-                        // 🆕 Add new task to board
-                        existingBoard.TaskItems.Add(task);
-                    }
+                        ProjectId = existingProject.Id,
+                        AppUserId = managerId
+                    });
                 }
-
-                // (Optional) 🗑 Remove deleted tasks
-                var tasksToRemove = existingBoard.TaskItems
-                    .Where(et => !board.TaskItems.Any(nt => nt.Id == et.Id))
-                    .ToList();
-
-                foreach (var taskToRemove in tasksToRemove)
-                {
-                    _taskDbContext.Remove(taskToRemove);
-                }
-
             }
-                    else
+            var incomingBoardIds = projectDto.Boards?
+    .Where(b => b.Id != 0)
+    .Select(b => b.Id)
+    .ToList() ?? new();
+
+            var boardsToRemove = existingProject.Boards
+                .Where(b => !incomingBoardIds.Contains(b.Id))
+                .ToList();
+
+            // Delete entire boards + their tasks
+            foreach (var board in boardsToRemove)
+            {
+                foreach (var task in board.TaskItems.ToList())
                 {
-                    // 🆕 new board added
+                    // Remove task assignments
+                    _taskDbContext.taskAssignments.RemoveRange(task.TaskAssignments);
+
+                    // Remove task
+                    _taskDbContext.tasks.Remove(task);
+                }
+
+                _taskDbContext.boards.Remove(board);
+            }
+
+            // -----------------------------
+            // Update Boards & Tasks
+            // -----------------------------
+            foreach (var boardDto in projectDto.Boards ?? new List<BoardDto>())
+            {
+                var board = existingProject.Boards.FirstOrDefault(b => b.Id == boardDto.Id);
+
+                // Create new board
+                if (board == null)
+                {
+                    board = new Board
+                    {
+                        Name = boardDto.Name,
+                        ProjectId = existingProject.Id,
+                        TaskItems = new List<TaskItem>()
+                    };
+
+                    _taskDbContext.boards.Add(board);
                     existingProject.Boards.Add(board);
+                    //await _taskDbContext.SaveChangesAsync();
+                }
+
+                // Update board name
+                board.Name = boardDto.Name;
+
+                // -----------------------------
+                // Remove deleted tasks
+                // -----------------------------
+                var incomingIds = boardDto.TaskItems?.Where(t => t.Id != 0).Select(t => t.Id).ToList() ?? new();
+
+                var tasksToRemove = board.TaskItems.Where(t => !incomingIds.Contains(t.Id)).ToList();
+
+                foreach (var removeTask in tasksToRemove)
+                {
+                    _taskDbContext.taskAssignments.RemoveRange(removeTask.TaskAssignments);
+                    _taskDbContext.tasks.Remove(removeTask);
+                }
+
+                // -----------------------------
+                // Add or update tasks
+                // -----------------------------
+                foreach (var taskDto in boardDto.TaskItems ?? new List<TaskItemDto>())
+                {
+                    TaskItem existingTask = null;
+
+                    if (taskDto.Id != 0)
+                    {
+                        existingTask = board.TaskItems.FirstOrDefault(t => t.Id == taskDto.Id);
+                    }
+
+                    // Insert new task
+                    if (existingTask == null)
+                    {
+                        existingTask = new TaskItem
+                        {
+                            Title = taskDto.Title,
+                            Description = taskDto.Description,
+                            DueDate = taskDto.DueDate,
+                            SprintId = taskDto.SprintId,
+                            Order = taskDto.Order,
+                            
+                            Priority = taskDto.Priority ?? "Low",
+                            BoardId = board.Id,
+                            TaskAssignments = new List<TaskAssignment>()
+                        };
+
+                        _taskDbContext.tasks.Add(existingTask);
+                        board.TaskItems.Add(existingTask);
+                    }
+
+                    // Update task
+                    existingTask.Title = taskDto.Title;
+                    existingTask.Description = taskDto.Description;
+                    existingTask.DueDate = taskDto.DueDate ?? DateTime.UtcNow.AddDays(1);
+                    existingTask.Order = taskDto.Order;
+                    existingTask.SprintId = taskDto.SprintId;
+                    existingTask.IsCompleted = taskDto.IsCompleted;
+                    existingTask.CompletedDate=taskDto.CompletedDate;
+                    existingTask.Priority = taskDto.Priority ?? existingTask.Priority;
+                    existingTask.BoardId = board.Id;
+
+                    // -----------------------------
+                    // Update TaskAssignments
+                    // -----------------------------
+                    _taskDbContext.taskAssignments.RemoveRange(existingTask.TaskAssignments);
+                    existingTask.TaskAssignments.Clear();
+
+                    foreach (var assignment in taskDto.TaskAssignments ?? new List<TaskAssignmentDto>())
+                    {
+                        existingTask.TaskAssignments.Add(new TaskAssignment
+                        {
+                            AppUserId = assignment.AppUserId,
+                            TaskItemId = existingTask.Id
+                        });
+                    }
                 }
             }
 
-
+            // -----------------------------
+            // Save all changes
+            // -----------------------------
             await _taskDbContext.SaveChangesAsync();
-                return existingProject;
-            }
+
+            return await _taskDbContext.projects
+    .Include(p => p.Managers)
+        .ThenInclude(m => m.AppUser)
+    .Include(p => p.ProjectMembers)
+        .ThenInclude(pm => pm.AppUser)
+    .Include(p => p.Boards)
+        .ThenInclude(b => b.TaskItems)
+            .ThenInclude(t => t.TaskAssignments)
+    .FirstOrDefaultAsync(p => p.Id == id);
+        }
 
 
         public async Task<bool> DeleteProjectAsync(int id)
@@ -170,6 +540,13 @@ namespace Task.Infrastructure.Repository
             await _taskDbContext.SaveChangesAsync();
             return true;
         }
+        public async Task<List<AppUser>> GetUsersByIdsAsync(List<int> ids)
+        {
+            return await _taskDbContext.appUsers
+                .Where(u => ids.Contains(u.Id))
+                .ToListAsync();
         }
+
     }
+}
 

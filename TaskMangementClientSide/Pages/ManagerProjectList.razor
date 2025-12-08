@@ -1,0 +1,20 @@
+﻿@page "/manager/{ManagerId:int}/{ManagerName}"
+@using TaskMangementClientSide.Component
+
+@inject NavigationManager Nav
+
+
+
+<ManagerProjectListComponent ManagerId="@ManagerId" ManagerName="@ManagerName" OnBack="HandleBack" />
+
+@code {
+    [Parameter] public int ManagerId { get; set; }
+    [Parameter] public string ManagerName { get; set; } = string.Empty;
+
+    private void HandleBack()
+    {
+        
+        Nav.NavigateTo("/managerslist");
+    }
+}
+

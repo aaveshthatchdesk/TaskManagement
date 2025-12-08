@@ -14,5 +14,6 @@ namespace Task.Domain.Entities
         public AppUser AppUser { get; set; } = null!;
         public byte[] PasswordHash { get; set; } = Array.Empty<byte>();
         public byte[] PasswordSalt { get; set; } = Array.Empty<byte>();
+        public bool IsTemporaryPassword {  get; set; }= false;
     }
 }

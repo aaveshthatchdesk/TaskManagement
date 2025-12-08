@@ -13,12 +13,25 @@ namespace Task.Domain.Entities
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public bool IsActive { get; set; } = true;
+
+        public string Description { get; set; }
+       
+        
         public ProjectStatus Status { get; set; } = ProjectStatus.Active;
 
         public DateTime? CreatedDate { get; set; }
         public string Priority { get; set; } = "Medium";
         public string Visibility { get; set; } = "Public";
+
+        //public List<AppUser> Managers { get; set; } = new();
+
+        public ICollection<ProjectManager> Managers { get; set; } = new List<ProjectManager>();
+
+        public ICollection<ProjectMember> ProjectMembers { get; set; } = new List<ProjectMember>();
         public ICollection<Board> Boards { get; set; } = new List<Board>();
+        //public ICollection<Sprint> Sprints { get; set; } = new List<Sprint>();
+        public Sprint Sprint { get; set; }
+        //public int? SprintId { get; set; }
 
         public int Progress
         {

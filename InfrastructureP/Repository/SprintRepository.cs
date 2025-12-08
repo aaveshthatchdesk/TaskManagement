@@ -18,37 +18,50 @@ namespace Task.Infrastructure.Repository
         {
             _taskDbContext = taskDbContext;
         }
-        public async Task<IEnumerable<Sprint>> GetAllAsync()
-        {
-            return await _taskDbContext.sprints.Include(s=>s.TaskItems)
-                .Include(s => s.TaskItems)
-                    .ThenInclude(t => t.Board)
-                          .ThenInclude(b => b.Project)
+        //public async Task<IEnumerable<Sprint>> GetAllAsync()
+        //{
+        //    return await _taskDbContext.sprints.Include(s=>s.TaskItems)
+        //        .Include(s => s.TaskItems)
+        //            .ThenInclude(t => t.Board)
+        //                  .ThenInclude(b => b.Project)
 
-             .Include(s => s.TaskItems)
-                .ThenInclude(t => t.TaskAssignments)
-                    .ThenInclude(a => a.AppUser).ToListAsync();
-        }
-        public async Task<IEnumerable<Sprint>> GetAllWithTasksAsync()
+        //     .Include(s => s.TaskItems)
+        //        .ThenInclude(t => t.TaskAssignments)
+        //            .ThenInclude(a => a.AppUser).ToListAsync();
+        //}
+        //public async Task<IEnumerable<Sprint>>GetAllSprintsOnly()
+        //{
+        //    return await _taskDbContext.sprints.ToListAsync();
+        //}
+        public async Task<Sprint> GetSprintsByProjectAsync(int projectId)
         {
-            return await _taskDbContext.sprints
-                .Include(s => s.TaskItems)
-                    .ThenInclude(t => t.TaskAssignments)
-                .ToListAsync();
-        }
+            return await _taskDbContext.projects
+         .Where(p => p.Id == projectId)
+         .Select(p => p.Sprint)
+         .FirstOrDefaultAsync();
 
-        public async Task<Sprint?> GetSprintByIdAsync(int id)
-        {
-            return await  _taskDbContext.sprints
-             .Include(s=>s.TaskItems)
-                    .ThenInclude(t=>t.Board)
-                          .ThenInclude(b=>b.Project)
-               
-             .Include(s=>s.TaskItems)
-                .ThenInclude(t=>t.TaskAssignments)
-                    .ThenInclude(a=>a.AppUser)
-             .FirstOrDefaultAsync(s=>s.Id == id);
+
         }
+        //public async Task<IEnumerable<Sprint>> GetAllWithTasksAsync()
+        //{
+        //    return await _taskDbContext.sprints
+        //        .Include(s => s.TaskItems)
+        //            .ThenInclude(t => t.TaskAssignments)
+        //        .ToListAsync();
+        //}
+
+        //public async Task<Sprint?> GetSprintByIdAsync(int id)
+        //{
+        //    return await  _taskDbContext.sprints
+        //     .Include(s=>s.TaskItems)
+        //            .ThenInclude(t=>t.Board)
+        //                  .ThenInclude(b=>b.Project)
+
+        //     .Include(s=>s.TaskItems)
+        //        .ThenInclude(t=>t.TaskAssignments)
+        //            .ThenInclude(a=>a.AppUser)
+        //     .FirstOrDefaultAsync(s=>s.Id == id);
+        //}
         public async Task<Sprint> AddAsync(Sprint sprint)
         {
             _taskDbContext.sprints.Add(sprint);

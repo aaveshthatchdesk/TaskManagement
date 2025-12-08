@@ -16,31 +16,40 @@ namespace TaskManagementServerAPi.Controllers
         {
             _sprintService = sprintService;
         }
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
+        //[HttpGet]
+        //public async Task<IActionResult> GetAll()
+        //{
+        //    var result = await _sprintService.GetAllAsync();
+        //    return Ok(result);
+        //}
+        [HttpGet("Project/{projectId}")]
+        public async Task<IActionResult> GetSprintsByProject(int projectId)
         {
-            var result = await _sprintService.GetAllAsync();
-            return Ok(result);
+            var result = await _sprintService.GetSprintsByProjectAsync(projectId);
+           
+            return new JsonResult(result);
         }
 
-        [HttpGet("stats")]
-        public async Task<ActionResult<SprintStatsDto>> GetSprintStats()
-        {
-            var stats = await _sprintService.GetsSprintsStats();
-            return Ok(stats);
-        }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetByID(int id)
+        //[HttpGet("stats")]
+        //public async Task<ActionResult<SprintStatsDto>> GetSprintStats()
+        //{
+        //    var stats = await _sprintService.GetsSprintsStats();
+        //    return Ok(stats);
 
+        //}
+
+        //[HttpGet("{id}")]
+        //public async Task<IActionResult> GetByID(int id)
+
+        //{
+        //    var sprint = await _sprintService.GetSprintByIdAsync(id);
+        //    return Ok(sprint);
+        //}
+        [HttpPost("project/{projectId}")]
+        public async Task<IActionResult> Create(int projectId,SprintDto sprint)
         {
-            var sprint = await _sprintService.GetSprintByIdAsync(id);
-            return Ok(sprint);
-        }
-        [HttpPost]
-        public async Task<IActionResult> Create(SprintDto sprint)
-        {
-            var result = await _sprintService.AddAsync(sprint);
+            var result = await _sprintService.AddAsync(projectId,sprint);
             if (result == null)
             {
                 return NotFound();

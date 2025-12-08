@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Task.Application.DTOs;
 using Task.Application.Interaces;
 using Task.Domain.Entities;
 using Task.Infrastructure.DbContext;
@@ -23,6 +24,7 @@ namespace Task.Infrastructure.Repository
         {
             return await _taskDbContext.appUsers.ToListAsync();
         }
+       
         public async Task<IEnumerable<AppUser>>GetByRoleAsync(string role)
         {
             return await _taskDbContext.appUsers.Where(a=>a.Role==role).ToListAsync();
@@ -66,5 +68,31 @@ namespace Task.Infrastructure.Repository
 
                return true;
         }
+        public async Task<AppUserAuth> AddUserAuthAsync(AppUserAuth auth)
+        {
+            await _taskDbContext.appUserAuths.AddAsync(auth);
+            return auth;
+        }
+
+        public async Task<bool> SaveChangesAsync()
+        {
+            await _taskDbContext.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> RemoveMemberAsync(int projectId, int memberId)
+        {
+            var projectMember = await _taskDbContext.ProjectMembers
+                .FirstOrDefaultAsync(pm => pm.ProjectId == projectId && pm.AppUserId == memberId);
+
+            if (projectMember == null)
+                return false;
+
+            _taskDbContext.ProjectMembers.Remove(projectMember);
+            await _taskDbContext.SaveChangesAsync();
+
+            return true;
+        }
+
     }
 }

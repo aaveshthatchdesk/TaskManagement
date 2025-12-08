@@ -1,15 +1,16 @@
 
 
 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
+using System.Text.Json.Serialization;
 using Task.Application.Interaces;
 using Task.Application.Services;
 using Task.Infrastructure.DbContext;
 using Task.Infrastructure.Repository;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Security.Claims;
 
 namespace TaskManagement
 {
@@ -17,18 +18,31 @@ namespace TaskManagement
     {
         public static void Main(string[] args)
         {
+
             var builder = WebApplication.CreateBuilder(args);
 
 
-            builder.Services.AddDbContext<TaskDbContext>(item => item.UseSqlServer(builder.Configuration.GetConnectionString("dbcs")));
+            builder.Services.AddDbContext<TaskDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("dbcs")
+               
+               ));
 
             // Add services to the container.
             builder.Services.AddScoped<IMemberRepository, MemberRepository>();
             builder.Services.AddScoped<IMemberService, MemberService>();
             builder.Services.AddScoped<ISprintService, SprintService>();
             builder.Services.AddScoped<ISprintRepository, SprintRepository>();
+            builder.Services.AddScoped<IManagerService, ManagerService>();
+            builder.Services.AddScoped<IManagerRepository,ManagerRepository>();
+            builder.Services.AddScoped<IBoardService, BoardService>();
+            builder.Services.AddScoped<IBoardRepository, BoardRepository>();
+            builder.Services.AddScoped<ITaskItemService, TaskItemService>();
+            builder.Services.AddScoped<ITaskItemRepository, TaskItemRepository>();
+
+            builder.Services.AddScoped<IEmailService, EmailService>();
 
 
+            builder.Services.AddScoped<INewProjectService, newProjectService>();
+            builder.Services.AddScoped<INewProjectRepository, NewProjectRepository>();
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IAuthRepository, AuthRepository>();
             builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
@@ -36,8 +50,21 @@ namespace TaskManagement
 
             builder.Services.AddScoped<ITaskService, TaskService>();
             builder.Services.AddScoped<ITaskRepository, TaskRepository>();
-            builder.Services.AddControllers();
+            //builder.Services.AddControllers();
+            //builder.Services.AddEndpointsApiExplorer();
+            //builder.Services.AddControllers().AddJsonOptions(options =>
+            //{
+            //    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+            //});
+            builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    });
+
             builder.Services.AddEndpointsApiExplorer();
+
+
             builder.Services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
@@ -114,6 +141,9 @@ namespace TaskManagement
                                     .AllowAnyHeader()
                                     .AllowAnyMethod());
             });
+         
+
+
 
             var app = builder.Build();
 

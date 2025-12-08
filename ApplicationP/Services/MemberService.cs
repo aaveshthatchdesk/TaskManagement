@@ -1,4 +1,5 @@
-﻿using Microsoft.IdentityModel.Tokens.Experimental;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens.Experimental;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,10 +14,12 @@ namespace Task.Application.Services
     public class MemberService : IMemberService
     {
         private readonly IMemberRepository _memberRepository;
+        private readonly IEmailService _emailService;
 
-        public MemberService(IMemberRepository memberRepository)
+        public MemberService(IMemberRepository memberRepository,IEmailService emailService)
         {
             _memberRepository = memberRepository;
+            _emailService = emailService;
         }
         public async Task<IEnumerable<AppUserDto>> GetAppUsersAsync()
         {
@@ -30,6 +33,8 @@ namespace Task.Application.Services
             });
 
         }
+      
+
         public async Task<IEnumerable<AppUserDto>> GetByRoleAsync(string role)
         {
             var member = await _memberRepository.GetByRoleAsync(role);
@@ -73,34 +78,53 @@ namespace Task.Application.Services
             };
         }
 
-        public async Task<AppUserDto>AddMemberAsync(AppUserDto user)
+        public async Task<AppUserDto> AddMemberAsync(AppUserDto user)
         {
-            //var member = new AppUser
-            //{
-            //    Name = user.Name,
-            //    Email = user.Email,
-            //    Role = user.Role,
 
-            //};
             var existing = await _memberRepository.GetByEmailAsync(user.Email);
-            if (existing == null)
+            if (existing != null)
             {
-                throw new InvalidOperationException("User not found.Please Ask to user to register first.");
+                throw new InvalidOperationException($"User '{user.Email}' already exists.");
             }
-            if(existing.Role!=user.Role)
+            else
             {
-                existing.Role=user.Role;
-                await _memberRepository.UpdateMemberAsync(existing.Id,existing);
+                var newUser = new AppUser
+                {
+                    Name = user.Name,
+                    Email = user.Email,
+                    Role = user.Role,
+                };
+                await _memberRepository.AddMemberAsync(newUser);
+                await _memberRepository.SaveChangesAsync();
+
+                string tempPassword=Guid.NewGuid().ToString("N")[..8];
+               CreatePasswordHash(tempPassword,out byte[] hash,out byte[] salt);
+
+                var auth = new AppUserAuth
+                {
+                    AppUserId = newUser.Id,
+                    PasswordHash = hash,
+                    PasswordSalt = salt,
+                    IsTemporaryPassword = true
+                };
+
+                await _memberRepository.AddUserAuthAsync(auth);
+                await _memberRepository.SaveChangesAsync();
+
+
+
+
+                return new AppUserDto
+                {
+                    Id = newUser.Id,
+                    Name = newUser.Name,
+                    Email = newUser.Email,
+                    Role = newUser.Role,
+                    TempPassword=tempPassword
+                };
             }
-          
-            return new AppUserDto
-            {
-                Id = existing.Id,
-                Name = existing.Name,
-                Email = existing.Email,
-                Role = existing.Role,
-            };
         }
+        
         public async Task<AppUserDto>UpdateMemberAsync(int id,AppUserDto appUserDto)
         {
             //var member = new AppUser
@@ -115,6 +139,7 @@ namespace Task.Application.Services
             {
                 return null;
             }
+
             existing.Name = appUserDto.Name;
             existing.Email = appUserDto.Email;
             existing.Role =appUserDto.Role;
@@ -132,5 +157,17 @@ namespace Task.Application.Services
         {
            return  await _memberRepository.DeleteAsync(id);
         }
+        private void CreatePasswordHash(string password, out byte[] hash, out byte[] salt)
+        {
+            using var hmac = new System.Security.Cryptography.HMACSHA512();
+            salt = hmac.Key;
+            hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
+        }
+
+        public async Task<bool> RemoveMemberAsync(int projectId, int memberId)
+        {
+            return await _memberRepository.RemoveMemberAsync(projectId, memberId);
+        }
+
     }
 }

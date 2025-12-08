@@ -12,6 +12,11 @@ namespace Task.Domain.Entities
         public string Name{ get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
+
+        public int? ProjectId { get; set; }
+        public Project Project { get; set; }
+
+
         public ICollection<TaskItem>TaskItems { get; set; }=new List<TaskItem>();   
     }
 }

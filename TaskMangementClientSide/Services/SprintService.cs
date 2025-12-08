@@ -11,9 +11,9 @@ namespace TaskMangementClientSide.Services
         {
             _http = http;
         }
-        public async Task<bool>AddSprintAsync(SprintDto sprint)
+        public async Task<bool>AddSprintAsync(int ProjectId,SprintDto sprint)
         {
-            var response=await _http.PostAsJsonAsync("api/sprint",sprint);
+            var response=await _http.PostAsJsonAsync($"api/sprint/project/{ProjectId}",sprint);
             return response.IsSuccessStatusCode;
         }
         public async Task<List<SprintDto>>GetAllSprintAsync()

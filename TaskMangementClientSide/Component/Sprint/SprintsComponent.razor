@@ -1,4 +1,4 @@
-﻿@using Task.Application.DTOs
+﻿@* @using Task.Application.DTOs
 @using TaskMangementClientSide.Component.Sprint
 
 @inject HttpClient Http
@@ -19,12 +19,12 @@
     }
 
     input.form-control:focus {
-        border-color: #0d6efd !important; /* Bootstrap primary */
+        border-color: #0d6efd !important; 
         box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
     }
 
     .stat-card {
-        border-left: 5px solid #0d6efd; /* Blue line on left */
+        border-left: 5px solid #0d6efd; 
         border-radius: 10px;
         transition: all 0.3s ease;
     }
@@ -40,18 +40,15 @@
      <div class="card shadow-lg border-0 rounded-4 overflow-hidden" style="background-color: #f8f9fa;">
         <div class="card-body p-0">
 
-    <!-- Header -->
-    @* <div class=" container d-flex justify-content-between align-items-center mb-4 shadow bg-white rounded-3 py-3 " > *@
+  
     <div class="px-4 py-3 d-flex justify-content-between align-items-center bg-white">
         <div>
             <h3 class="fw-bold mb-1" style="color:#2c3e50;">Sprint Management</h3>
-            @* <p class="text-muted mb-0">Manage all your sprints in one place</p> *@
           
         </div>
 
         <div class="d-flex align-items-center">
-            @* <input type="text" class="form-control me-3 shadow-sm" style="width: 250px;"
-                   placeholder=" Search sprints..." @bind="SearchTerm" @bind:event="oninput" /> *@
+           
             <form class="d-flex align-items-center flex-grow-1 justify-content-center mx-4" role="search" @onsubmit="OnSearch">
                 <div class="position-relative w-100" style="max-width: 250px;">
                     <input class="form-control ps-3 pe-5 shadow-sm"
@@ -162,10 +159,7 @@
            <h5 class="fw-bold mb-0">All Sprints</h5>
 
                 <div class="btn-group filter-buttons">
-                    @* <button class="btn btn-outline-primary btn-sm @(filter == "All" ? "active" : "")" @onclick='() => SetFilter("All")'>All</button>
-                    <button class="btn btn-outline-primary btn-sm @(filter == "Active" ? "active" : "")" @onclick='() => SetFilter("Active")'>Active</button>
-                    <button class="btn btn-outline-primary btn-sm @(filter == "Planning" ? "active" : "")" @onclick='() => SetFilter("Planning")'>Planning</button>
-                    <button class="btn btn-outline-primary btn-sm @(filter == "Completed" ? "active" : "")" @onclick='() => SetFilter("Completed")'>Completed</button> *@
+                  
                     @foreach (var f in new[] { "All", "Active", "Planning", "Completed" })
                     {
                         <button class="btn btn-outline-primary btn-sm @(filter == f ? "active" : "")"
@@ -272,14 +266,11 @@
                                     {
                                         <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-semibold"
                                              style="width:30px;height:30px;margin-left:-6px;font-size:12px;border:2px solid white;">
-                                            @* @GetInitials(user.Name) *@
+                                           
                                         </div>
                                     }
 
-                                    @* @if (sprint.AssignedUsers.Count > 3)
-                                    {
-                                        <span class="small text-secondary ms-2">+@(sprint.AssignedUsers.Count - 3)</span>
-                                    } *@
+                                  
                                 }
                             </div>
                         </div>
@@ -486,11 +477,11 @@ private async Task ConfirmDelete()
     {
         if (sprintIdToDelete > 0)
         {
-            // Call delete API endpoint
+           
             var response = await Http.DeleteAsync($"api/sprint/{sprintIdToDelete}");
             if (response.IsSuccessStatusCode)
             {
-                // Refresh list
+             
                 sprints = await Http.GetFromJsonAsync<List<SprintDto>>("api/sprint") ?? new();
                 FilterSprints();
             }
@@ -533,4 +524,4 @@ private IEnumerable<SprintDto>PaginatedSprints=>
 
    
 }
-
+ *@

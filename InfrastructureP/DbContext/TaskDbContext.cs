@@ -26,6 +26,11 @@ namespace Task.Infrastructure.DbContext
 
         public DbSet<TaskAssignment> taskAssignments { get; set; }
         public DbSet<Sprint> sprints { get; set; }
+        public DbSet<ProjectMember> ProjectMembers { get; set; }
+
+        public DbSet<ProjectManager> ProjectManagers { get; set; } 
+
+
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -58,6 +63,46 @@ namespace Task.Infrastructure.DbContext
                 .WithOne(t => t.Sprint)
                 .HasForeignKey(t => t.SprintId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            //      modelBuilder.Entity<Project>()
+            //.HasOne(s => s.Sprint)
+            //.WithOne(p => p.Project)
+            //.HasForeignKey<Sprint>(s => s.ProjectId)
+            //.OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Project>()
+       .HasOne(p => p.Sprint)
+       .WithOne(s => s.Project)
+       .HasForeignKey<Sprint>(s => s.ProjectId);
+
+
+            modelBuilder.Entity<ProjectManager>()
+        .HasKey(pm => new { pm.ProjectId, pm.AppUserId });
+
+            modelBuilder.Entity<ProjectManager>()
+                .HasOne(pm => pm.Project)
+                .WithMany(p => p.Managers)
+                .HasForeignKey(pm => pm.ProjectId);
+
+            modelBuilder.Entity<ProjectManager>()
+                .HasOne(pm => pm.AppUser)
+                .WithMany(u => u.ManagedProjects)
+                .HasForeignKey(pm => pm.AppUserId);
+
+
+
+            modelBuilder.Entity<ProjectMember>()
+       .HasKey(pm => new { pm.ProjectId, pm.AppUserId });
+
+            modelBuilder.Entity<ProjectMember>()
+                .HasOne(pm => pm.Project)
+                .WithMany(p => p.ProjectMembers)
+                .HasForeignKey(pm => pm.ProjectId);
+
+            modelBuilder.Entity<ProjectMember>()
+                .HasOne(pm => pm.AppUser)
+                .WithMany(u => u.ProjectMembers)
+                .HasForeignKey(pm => pm.AppUserId);
+
 
             modelBuilder.Entity<Project>().Ignore(p => p.Progress);
             modelBuilder.Entity<Project>().Ignore(p => p.TeamMembers);

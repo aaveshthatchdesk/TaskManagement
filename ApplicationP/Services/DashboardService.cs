@@ -20,7 +20,7 @@ namespace Task.Application.Services
         public async Task<DashboardSummaryDto> GetSummaryAsync()
         {
             var totalProjects = await _dashboardRepository.GetTotalProjectsAsync();
-            var acticeProjects = await _dashboardRepository.GetActiveProjectsAsync();
+            var activeProjects = await _dashboardRepository.GetActiveProjectsAsync();
             var totalMembers = await _dashboardRepository.GetTotalMembersAsync();
             var completedTasks = await _dashboardRepository.GetCompletedTasksAsync();
             var activeTasks = await _dashboardRepository.GetActiveTasksAsync();
@@ -28,7 +28,7 @@ namespace Task.Application.Services
             return new DashboardSummaryDto
             {
                 TotalProjects = totalProjects,
-                ActiveProjects = acticeProjects,
+                ActiveProjects = activeProjects,
                 TotalMembers = totalMembers,
                 CompletedTasks = completedTasks,
                 ActiveTasks = activeTasks

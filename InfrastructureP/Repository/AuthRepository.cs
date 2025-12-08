@@ -55,6 +55,20 @@ namespace Task.Infrastructure.Repository
                 .Include(a => a.AppUser)
                 .FirstOrDefaultAsync(a => a.AppUser.Email == email);
         }
+        public async Task<AppUserAuth?> GetUserAuthByUserIdAsync(int userId)
+        {
+            return await _taskDbContext.appUserAuths
+                .Include(a => a.AppUser)
+                .FirstOrDefaultAsync(a => a.AppUserId == userId);
+        }
+        public async Task<AppUserAuth?> UpdateUserAuthAsync(AppUserAuth userAuth)
+        {
+            _taskDbContext.appUserAuths.Update(userAuth);
+            await _taskDbContext.SaveChangesAsync();
+            return userAuth;
+        }
+
+
 
     }
 }

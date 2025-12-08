@@ -26,7 +26,7 @@ namespace Task.Infrastructure.Repository
         public async Task<int> GetActiveProjectsAsync()
         {
 
-            return await _taskDbContext.projects.CountAsync(p => !p.IsActive);
+            return await _taskDbContext.projects.CountAsync(p => p.IsActive);
 
 
         }

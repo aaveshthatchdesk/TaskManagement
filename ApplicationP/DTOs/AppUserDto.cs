@@ -19,7 +19,9 @@ namespace Task.Application.DTOs
         public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage ="Role is required")]
-        public string Role { get; set; } 
+        public string Role { get; set; }
+
+        public string? TempPassword { get; set; }
         public ICollection<TaskAssignmentDto> TaskAssignments { get; set; } = new List<TaskAssignmentDto>();
     }
 }

@@ -20,7 +20,7 @@ namespace Task.Application.DTOs
         public string LoginAs { get; set; }
 
        
-    }
+    }   
 
 
 }

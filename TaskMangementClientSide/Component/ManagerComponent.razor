@@ -1,0 +1,469 @@
+﻿@using Task.Application.DTOs
+@using TaskMangementClientSide.Services
+@inject NavigationManager nav;
+@inject IHttpClientFactory HttpClientFactory
+@inject IJSRuntime JS
+
+@inject SpinnerService Spinner
+
+
+<style>
+    .text-btn {
+        background: none;
+        border: none;
+        color: #2c3e50; 
+        font-weight: 600;
+        font-size: 15px;
+        cursor: pointer;
+        padding: 0;
+        transition: 0.2s ease;
+    }
+
+        .text-btn:hover {
+            color: #1a242f; 
+            text-decoration: underline;
+        }
+
+    .toast-container {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        z-index: 2000;
+        animation: slideIn 0.4s ease;
+    }
+
+    .toast-message {
+        background: #2c3e50;
+        color: white;
+        padding: 14px 22px;
+        border-radius: 8px;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(0,0,0,.18);
+        animation: fadeOut 0.5s ease 2.5s forwards;
+    }
+
+
+    @@keyframes slideIn {
+        from {
+            transform: translateX(120%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @@keyframes fadeOut {
+        from {
+            opacity: 1;
+        }
+
+        to {
+            opacity: 0;
+        }
+    }
+
+  
+
+    
+</style>
+
+ <div class="container mt-5  ">
+    <div class=" p-4 rounded-4" style="background-color:#ecf0f1">
+    <div class="d-flex justify-content-between mb-3">
+        <h4 class="fw-bold  text-dark">Project Managers</h4>
+
+        <div  class="d-flex justify-content-end gap-2">
+              <div class="position-relative" style="width:260px;">
+        <input class="form-control ps-3 pe-5 shadow-sm"
+               placeholder="Search managers..."
+                  @oninput="@(async e => await SearchManagers(e))" />
+
+        <span class="position-absolute top-50 end-0 translate-middle-y me-3 text-muted">
+            <i class="bi bi-search"></i>
+        </span>
+    </div>
+
+            <button class="btn btn-secondary fw-semibold  px-2" @onclick="ShowAddForm">
+             Add manager
+        </button>
+        </div>
+        </div>
+        <div class="row g-4">
+
+        @if (isManagersLoading)
+        {
+            <div class="col-12 text-center my-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="text-secondary mt-2">Loading managers...</p>
+            </div>
+        }
+        else if (managers == null || !managers.Any())
+        {
+            <div class="col-12 text-center text-muted my-4">
+                <p>No managers found.</p>
+            </div>
+        }
+        else
+        {
+            @foreach(var manager in managers)
+            {
+            <div class="col-md-4 mt-5">
+                <div class="card shadow-sm border-0 rounded-4 overflow-hidden manager-card"
+                     style="cursor:pointer;"
+                      @onclick="() => OnManagerClick(manager.Id)">
+           <div class="card-header text-white d-flex align-items-center justify-content-between"
+                         style="background: linear-gradient(135deg, #2c3e50);">
+                         <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-white bg-opacity-25 me-3 d-flex align-items-center justify-content-center"
+                             style="width:55px; height:55px;">
+                            <span class="fw-bold fs-5">@GetInitials(manager.Name)</span>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0">@manager.Name</h6>
+                            @* <small>@manager.Role</small> *@
+                        </div>
+                                </div>
+                                <div @onclick:stopPropagation="true" @onclick="() => EditUserAsync(manager.Id)">
+                                    <i class="bi bi-pencil-square fs-4" style="cursor:pointer;"></i>
+                                </div>
+
+
+                    </div>
+
+                    <div class="card-body bg-white text-center py-3">
+                        <div class="d-flex justify-content-around">
+                            <div>
+                                <h6 class="fw-bold text-primary mb-0">@manager.ProjectCount</h6>
+                                <small class="text-muted">Projects</small>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold text-primary mb-0">@manager.TeamCount</h6>
+                                <small class="text-muted">Team Members</small>
+                            </div>
+                           
+                        </div>
+                    </div>
+                            <div class="card-footer text-end">
+                                <button class="text-btn"
+                                        @onclick="() => ViewManagerProjects(manager.Id, manager.Name)"
+                                        type="button">
+                                    View Projects →
+                                </button>
+                            </div>
+
+                </div>
+            </div>
+        }
+        }
+
+
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <small class="text-muted">
+                    Showing @(((currentPage - 1) * pageSize) + 1)
+                    -
+                    @(Math.Min(currentPage * pageSize, totalCount))
+                    of @totalCount managers
+                </small>
+
+                <nav>
+                    <ul class="pagination pagination-sm mb-0 shadow-sm">
+
+                        <!-- Previous button -->
+                        <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                            <button class="page-link" @onclick="PreviousPage">Previous</button>
+                        </li>
+
+                        <!-- Page numbers -->
+                        @for (int i = 1; i <= TotalPages; i++)
+                        {
+                            <li class="page-item @(currentPage == i ? "active" : "")">
+                                <button class="page-link" @onclick="(() => GoToPage(i))">@i</button>
+                            </li>
+                        }
+
+                        <!-- Next button -->
+                        <li class="page-item @(currentPage == TotalPages ? "disabled" : "")">
+                            <button class="page-link" @onclick="NextPage">Next</button>
+                        </li>
+
+                    </ul>
+                </nav>
+            </div>
+        </div>
+        </div>
+</div>
+@if (showForm)
+{
+    <div class="modal-overlay">
+        <div class="modal-content shadow-lg rounded-4 p-4 bg-white">
+            <!-- Header -->
+            <h5 class="fw-bold mb-3 text-center" style="color:#2c3e50;">
+                <i class="bi @(currentUser.Id == 0 ? "bi-person-plus" : "bi-pencil-square") me-2"></i>
+                @(currentUser.Id == 0 ? "Add Manager" : "Edit Manager")
+            </h5>
+
+            <!-- Form -->
+            <EditForm Model="@currentUser" OnValidSubmit="SaveUser">
+                <DataAnnotationsValidator />
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="color:#2c3e50;">Full Name<span class="text-danger">*</span></label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light border-0" style="background-color:#ecf0f1;">
+                            <i class="bi bi-person-fill"></i>
+                        </span>
+                        <InputText class="form-control border-0 shadow-sm" style="background-color:#ecf0f1;"
+                                   @bind-Value="currentUser.Name" placeholder="Enter full name" />
+                    </div>
+                    <ValidationMessage For="@(() => currentUser.Name)" class="text-danger small" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="color:#2c3e50;">Email Address<span class="text-danger">*</span></label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light border-0" style="background-color:#ecf0f1;">
+                            <i class="bi bi-envelope-fill"></i>
+                        </span>
+                        <InputText type="email" class="form-control border-0 shadow-sm" style="background-color:#ecf0f1;"
+                                   @bind-Value="currentUser.Email" placeholder="Enter email" />
+                    </div>
+                    <ValidationMessage For="@(() => currentUser.Email)" class="text-danger small" />
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(serverError))
+                {
+                    <div class="text-danger small mt-1">@serverError</div>
+                }
+
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+                    <button type="submit" class="btn btn-primary"  style="background-color:#2c3e50;">
+                         Save
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+@if(showToast)
+{
+    <div class="toast-container">
+        <div class="toast-message">
+            @toastMessage
+        </div>
+    </div>
+}
+
+
+
+
+
+@code {
+    private List<ProjectDto> recentProjects = new();
+    private bool isLoading = true;
+    private List<ManagerDto> managers = new();
+    private bool isManagersLoading = true;
+    private AppUserDto currentUser = new();
+    private bool showForm = false;
+    private string? message;
+    private bool showToast = false;
+    private string toastMessage = "";
+    private int currentPage = 1;
+    private int pageSize = 6;
+    private int totalCount = 0;
+    private string searchTerm = "";
+    private string serverError = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        await LoadManagerAsync();
+
+
+    }
+    private void ViewManagerProjects(int managerId, string managerName)
+    {
+        nav.NavigateTo($"/manager/{managerId}/{Uri.EscapeDataString(managerName)}");
+    }
+
+    private void ShowAddForm()
+    {
+        currentUser = new AppUserDto
+        {
+            Role="Manager"
+        };
+        showForm = true;
+    }
+    private async Task LoadManagerAsync()
+    {
+        try
+        {
+            isManagersLoading = true;
+            var client = HttpClientFactory.CreateClient("AuthClient");
+
+
+            // managers = await client.GetFromJsonAsync<List<ManagerDto>>("api/Manager/Managers") ?? new List<ManagerDto>();
+            var response = await client.GetFromJsonAsync<PagedResult<ManagerDto>>(
+    $"api/Manager/Managers?pageNumber={currentPage}&pageSize={pageSize}&search={searchTerm}"
+          );
+
+            managers = response?.Items ?? new();
+            totalCount = response?.TotalCount ?? 0;
+        }
+        catch (Exception ex)
+
+        {
+            Console.WriteLine($"Error loading managers: {ex.Message}");
+        }
+        finally
+        {
+            isManagersLoading = false;
+        }
+    }
+    private async Task EditUserAsync(int managerId)
+    {
+        var client = HttpClientFactory.CreateClient("AuthClient");
+
+
+        var user = await client.GetFromJsonAsync<AppUserDto>($"api/Member/{managerId}");
+
+        if (user == null)
+            return;
+
+        currentUser = new AppUserDto
+        {
+            Id = user.Id,
+            Name = user.Name,
+            Email = user.Email,
+            Role = user.Role
+        };
+
+        showForm = true;
+    }
+    private async Task SaveUser()
+    {
+        serverError = "";
+        Spinner.Show();
+        if (string.IsNullOrWhiteSpace(currentUser.Role))
+            currentUser.Role = "Manager";
+        if (currentUser.Id == 0)
+        {
+            var client = HttpClientFactory.CreateClient("AuthClient");
+            var response = await client.PostAsJsonAsync("api/Member", currentUser);
+            if (response.IsSuccessStatusCode)
+            {
+                showForm = false;
+                await ShowToast("Manager added successfully");
+                await LoadManagerAsync();
+            }
+            else
+            {
+                serverError = await response.Content.ReadAsStringAsync();
+                
+            }
+        }
+        else
+        {
+            var client = HttpClientFactory.CreateClient("AuthClient");
+            var response = await client.PutAsJsonAsync($"api/Member/{currentUser.Id}", currentUser);
+            if (response.IsSuccessStatusCode)
+            {
+                showForm = false;
+                await ShowToast("Manager updated successfully.");
+                await LoadManagerAsync();
+            }
+            else
+            {
+                serverError = await response.Content.ReadAsStringAsync();
+                
+
+            }
+
+        }
+        Spinner.Hide();
+
+        // showForm = false;
+       
+    }
+    private async Task OnManagerClick(int managerId)
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var client = HttpClientFactory.CreateClient("AuthClient");
+            recentProjects = await client.GetFromJsonAsync<List<ProjectDto>>($"api/Member/{managerId}") ?? new();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading projects for manager: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+    private void CancelEdit()
+    {
+        showForm = false;
+        currentUser = new();
+    }
+    private string GetInitials(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return string.Empty;
+
+        return string.Join("", name.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                   .Select(n => n[0]))
+                                   .ToUpper();
+    }
+    private async Task ShowToast(string msg)
+    {
+        toastMessage = msg;
+        showToast = true;
+        StateHasChanged();
+
+        await Task.Delay(1000); 
+        showToast = false;
+        StateHasChanged();
+    }
+    private async Task GoToPage(int page)
+    {
+        currentPage = page;
+        await LoadManagerAsync();
+    }
+
+    private int TotalPages => (int)Math.Ceiling((double)totalCount / pageSize);
+
+    private async Task NextPage()
+    {
+        if (currentPage < TotalPages)
+        {
+            currentPage++;
+            await LoadManagerAsync();
+        }
+    }
+
+    private async Task PreviousPage()
+    {
+        if (currentPage > 1)
+        {
+            currentPage--;
+            await LoadManagerAsync();
+        }
+    }
+
+    private async Task SearchManagers(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString() ?? "";
+        currentPage = 1;
+        await LoadManagerAsync();
+    }
+}

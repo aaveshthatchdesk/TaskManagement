@@ -15,6 +15,6 @@ namespace Task.Application.DTOs
 
         public int AppUserId { get; set; }
 
-        public AppUserDto? AppUser { get; set; } = null!;
+        //public AppUserDto? AppUser { get; set; } = null!;
     }
 }

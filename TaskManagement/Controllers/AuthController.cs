@@ -25,12 +25,13 @@ namespace TaskManagementServerAPi.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<string>> Login(LoginDto loginDto)
+        public async Task<ActionResult<LoginResponseDto>> Login(LoginDto loginDto)
         {
             try
             {
                 var token = await _authService.LoginAsync(loginDto);
                 return Ok(token);
+
             }
             catch (Exception ex)
             {
@@ -38,6 +39,21 @@ namespace TaskManagementServerAPi.Controllers
             }
 
         }
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword(ChangePasswordDto dto)
+        {
+            try
+            {
+                var result = await _authService.ChangePasswordAsync(dto);
+                //return Ok("Password updated successfully");
+                return Ok(new {Role = result.Role });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpPost("logout")]
        
         public async Task<IActionResult> Logout([FromHeader] string token)
