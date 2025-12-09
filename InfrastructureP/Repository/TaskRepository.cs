@@ -31,11 +31,11 @@ namespace Task.Infrastructure.Repository
                 .Include(p => p.Managers)
                    .ThenInclude(m => m.AppUser)
                  .Include(p => p.ProjectMembers)
-                     .ThenInclude(m => m.AppUser)
-                .Include(x => x.Boards)
-                .ThenInclude(b => b.TaskItems)
-                .ThenInclude(t => t.TaskAssignments)
-                .ThenInclude(a => a.AppUser);
+                     .ThenInclude(m => m.AppUser);
+                //.Include(x => x.Boards)
+                //.ThenInclude(b => b.TaskItems)
+                //.ThenInclude(t => t.TaskAssignments)
+                //.ThenInclude(a => a.AppUser);
 
             switch (filter?.ToLower())
             {

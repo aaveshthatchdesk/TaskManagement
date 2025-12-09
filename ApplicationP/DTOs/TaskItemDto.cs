@@ -19,13 +19,13 @@ namespace Task.Application.DTOs
         [StringLength(100, ErrorMessage = "Description cannot exceed 100 characters")]
         public string Description { get; set; } = string.Empty;
 
-        //[Required(ErrorMessage = "Priority is required")]
-        //[RegularExpression("Low|Medium|High", ErrorMessage = "Priority must be Low, Medium, or High")]
+        [Required(ErrorMessage = "Priority is required")]
+        [RegularExpression("Low|Medium|High", ErrorMessage = "Priority must be Low, Medium, or High")]
         public string? Priority {  get; set; }
 
-        //[Required(ErrorMessage ="Date is required")]
-        //[DataType(DataType.Date)]
-        //[FutureDate(ErrorMessage = "Due date must be a future date")]
+        [Required(ErrorMessage = "Date is required")]
+        [DataType(DataType.Date)]
+        [FutureDate(ErrorMessage = "Due date must be a future date")]
         public DateTime? DueDate { get; set; }
 
         public int BoardId { get; set; }
