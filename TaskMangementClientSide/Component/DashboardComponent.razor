@@ -1218,21 +1218,21 @@
 
         newProject = new ProjectDto();
         formContext = new EditContext(newProject);
-        _ = LoadDataAsync();
-        // var projectTask= FilterProjects("Active");
-        // var statsTask= LoadDashboardStats();
-        // var managerTask = LoadManagers();
-        // await Task.WhenAll(projectTask, statsTask,managerTask);
+        // _ = LoadDataAsync();
+        var projectTask= FilterProjects("Active");
+        var statsTask= LoadDashboardStats();
+        var managerTask = LoadManagers();
+        await Task.WhenAll(projectTask, statsTask,managerTask);
         createProjectContext = new EditContext(newProject);
 
 
     }
-    private async Task LoadDataAsync()
-    {
-        await LoadManagers();
-        await LoadDashboardStats();
-        await FilterProjects("Active");
-    }
+    // private async Task LoadDataAsync()
+    // {
+    //     await LoadManagers();
+    //     await LoadDashboardStats();
+    //     await FilterProjects("Active");
+    // }
     private void ViewManagerProjects(int managerId, string managerName)
     {
         nav.NavigateTo($"/manager/{managerId}/{Uri.EscapeDataString(managerName)}");
