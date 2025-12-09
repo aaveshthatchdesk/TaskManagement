@@ -48,28 +48,28 @@ namespace Task.Application.Services
                     ManagerEmail = p.Managers?.Where(m => m?.AppUser != null)
                                 .Select(m => m.AppUser.Email).FirstOrDefault() ?? "",
 
-                    Boards = p.Boards.Select(b => new BoardDto
-                    {
-                        Id = b.Id,
-                        Name = b.Name,
-                        ProjectId = b.ProjectId,
-                        TaskItems = b.TaskItems.Select(t => new TaskItemDto
-                        {
-                            Id = t.Id,
-                            Title = t.Title,
-                            Description = t.Description,
-                            DueDate = t.DueDate,
-                            BoardId = t.BoardId,
-                            Order = t.Order,
-                            SprintId = t.SprintId,
-                            TaskAssignments = t.TaskAssignments.Select(a => new TaskAssignmentDto
-                            {
-                                TaskItemId = a.TaskItemId,
-                                AppUserId = a.AppUserId,
+                    //Boards = p.Boards.Select(b => new BoardDto
+                    //{
+                    //    Id = b.Id,
+                    //    Name = b.Name,
+                    //    ProjectId = b.ProjectId,
+                    //    TaskItems = b.TaskItems.Select(t => new TaskItemDto
+                    //    {
+                    //        Id = t.Id,
+                    //        Title = t.Title,
+                    //        Description = t.Description,
+                    //        DueDate = t.DueDate,
+                    //        BoardId = t.BoardId,
+                    //        Order = t.Order,
+                    //        SprintId = t.SprintId,
+                    //        TaskAssignments = t.TaskAssignments.Select(a => new TaskAssignmentDto
+                    //        {
+                    //            TaskItemId = a.TaskItemId,
+                    //            AppUserId = a.AppUserId,
 
-                            }).ToList()
-                        }).ToList()
-                    }).ToList()
+                    //        }).ToList()
+                    //    }).ToList()
+                    //}).ToList()
 
 
                 }).ToList()

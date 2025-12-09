@@ -69,11 +69,15 @@ namespace Task.Infrastructure.DbContext
             //.WithOne(p => p.Project)
             //.HasForeignKey<Sprint>(s => s.ProjectId)
             //.OnDelete(DeleteBehavior.Cascade);
+            //     modelBuilder.Entity<Project>()
+            //.HasOne(p => p.Sprint)
+            //.WithOne(s => s.Project)
+            //.HasForeignKey<Sprint>(s => s.ProjectId);
             modelBuilder.Entity<Project>()
        .HasOne(p => p.Sprint)
        .WithOne(s => s.Project)
-       .HasForeignKey<Sprint>(s => s.ProjectId);
-
+       .HasForeignKey<Sprint>(s => s.ProjectId)
+       .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<ProjectManager>()
         .HasKey(pm => new { pm.ProjectId, pm.AppUserId });

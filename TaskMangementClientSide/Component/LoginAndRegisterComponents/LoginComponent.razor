@@ -1,7 +1,9 @@
 ﻿@using Task.Application.DTOs
+@using TaskMangementClientSide.Services
 @inject HttpClient Http
 @inject IJSRuntime JS
 @inject NavigationManager nav;
+@inject SpinnerService spinner
 
 <style>
     .btn-outline-dark {
@@ -107,7 +109,9 @@
     {           
         try
         {
-            message = "Logging in...";
+            // message = "Logging in...";
+            spinner.Show();
+            await Task.Delay(400);
             loginModel.LoginAs = "Member";
 
             var response = await Http.PostAsJsonAsync("api/Auth/login",loginModel);
@@ -141,6 +145,10 @@
         {
             message = $"Error: {ex.Message}";
             await OnLoginResult.InvokeAsync(false);
+        }
+        finally
+        {
+            spinner.Hide();
         }
     }
     

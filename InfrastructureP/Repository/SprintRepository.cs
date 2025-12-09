@@ -87,7 +87,7 @@ namespace Task.Infrastructure.Repository
         }
         public async Task<bool>DeleteAsync(int id)
         {
-            var data = _taskDbContext.sprints.Include(s => s.TaskItems).FirstOrDefault(s => s.Id == id);
+            var data = _taskDbContext.sprints.FirstOrDefault(s => s.Id == id);
             if (data != null)
             {
                 _taskDbContext.sprints.Remove(data);
