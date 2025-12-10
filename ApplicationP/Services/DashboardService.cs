@@ -34,5 +34,19 @@ namespace Task.Application.Services
                 ActiveTasks = activeTasks
             };
         }
+        public async Task<DashboardSummaryDto> GetSummaryForManagerAsync(int managerId)
+        {
+            var activeProjects = await _dashboardRepository.GetActiveProjectByManagersAsync(managerId);
+            var totalMembers = await _dashboardRepository.GetTotalMembersByManagerAsync(managerId);
+            var completedTasks = await _dashboardRepository.GetCompletedTasksByManagerAsync(managerId);
+            var activeTasks = await _dashboardRepository.GetActiveTasksByManagerAsync(managerId);
+            return new DashboardSummaryDto
+            {
+                ActiveProjects = activeProjects,
+                TotalMembers = totalMembers,
+                CompletedTasks = completedTasks,
+                ActiveTasks = activeTasks
+            };
+        }
 }
 }

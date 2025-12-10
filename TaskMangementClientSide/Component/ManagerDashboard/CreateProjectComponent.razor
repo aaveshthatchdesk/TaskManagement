@@ -1,0 +1,151 @@
+﻿<h3>CreateProjectComponent</h3>
+<h4>Create Project Form</h4>
+
+<!-- your form fields go here -->
+
+<button class="btn btn-secondary mt-3" @onclick="Cancel">
+    Back
+</button>
+
+  @* @if(showCreateForm)
+        {
+            <div class="modal-overlay">
+                <div class="modal-content shadow-lg rounded-4 p-4 " style="background-color:#ecf0f1">
+                    <h5 class="fw-bold mb-3 text-center"  style="color:#2c3e50;"> Create New Project</h5>
+            <EditForm  EditContext="@formContext" Onsubmit="HandleSubmit">
+                        <DataAnnotationsValidator/>
+                       
+                 
+                    <div class="mb-3">
+                            <label class="form-label fw-semibold " style="color:#2c3e50;">Project Name<span class="text-danger">*</span></label>
+                            <InputText type="text" class="form-control "  @bind-Value="newProject.Name" placeholder="Enter project name" />
+                        <ValidationMessage For="@(()=>newProject.Name)"/>
+                    </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold " style="color:#2c3e50;">Description</label>
+                            <textarea  class="form-control"  @bind="newProject.Description" placeholder="Enter description"></textarea>
+                            <ValidationMessage For="@(() => newProject.Description)" />
+                        </div>
+              
+                    <div class="mb-3 w-50 ">
+                            <label class="form-label fw-semibold " style="color:#2c3e50;">Visibility<span class="text-danger">*</span></label>
+                            <InputSelect class="form-select "  @bind-Value="newProject.Visibility">
+                            <option value="Public">Public</option>
+                            <option value="Private">Private</option>
+                        </InputSelect>
+                        <ValidationMessage For="@(()=>newProject.Visibility)"/>
+                    
+             </div>
+                  
+
+                <div class="mb-3 w-75">
+                    <label class="form-label fw-semibold " style="color:#2c3e50;">
+                        Assign Manager <span class="text-danger">*</span>
+                    </label>
+
+                    <div class="d-flex gap-1 align-items-center" >
+                        <div class="multi-select @(showManagerDropdown ? "open" : "")  " style="flex-grow: 1;" @onclick="ToggleDropdown">
+
+                        <div class="selected-area">
+                            <span>@(newProject.ManagerIds.Count == 0 ? "Select managers..." : "Selected managers:")</span>
+                        </div>
+                        
+
+                        <div class="dropdown-icon">
+                            <i class="bi bi-chevron-down"></i>
+                        </div>
+
+                        @if (showManagerDropdown)
+                        {
+                            <div class="dropdown-panel shadow">
+                                @foreach (var manager in managers)
+                                {
+
+                                    <div class="dropdown-item" @onclick:stopPropagation="true"  @onclick="() => SelectManager(manager.Id)">
+                                        @manager.Name
+                                    </div>
+                                }
+                            </div>
+                        }
+                        </div>
+                        <button type="button" class="add-btn" @onclick="ShowAddForm"><Span class="plus mb-1">+</Span></button>
+                    </div>
+
+                 
+
+                    @if (newProject.ManagerIds.Count > 0)
+                    {
+                        <div class="mt-2 d-flex flex-wrap gap-2">
+                            @foreach (var id in newProject.ManagerIds)
+                            {
+                                var mgr = managers.FirstOrDefault(m => m.Id == id);
+                                if (mgr != null)
+                                {
+                                    <span class="tag-item">
+                                        @mgr.Name
+                                        <button type="button" class="remove-tag"
+                                                @onclick:stopPropagation="true"
+                                                @onclick="() => RemoveManager(id)">
+                                            ×
+                                        </button>
+                                    </span>
+                                }
+                            }
+                        </div>
+                    }
+
+                    <ValidationMessage For="@(() => newProject.ManagerIds)" />
+                </div>
+                
+              
+
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-secondary" @onclick="() => showCreateForm = false">Cancel</button>
+                            <button type="submit" class="btn btn-create" >Create</button>
+                        </div>
+
+                    </EditForm>
+                </div>
+            </div>
+        }
+        
+        @if (showConfirmation) 
+        {
+            <div class="modal-overlay d-flex justify-content-center align-items-center">
+        <div class="modal-content shadow-lg rounded-4 p-4 bg-white modal-fixed-footer" style="width: 600px; height:450px">
+                   
+                    <div class="border rounded-4 p-3 mb-4  mt-4 bg-light">
+                        <h5 class="fw-bolder mb-3 text-center">Project Details</h5>
+
+                        <p class="mb-2"><strong>Project Name:</strong> @newProject.Name></p>
+                <p class="mb-2"><strong>Description:</strong> @newProject.Description</p>
+                        <p class="mb-2"><strong>Visibility:</strong> @newProject.Visibility</p>
+                        <p class="mb-2"><strong>Created On:</strong> @DateTime.Now.ToString("MMMM dd, yyyy")</p>
+                        <p class="mb-0"><strong>Mangers:</strong> @newProject.ManagerNames
+                        
+                        
+                        </p>
+                    </div>
+
+            <div class="text-center modal-footer-stick">Do you want to create this project?</div>
+
+            <div class="d-flex justify-content-between modal-footer-stick">
+                        <button class="btn btn-secondary w-50 me-2" @onclick="CancelConfirmation">Cancel</button>
+                        <button class="btn btn-success w-50" @onclick="ConfirmProjectAsync">Create Project</button>
+                    </div>
+
+                 
+                </div>
+            </div>
+        } *@
+@code {
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private void Cancel()
+    {
+        // showCreateForm = false;
+        OnCancel.InvokeAsync();
+    }
+}

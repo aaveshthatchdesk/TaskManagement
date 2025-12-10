@@ -44,5 +44,44 @@ namespace Task.Infrastructure.Repository
         {
             return await _taskDbContext.tasks.CountAsync(t => !t.IsCompleted);
         }
+
+        public async Task<int> GetActiveProjectByManagersAsync(int managerId)
+        {
+            return await _taskDbContext.projects
+                .Where(p=>p.Managers.Any(m=>m.AppUserId == managerId))
+                .CountAsync();
+        }
+
+        public async Task<int> GetCompletedTasksByManagerAsync(int managerId)
+        {
+            return await _taskDbContext.tasks
+                .Where(t =>
+                    t.IsCompleted &&
+                    t.Board.Project.Managers.Any(pm => pm.AppUserId == managerId)
+                )
+                .CountAsync();
+        }
+
+        public async Task<int> GetActiveTasksByManagerAsync(int managerId)
+        {
+            return await _taskDbContext.tasks
+                .Where(t =>
+                    !t.IsCompleted &&
+                    t.Board.Project.Managers.Any(pm => pm.AppUserId == managerId)
+                )
+                .CountAsync();
+        }
+
+        public async Task<int> GetTotalMembersByManagerAsync(int managerId)
+        {
+            return await _taskDbContext.taskAssignments
+                .Where(a =>
+                    a.TaskItem.Board.Project.Managers.Any(pm => pm.AppUserId == managerId)
+                )
+                .Select(a => a.AppUserId)
+                .Distinct()
+                .CountAsync();
+        }
+
     }
 }

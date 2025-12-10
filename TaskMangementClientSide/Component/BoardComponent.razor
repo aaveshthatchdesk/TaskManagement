@@ -1681,17 +1681,10 @@
     protected override async Task OnInitializedAsync()
     {
 
-        // CurrentProject = await Http.GetFromJsonAsync<ProjectDto>($"api/Project/{ProjectId}");
-        // Boards = CurrentProject.Boards.ToList() ?? new List<BoardDto>();
-        // managers = await Http.GetFromJsonAsync<List<ManagerDto>>($"api/Project/{ProjectId}/Managers")
-        //        ?? new List<ManagerDto>();
-        // projectSprints=await Http.GetFromJsonAsync<List<SprintDto>>($"api/sprint/Project/{ProjectId}") ?? new();
-        // members = await Http.GetFromJsonAsync<List<MemberDto>>
-        //         ($"api/Project/{ProjectId}/Members")
-        //     ?? new List<MemberDto>();
+  
 
         await LoadProject();
-        // await LoadMembers();
+      
 
     }
     private void Back()
@@ -1705,9 +1698,7 @@
         Boards = CurrentProject.Boards?.ToList() ?? new();
         managers = await Http.GetFromJsonAsync<List<ManagerDto>>($"api/Project/{ProjectId}/Managers") ?? new();
 
-        // var sprint = await Http.GetFromJsonAsync<SprintDto>($"api/sprint/project/{ProjectId}");
-        // projectSprints = sprint != null ? new List<SprintDto> { sprint } : new();
-        // projectSprints = await Http.GetFromJsonAsync<List<SprintDto>>($"api/sprint/Project/{ProjectId}") ?? new();
+       
 
         var response = await Http.GetAsync($"api/sprint/project/{ProjectId}");
 

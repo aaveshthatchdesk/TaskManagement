@@ -20,5 +20,12 @@ namespace TaskManagementServerAPi.Controllers
             var summary = await _dashboardService.GetSummaryAsync();
             return Ok(summary);
         }
+        [HttpGet("SummaryForManager/{managerId}")]
+        public async Task<IActionResult> GetSummaryForManager(int managerId)
+        {
+            var summary = await _dashboardService.GetSummaryForManagerAsync(managerId);
+            return Ok(summary);
+        }
+
     }
 }

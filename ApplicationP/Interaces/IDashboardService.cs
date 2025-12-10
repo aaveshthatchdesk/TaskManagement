@@ -10,5 +10,7 @@ namespace Task.Application.Interaces
     public interface IDashboardService
     {
         Task<DashboardSummaryDto> GetSummaryAsync();
+         
+        Task<DashboardSummaryDto> GetSummaryForManagerAsync(int managerId);
     }
 }

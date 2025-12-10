@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using Task.Application.DTOs;
 using Task.Application.Interaces;
 
@@ -60,6 +61,17 @@ namespace TaskManagementServerAPi.Controllers
         {
             await _authService.LogoutAsync(token);
             return Ok(new { message = "Logged out successfully" });
+        }
+
+        [HttpGet("me")]
+        public IActionResult GetCurrentUser()
+        {
+            var id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (id == null)
+                return Unauthorized();
+
+            return Ok(new { UserId = int.Parse(id) });
         }
     }   
 }

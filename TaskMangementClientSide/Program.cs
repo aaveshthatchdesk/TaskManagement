@@ -22,7 +22,8 @@ namespace TaskMangementClientSide
             builder.Services.AddBlazoredLocalStorage();
             builder.Services.AddScoped<SprintService>();
             builder.Services.AddSingleton<SpinnerService>();
-
+            builder.Services.AddAuthorizationCore();
+            builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 
 
             //builder.Services.AddAuthorizationCore();

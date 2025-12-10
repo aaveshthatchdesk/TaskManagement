@@ -1,4 +1,5 @@
-﻿
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthStateProvider
 
 
 <div class="nav-menu-container">
@@ -15,7 +16,7 @@
     <nav class="nav flex-column nav-links-container">
         <!-- Dashboard -->
         <div class="nav-item px-3">
-            <NavLink class="nav-link d-flex align-items-center gap-3" href="dashboard">
+            <NavLink class="nav-link d-flex align-items-center gap-3" href="@dashboardUrl">
                 <i class="bi bi-speedometer2 fs-5 text-dark" style="min-width: 24px;"></i>
                 <span class="flex-grow-1">Dashboard</span>
             </NavLink>
@@ -23,12 +24,13 @@
 
         <!-- Projects -->
         <div class="nav-item px-3">
-            <NavLink class="nav-link d-flex align-items-center gap-3" href="sprints" >
+            <NavLink class="nav-link d-flex align-items-center gap-3" href="@sprintUrl" >
                 <i class="bi bi-kanban-fill fs-5 text-success" style="min-width: 24px;"></i>
                 <span class="flex-grow-1">Sprints</span>
             </NavLink>
         </div>
-
+        
+       
         <!-- Members -->
         <div class="nav-item px-3">
             <NavLink class="nav-link d-flex align-items-center gap-3" href="members">
@@ -36,29 +38,52 @@
                 <span class="flex-grow-1">Members</span>
             </NavLink>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link d-flex align-items-center gap-3" href="managerslist">
-                <i class="bi bi-person-badge-fill fs-5 text-info" style="min-width: 24px;"></i>
-                <span class="flex-grow-1">Managers</span>
-            </NavLink>
-        </div>
+        @if (isAdmin)
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link d-flex align-items-center gap-3" href="managerslist">
+                    <i class="bi bi-person-badge-fill fs-5 text-info" style="min-width: 24px;"></i>
+                    <span class="flex-grow-1">Managers</span>
+                </NavLink>
+            </div>
+        }
 
-        <!-- Teams -->
-        @* <div class="nav-item px-3">
-            <NavLink class="nav-link d-flex align-items-center gap-3" >
-                <i class="bi bi-person-badge-fill fs-5 text-warning" style="min-width: 24px;"></i>
-                <span class="flex-grow-1">Teams</span>
-            </NavLink>
-        </div> *@
     </nav>
 </div>
 
 @code {
-    // private bool collapseNavMenu = true;
-    // private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    bool isAdmin=false;
+    bool isManager = false;
+    bool isMember = false;
+    string dashboardUrl = "";
+    string sprintUrl = "";
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
 
-    // private void ToggleNavMenu()
-    // {
-    //     collapseNavMenu = !collapseNavMenu;
-    // }
+        isAdmin = user.IsInRole("Admin");
+        isManager = user.IsInRole("Manager");
+        isMember = user.IsInRole("Member");
+
+        if(isAdmin)
+        {
+            dashboardUrl = "/dashboard";
+            sprintUrl = "/adminsprints";
+
+        }
+        else if(isManager)
+        {
+            dashboardUrl = "/managerdashboard";
+            sprintUrl = "/managersprints";
+        }
+       else{
+            dashboardUrl = "/Memberdashboard";
+            sprintUrl = "/Membersprints";
+        }
+    
+
+
+    }
+
 }
