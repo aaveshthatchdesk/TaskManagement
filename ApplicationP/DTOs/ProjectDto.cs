@@ -44,6 +44,8 @@ namespace Task.Application.DTOs
         public List<int> ManagerIds { get; set; } = new();
         public string? ManagerNames { get; set; } 
         public string ManagerEmail { get; set; } = string.Empty;
+
+       
     }
  
 }

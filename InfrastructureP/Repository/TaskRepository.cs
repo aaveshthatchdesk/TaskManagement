@@ -21,7 +21,7 @@ namespace Task.Infrastructure.Repository
             _taskDbContext = taskDbContext;
         }
 
-        public async Task<PagedResult<Project>> GetAllProjectsPagedAsync(string currentUserId, bool isAdmin, string? filter, int page, int pageSize, string? search, int? managerId, DateTime? createdDate, DateTime? startDate, DateTime? endDate)
+        public async Task<PagedResult<Project>> GetAllProjectsPagedAsync(string currentUserId, string role, string? filter, int page, int pageSize, string? search, int? managerId,int? memberId, DateTime? createdDate, DateTime? startDate, DateTime? endDate)
         {
 
             int UserId = int.Parse(currentUserId);
@@ -52,9 +52,28 @@ namespace Task.Infrastructure.Repository
 
                     break;
             }
-            if (managerId.HasValue)
-                query = query.Where(p => p.Managers.Any(m => m.AppUserId == managerId.Value));
+            if (role == "Admin")
+            {
 
+
+                if (managerId.HasValue)
+                    query = query.Where(p => p.Managers.Any(m => m.AppUserId == managerId.Value));
+            }
+            else if (role == "Manager")
+            {
+               
+                if (memberId.HasValue)
+                    query = query.Where(p => p.ProjectMembers.Any(m => m.AppUserId == memberId.Value));
+
+                
+                query = query.Where(p => p.Managers.Any(m => m.AppUserId == UserId));
+            }
+            else if (role == "Member")
+            {
+                // Members cannot filter by ID → no managerId or memberId accepted
+                // They should only see projects they are part of
+                query = query.Where(p => p.ProjectMembers.Any(m => m.AppUserId == UserId));
+            }
             if (!string.IsNullOrWhiteSpace(search))
             {
                 string s = search.ToLower();
@@ -74,20 +93,18 @@ namespace Task.Infrastructure.Repository
             if (endDate.HasValue)
                 query = query.Where(p => p.CreatedDate.Value.Date <= endDate.Value.Date);
 
-            if (!isAdmin)
-            {
+      //      if (!isAdmin)
+      //      {
 
-                query = query.Where(p => p.ProjectMembers.Any(m => m.AppUserId == UserId));
-                //query = query.Where(p =>
+      //          query = query.Where(p => p.ProjectMembers.Any(m => m.AppUserId == UserId));
 
-                // p.Boards.Any(b =>
-                //   b.TaskItems.Any(t =>
-                //     t.TaskAssignments.Any(a => a.AppUserId == UserId)))
+      //          query = query.Where(p =>
+      //    p.Managers.Any(m => m.AppUserId == UserId) ||
+      //    p.ProjectMembers.Any(m => m.AppUserId == UserId)
+      //);
+               
 
-
-//);
-
-            }
+      //      }
             int totalCount = await query.CountAsync();
 
             var items = await query.OrderByDescending(p => p.CreatedDate)

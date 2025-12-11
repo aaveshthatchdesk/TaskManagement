@@ -3,9 +3,26 @@
 @using Task.Application.DTOs
 @inject HttpClient Http
 @inject AuthenticationStateProvider AuthStateProvider
-
+@inject NavigationManager nav
 <style>
 
+    .clear-filter-btn {
+        position: absolute;
+        top: 12px;
+        right: 6px;
+        background: none;
+        border: none;
+        font-size: 22px; /* Increased from 16px → 22px */
+        font-weight: 700;
+        color: #888;
+        cursor: pointer;
+        padding: 0;
+    }
+
+        .clear-filter-btn:hover {
+            color: #000;
+            transform: scale(1.1);
+        }
     .filter-icon {
         display: flex;
         flex-direction: column; /* icon on top, label below */
@@ -101,6 +118,51 @@
     .filter-icon.active .filter-label {
         color: #2c3e50;
     }
+
+    .delete-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 2px solid #2c3e50; /* Red outline */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: transparent;
+        color: #2c3e50;
+        /* transition: 0.2s ease; */
+        padding: 0;
+    }
+
+        .delete-btn:hover {
+            background: #e74c3c;
+            color: white;
+            /* transform: scale(1.1); */
+        }
+
+    .visibility-public, .visibility-private {
+        font-size: 12px; /* Smaller text */
+        padding: 3px 8px; /* Smaller padding */
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+    }
+
+        .visibility-public i,
+        .visibility-private i {
+            font-size: 13px; /* Smaller icon */
+        }
+
+    .visibility-public {
+        background-color: #e8fdf4 !important; /* mint green */
+        color: #27ae60 !important; /* green text */
+        font-weight: 500;
+    }
+
+    .visibility-private {
+        background-color: #fdecec !important; /* light pink */
+        color: #e74c3c !important; /* red text */
+        font-weight: 400;
+    }
 </style>
 
 <div class="container mt-4" >
@@ -183,9 +245,9 @@
                     <span class="filter-label">Date</span>
                 </div>
 
-                    <div class="filter-icon @(activeFilter == "manager" ? "active" : "")" @onclick='() => ToggleFilterPanel("manager")'>
+                    <div class="filter-icon @(activeFilter == "member" ? "active" : "")" @onclick='() => ToggleFilterPanel("member")'>
                     <div class="icon-circle"><i class="fas fa-user-tie"></i></div>
-                    <span class="filter-label">Manager</span>
+                    <span class="filter-label">Member</span>
                 </div>
 
                     <div class="filter-icon @(activeFilter == "range" ? "active" : "")" @onclick='() => ToggleFilterPanel("range")'>
@@ -208,18 +270,18 @@
                 </div>
             }
 
-            @if (activeFilter == "manager")
+            @if (activeFilter == "member")
             {
                 <div class="floating-filter-panel mt-2">
                      <button class="clear-filter-btn"
-                @onclick='() => { filterManagerId = ""; ApplyFilters(); }'>
+                @onclick='() => { filterMemberId = ""; ApplyFilters(); }'>
                             <i class="bi bi-arrow-counterclockwise"></i>
         </button>
                     <select class="form-select w-auto"
-                            @bind="filterManagerId"
+                            @bind="filterMemberId"
                             @bind:after="ApplyFilters">
-                        <option value="">All Managers</option>
-                        @foreach (var m in managers)
+                        <option value="">All Members</option>
+                        @foreach (var m in members)
                         {
                             <option value="@m.Id">@m.Name</option>
                         }
@@ -277,36 +339,215 @@
                     Archived
                 </button>
             </div>
+
+        <div class="container-fluid px-3">
+            <div class="row g-4">
+
+                @if (isLoading)
+                {
+                    <div class="col-12 text-center my-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="text-secondary mt-3">Loading projects...</p>
+                    </div>
+                }
+                else if (recentProjects == null || !recentProjects.Any())
+                {
+                    <div class="col-12 text-center my-5">
+                        <h5 class="text-muted">No projects found for this filter.</h5>
+                        <p class="text-secondary">Try selecting a different category or create a new project.</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var project in recentProjects)
+                    {
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-4">
+                            <div class="card border-0 shadow-sm rounded-4 h-100  project-card">
+                                <div class="card-body d-flex flex-column justify-content-between ">
+                                    <div>
+                                        <div class="d-flex  justify-content-between align-items-center mb-2 gap-2" style="min-width:0;">
+
+                                            <h5 class="fw-semibold text-dark mb-0 project-title"> @project.Name</h5>
+
+                                            <button class="btn btn-sm delete-btn " >
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                        <p class="@GetVisibilityBadgeClass(project.Visibility) d-inline-flex align-items-center gap-1 px-3 py-1 rounded-pill">
+                                            <i class="@GetVisibilityIcon(project.Visibility)"></i>
+                                            @project.Visibility
+                                        </p>
+
+
+                                    </div>
+
+
+                                    @* <div class="small mb-3">
+                                        <p class="fw-normal text-dark mb-0 description-box ">@project.Description</p>
+                                        </div> *@
+                                    <div class="small mb-3">
+                                        <p class="fw-normal text-dark mb-0"
+                                           style="
+                            white-space: normal;
+                            word-break: break-word;
+                            display: -webkit-box;
+                            overflow: hidden;
+                            -webkit-box-orient: vertical;
+                            @(showFullDescription ? "" : "-webkit-line-clamp: 1;")
+                       ">
+                                            @project.Description
+                                        </p>
+
+                                        @if (!string.IsNullOrWhiteSpace(project.Description) && project.Description.Length > 60)
+                                        {
+                                            <button class=" p-0 mt-1 desc-toggle-btn"
+                                                    @onclick="ToggleDescription">
+                                                @(showFullDescription ? "Hide ↑" : "Preview ↓")
+                                            </button>
+                                        }
+                                    </div>
+
+                                    <div class=" small mb-3 d-flex ">
+
+
+                                        <span class="fw-bold"> CreatedOn:</span> @(project.CreatedDate?.ToString("MMM dd, yyyy") ?? "No due date")
+                                        <span class="ms-3"><i class="bi bi-people-fill me-1 text-dark"></i>@project.MemberCount members</span>
+                                    </div>
+
+
+                                    <div class="progress mb-2" style="height: 8px;">
+                                        <div class="progress-bar bg-primary" role="progressbar"
+                                             style="width:@project.Progress%"
+                                             aria-valuenow="@project.Progress" aria-valuemin="0" aria-valuemax="100">
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <small>
+                                            <span class="text-dark fw-semibold">Manager(s):</span>
+                                            <span class="text-dark" style="white-space:normal; word-break:break-word;">@project.ManagerNames</span>
+                                        </small>
+                                        <small class="fw-semibold">@project.Progress%</small>
+                                    </div>
+
+
+                                    <div class="d-flex align-items-center flex-wrap">
+                                        <div class="team-avatars d-flex mb-1">
+                                            @if (project.MemberIntials != null && project.MemberIntials.Any())
+                                            {
+                                                @foreach (var intials in project.MemberIntials.Take(3))
+                                                {
+                                                    <div class="avatar-circle bg-secondary text-white">@intials</div>
+                                                }
+                                                @if (project.MemberCount > 3)
+                                                {
+                                                    <div class="avatar-circle bg-secondary text-white">+@(project.MemberCount - 3)</div>
+
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <small class="text-muted">No memebers</small>
+                                            }
+
+
+
+                                        </div>
+                                        <small class="ms-2 text-black fw-medium">Team</small>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between mt-3 flex-wrap" style="gap:10px;">
+                                        <button class="btn btn-outline-secondary flex-grow-1 me-2 mb-2 mb-sm-0 view-btn" style=" background-color:#ecf0f1" @onclick="() => ViewProject(project.Id)">View </button>
+                                        <button class="btn  flex-grow-1 edit-btn" style="background-color:#2c3e50; color:white;" >Edit</button>
+
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    }
+                }
             </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <small class="text-muted">
+                Showing @(((currentPage - 1) * pageSize) + 1)
+                -
+                @(Math.Min(currentPage * pageSize, totalProjects))
+                of @totalProjects projects
+            </small>
+            <div class="d-flex align-items-center gap-3">
+                <div class="d-flex  align-items-center gap-2 ">
+                    <label class="text-muted small">Entries per page:</label>
+
+                    <select class="form-select form-select-sm"
+                            style="width: 80px;"
+                            @bind="pageSize"
+                            @bind:after="OnPageSizeChanged">
+                        <option value="6">6</option>
+                        <option value="12">12</option>
+                        <option value="18">18</option>
+                        <option value="24">24</option>
+                    </select>
+                </div>
+
+
+                <nav>
+                    <ul class="pagination pagination-sm mb-0 shadow-sm">
+                        <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                            <button class="page-link" @onclick="PreviousPage">Previous</button>
+                        </li>
+
+                        <li class="page-item active">
+                            <span class="page-link">@currentPage</span>
+                        </li>
+
+                        <li class="page-item @(currentPage == GetTotalPages() ? "disabled" : "")">
+                            <button class="page-link" @onclick="NextPage">Next</button>
+                        </li>
+                    </ul>
+                </nav>
             </div>
+        </div>
+    </div>
+</div>
+            
 @if (showCreateForm)
 {
-    <CreateProjectComponent OnCancel="HideCreateForm" />
+    <CreateProjectComponent Show="showCreateForm" OnCancel="HideCreateForm" OnProjectCreated="@ProjectCreatedEvent" />
 }
 
-        @code {
+@code {
 
-            private DashboardSummaryDto stats = new();
-            private int managerId;
-            private bool showCreateForm = false;
-            private string search = "";
-            private string? filterManagerId = "";
-            private DateTime? filterCreatedDate;
-            private DateTime? filterStartDate;
-            private DateTime? filterEndDate;
-            private string activeFilter = "";
-            private string selectedFilter = "All";
-            private List<ProjectDto> recentProjects = new();
-            private int totalProjects = 0;
-            private int currentPage = 1;
-            private int pageSize = 6;
-            private bool isLoading = true;
-            private List<ManagerDto> managers = new();
+    private DashboardSummaryDto stats = new();
+    private int managerId;
+ private bool showCreateForm = false;
+    private string search = "";
+    private string? filterMemberId = "";
+    private DateTime? filterCreatedDate;
+    private DateTime? filterStartDate;
+    private DateTime? filterEndDate;
+    private string activeFilter = "";
+    private string selectedFilter = "All";
+    private List<ProjectDto> recentProjects = new();
+    private int totalProjects = 0;
+    private int currentPage = 1;
+    private int pageSize = 6;
+    private bool isLoading = true;
+    private List<ManagerDto> managers = new();
+    private bool showFullDescription = false;
+    private List<MemberDto> members = new();
 
     protected override async Task OnInitializedAsync()
     {
         await LoadLoggedInUserId();
         await  LoadDashboardStats();
+        await FilterProjects("Active");
+        await LoadMembers();
     }
     private async Task LoadLoggedInUserId()
     {
@@ -336,7 +577,21 @@
         
        
     }
+    private async Task LoadMembers()
+    {
 
+            members = await Http.GetFromJsonAsync<List<MemberDto>>("api/Member/memberslist") ?? new List<MemberDto>();
+      
+    }
+    private async Task ProjectCreatedEvent()
+    {
+        showCreateForm = false;     
+        await FilterProjects(selectedFilter);        
+    }
+    private void ViewProject(int projectId)
+    {
+        nav.NavigateTo($"/project/{projectId}/boards");
+    }
 
     private void ShowCreateForm()
     {
@@ -347,6 +602,28 @@
     {
         showCreateForm = false;
     }
+    void ToggleDescription()
+    {
+        showFullDescription = !showFullDescription;
+    }
+    private int GetTotalPages()
+    {
+
+        return (int)Math.Ceiling((double)totalProjects / pageSize);
+    }
+
+    private async Task NextPage()
+    {
+        if (currentPage < GetTotalPages())
+            await FilterProjects(selectedFilter, currentPage + 1);
+    }
+
+
+    private async Task PreviousPage()
+    {
+        if (currentPage > 1)
+            await FilterProjects(selectedFilter, currentPage - 1);
+    }
 
     private async Task OnPageSizeChanged()
     {
@@ -354,6 +631,24 @@
         await FilterProjects(selectedFilter, 1);
     }
 
+    private string GetVisibilityBadgeClass(string? visibility)
+    {
+        return visibility?.ToLower() switch
+        {
+            "public" => "visibility-public",
+            "private" => "visibility-private",
+            _ => "visibility-public"
+        };
+    }
+    private string GetVisibilityIcon(string? visibility)
+    {
+        return visibility?.ToLower() switch
+        {
+            "public" => "bi bi-globe2",
+            "private" => "bi bi-lock-fill",
+            _ => "bi bi-globe2"
+        };
+    }
 
     private async Task ApplyFilters()
     {
@@ -364,7 +659,7 @@
     private async Task ResetFilters()
     {
         search = "";
-        filterManagerId = "";
+        filterMemberId = "";
         filterCreatedDate = null;
         filterStartDate = null;
         filterEndDate = null;
@@ -391,8 +686,8 @@
             if (!string.IsNullOrWhiteSpace(search))
                 url += $"&search={Uri.EscapeDataString(search)}";
 
-            if (!string.IsNullOrWhiteSpace(filterManagerId))
-                url += $"&managerId={filterManagerId}";
+            if (!string.IsNullOrWhiteSpace(filterMemberId))
+                url += $"&memberId={filterMemberId}";
 
             if (filterCreatedDate.HasValue)
                 url += $"&createdDate={filterCreatedDate:yyyy-MM-dd}";

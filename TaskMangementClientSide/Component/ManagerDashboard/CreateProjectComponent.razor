@@ -1,13 +1,142 @@
-﻿<h3>CreateProjectComponent</h3>
-<h4>Create Project Form</h4>
+﻿@using Task.Application.DTOs
+@inject HttpClient Http
 
-<!-- your form fields go here -->
+<style>
 
-<button class="btn btn-secondary mt-3" @onclick="Cancel">
-    Back
-</button>
+    .modal-overlay {
+        z-index: 4000 !important;
+    }
 
-  @* @if(showCreateForm)
+
+    .modal-content {
+        overflow: visible !important;
+        position: relative;
+        z-index: 5000;
+    }
+    .multi-select {
+        position: relative;
+        width: auto;
+        min-height: 38px;
+        padding: 6px 40px 6px 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        cursor: pointer;
+        background-color: white;
+        z-index: 6000;
+        display: flex;
+        align-items: center;
+    }
+
+
+
+
+
+    .dropdown-icon {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+
+    .selected-area {
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+        min-height: 24px;
+    }
+
+    .dropdown-panel {
+        position: absolute;
+        bottom: 100%; /* OPEN UPWARDS */
+        top: auto;
+        left: 0;
+        width: 100%;
+        background: white;
+        border: 1px solid #ccc;
+        border-bottom: none;
+        border-radius: 6px 6px 0 0;
+        max-height: 220px;
+        overflow-y: auto;
+        z-index: 7000;
+        box-shadow: 0 -4px 8px rgba(0,0,0,0.1);
+    }
+
+    .multi-select.open {
+        border-top: none;
+        border-radius: 0 0 6px 6px;
+    }
+
+
+    .dropdown-item {
+        padding: 8px 12px;
+        cursor: pointer;
+    }
+
+        .dropdown-item:hover {
+            background: #e9ecef;
+        }
+
+    .tag-item {
+        background: #2c3e50;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .remove-tag {
+        background: none;
+        border: none;
+        color: white;
+        margin-left: 5px;
+        cursor: pointer;
+    }
+
+    .btn-create {
+        background-color: #2c3e50;
+        color: white;
+    }
+
+        .btn-create:hover {
+            background-color: #22303A;
+            color: white;
+        }
+
+    .add-btn {
+        height: 30px;
+        width: 40px;
+        border: none;
+        border-radius: 4px;
+        background-color: #2c3e50;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        padding: 0;
+    }
+    .plus {
+        font-size: 24px; /* increase + size */
+        font-weight: bold;
+        line-height: 1; /* FIX vertical alignment */
+        display: flex; /* ensures perfect center */
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Hover effect */
+    .add-btn:hover {
+        background-color: #22303A;
+    }
+
+</style>
+
+
+  @if(Show)
         {
             <div class="modal-overlay">
                 <div class="modal-content shadow-lg rounded-4 p-4 " style="background-color:#ecf0f1">
@@ -35,20 +164,23 @@
                             <option value="Private">Private</option>
                         </InputSelect>
                         <ValidationMessage For="@(()=>newProject.Visibility)"/>
+
+
+                   
                     
              </div>
                   
 
                 <div class="mb-3 w-75">
                     <label class="form-label fw-semibold " style="color:#2c3e50;">
-                        Assign Manager <span class="text-danger">*</span>
+                        Assign Member <span class="text-danger">*</span>
                     </label>
 
                     <div class="d-flex gap-1 align-items-center" >
-                        <div class="multi-select @(showManagerDropdown ? "open" : "")  " style="flex-grow: 1;" @onclick="ToggleDropdown">
+                        <div class="multi-select @(showMemberDropdown ? "open" : "")  " style="flex-grow: 1;" @onclick="ToggleDropdown">
 
                         <div class="selected-area">
-                            <span>@(newProject.ManagerIds.Count == 0 ? "Select managers..." : "Selected managers:")</span>
+                            <span>@(newProject.MemberIds.Count == 0 ? "Select members..." : "Selected members:")</span>
                         </div>
                         
 
@@ -56,14 +188,14 @@
                             <i class="bi bi-chevron-down"></i>
                         </div>
 
-                        @if (showManagerDropdown)
+                        @if (showMemberDropdown)
                         {
                             <div class="dropdown-panel shadow">
-                                @foreach (var manager in managers)
+                                @foreach (var member in members)
                                 {
 
-                                    <div class="dropdown-item" @onclick:stopPropagation="true"  @onclick="() => SelectManager(manager.Id)">
-                                        @manager.Name
+                                    <div class="dropdown-item" @onclick:stopPropagation="true"  @onclick="() => SelectMember(member.Id)">
+                                        @member.Name
                                     </div>
                                 }
                             </div>
@@ -74,12 +206,12 @@
 
                  
 
-                    @if (newProject.ManagerIds.Count > 0)
+                    @if (newProject.MemberIds.Count > 0)
                     {
                         <div class="mt-2 d-flex flex-wrap gap-2">
-                            @foreach (var id in newProject.ManagerIds)
+                            @foreach (var id in newProject.MemberIds)
                             {
-                                var mgr = managers.FirstOrDefault(m => m.Id == id);
+                                var mgr = members.FirstOrDefault(m => m.Id == id);
                                 if (mgr != null)
                                 {
                                     <span class="tag-item">
@@ -95,14 +227,14 @@
                         </div>
                     }
 
-                    <ValidationMessage For="@(() => newProject.ManagerIds)" />
+                    <ValidationMessage For="@(() => newProject.MemberIds)" />
                 </div>
                 
               
 
 
                         <div class="d-flex justify-content-end gap-2">
-                            <button type="button" class="btn btn-secondary" @onclick="() => showCreateForm = false">Cancel</button>
+                            <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
                             <button type="submit" class="btn btn-create" >Create</button>
                         </div>
 
@@ -110,7 +242,60 @@
                 </div>
             </div>
         }
-        
+@if (showForm)
+{
+    <div class="modal-overlay">
+        <div class="modal-content shadow-lg rounded-4 p-4 bg-white">
+            <!-- Header -->
+            <h5 class="fw-bold mb-3 text-center" style="color:#2c3e50;">
+                <i class="bi @(currentUser.Id == 0 ? "bi-person-plus" : "bi-pencil-square") me-2"></i>
+                @(currentUser.Id == 0 ? "Add Member" : "Edit Member")
+            </h5>
+
+            <!-- Form -->
+            <EditForm Model="@currentUser" OnValidSubmit="SaveUser">
+                <DataAnnotationsValidator />
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="color:#2c3e50;">Full Name<span class="text-danger">*</span></label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light border-0" style="background-color:#ecf0f1;">
+                            <i class="bi bi-person-fill"></i>
+                        </span>
+                        <InputText class="form-control border-0 shadow-sm" style="background-color:#ecf0f1;"
+                                   @bind-Value="currentUser.Name" placeholder="Enter  name" />
+                    </div>
+                    <ValidationMessage For="@(() => currentUser.Name)" class="text-danger small" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="color:#2c3e50;">Email Address<span class="text-danger">*</span></label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light border-0" style="background-color:#ecf0f1;">
+                            <i class="bi bi-envelope-fill"></i>
+                        </span>
+                        <InputText type="email" class="form-control border-0 shadow-sm" style="background-color:#ecf0f1;"
+                                   @bind-Value="currentUser.Email" placeholder="Enter email" />
+                    </div>
+                    <ValidationMessage For="@(() => currentUser.Email)" class="text-danger small" />
+                </div>
+                @if (!string.IsNullOrWhiteSpace(serverError))
+                {
+                    <div class="text-danger small mt-1">@serverError</div>
+                }
+
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="background-color:#2c3e50;">
+                        Save
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
         @if (showConfirmation) 
         {
             <div class="modal-overlay d-flex justify-content-center align-items-center">
@@ -123,7 +308,7 @@
                 <p class="mb-2"><strong>Description:</strong> @newProject.Description</p>
                         <p class="mb-2"><strong>Visibility:</strong> @newProject.Visibility</p>
                         <p class="mb-2"><strong>Created On:</strong> @DateTime.Now.ToString("MMMM dd, yyyy")</p>
-                        <p class="mb-0"><strong>Mangers:</strong> @newProject.ManagerNames
+                        <p class="mb-0"><strong>Members:</strong> 
                         
                         
                         </p>
@@ -139,10 +324,175 @@
                  
                 </div>
             </div>
-        } *@
+        }
 @code {
     [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback OnProjectCreated { get; set; }
 
+    [Parameter] public bool Show { get; set; }
+    private ProjectCreateDto newProject = new();
+    private EditContext formContext;
+    private bool submitted = false;
+    private bool showMemberDropdown = false;
+  
+    private bool showConfirmation = false;
+    private List<MemberDto> members = new();
+    private string memberNamesPreview = "";
+    private AppUserDto? currentUser = new();
+    private string serverError = "";
+    private bool showForm = false;
+
+   
+
+
+    protected override  async void OnInitialized()
+    {
+        newProject = new ProjectCreateDto();
+        formContext = new EditContext(newProject);
+        await LoadMembers();
+    }
+    private async Task LoadMembers()
+    {
+
+        members = await Http.GetFromJsonAsync<List<MemberDto>>("api/Member/memberslist") ?? new List<MemberDto>();
+
+    }
+    private void SelectMember(int id)
+    {
+        if (!newProject.MemberIds.Contains(id))
+            newProject.MemberIds.Add(id);
+
+        showMemberDropdown = false;
+
+        // if (submitted)
+        // {
+        //     formContext?.NotifyFieldChanged(
+        //         new FieldIdentifier(newProject, nameof(newProject.MemberIds))
+        //     );
+        // }
+    }
+
+    private void RemoveManager(int id)
+    {
+        newProject.MemberIds.Remove(id);
+
+        // if (submitted)
+        // {
+
+        //     formContext?.NotifyFieldChanged(
+        //         new FieldIdentifier(newProject, nameof(newProject.MemberIds))
+        //     );
+        // }
+    }
+    private void ToggleDropdown()
+    {
+        showMemberDropdown = !showMemberDropdown;
+    }
+    private void CancelConfirmation()
+    {
+
+        showConfirmation = false;
+        
+    }
+    private async Task SaveUser()
+    {
+        serverError = "";
+
+        if (string.IsNullOrWhiteSpace(currentUser.Role))
+            currentUser.Role = "Member";
+        if (currentUser.Id == 0)
+        {
+            // var client = HttpClientFactory.CreateClient("AuthClient");
+            var response = await Http.PostAsJsonAsync("api/Member", currentUser);
+            if (response.IsSuccessStatusCode)
+            {
+                showForm = false;
+
+                await LoadMembers();
+            }
+            else
+            {
+                serverError = await response.Content.ReadAsStringAsync();
+
+            }
+        }
+
+
+
+        // showForm = false;
+
+    }
+    private void ShowAddForm()
+    {
+        currentUser = new AppUserDto
+        {
+            Role = "Member"
+
+        };
+
+        showForm = true;
+    }
+    private void CancelEdit()
+    {
+        showForm = false;
+        currentUser = new();
+    }
+    private async Task ConfirmProjectAsync()
+    {
+        try
+        {
+
+            var response = await Http.PostAsJsonAsync("api/NewProject", newProject);
+            if (response.IsSuccessStatusCode)
+            {
+                var createdProject = await response.Content.ReadFromJsonAsync<ProjectDto>();
+                Console.WriteLine("Created ID: " + createdProject?.Id);
+
+                showConfirmation = false;
+               
+
+                newProject = new ProjectCreateDto();
+
+
+                await OnProjectCreated.InvokeAsync();
+
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Failed to create project: {error}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating project: {ex.Message}");
+        }
+    }
+    private void HandleSubmit(EditContext context)
+    {
+        submitted = true;
+
+
+        // Run Blazor built-in validation
+        if (context.Validate())
+        {
+           //  newProject.MemberNames = string.Join(", ",
+           // members.Where(m => newProject.ManagerIds.Contains(m.Id))
+           //         .Select(m => m.Name));
+            var selectedNames = members
+      .Where(m => newProject.MemberIds.Contains(m.Id))
+      .Select(m => m.Name);
+
+            memberNamesPreview = string.Join(", ", selectedNames);
+
+            showConfirmation = true;
+        }
+        else
+        {
+            showConfirmation = false;
+            Console.WriteLine("Validation failed.");
+        }
+    }
     private void Cancel()
     {
         // showCreateForm = false;

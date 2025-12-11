@@ -10,6 +10,6 @@ namespace Task.Application.Interaces
 {
     public interface INewProjectService
     {
-        Task<ProjectDto> AddProjectAsync(ProjectDto project);
+        Task<ProjectCreateDto> AddProjectAsync(ProjectCreateDto projectdto,int createByUserId);
     }
 }

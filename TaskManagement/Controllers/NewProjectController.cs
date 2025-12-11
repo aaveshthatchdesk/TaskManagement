@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using Task.Application.DTOs;
 using Task.Application.Interaces;
 using Task.Application.Services;
@@ -16,13 +18,17 @@ namespace TaskManagementServerAPi.Controllers
         {
             _newProjectService = newProjectService;
         }
+        [Authorize]
         [HttpPost]
-        public async Task<IActionResult> CreateProject(ProjectDto dto)
+        public async Task<IActionResult> CreateProject(ProjectCreateDto dto)
         {
+
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var project = await _newProjectService.AddProjectAsync(dto);
+            var project = await _newProjectService.AddProjectAsync(dto,userId);
             return Ok(project);
         }
     }

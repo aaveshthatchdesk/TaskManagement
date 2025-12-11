@@ -25,12 +25,13 @@ namespace Task.Infrastructure.Repository
                 .ToListAsync();
         }
 
-        // ✔ Add Project with Managers only
+       
         public async Task<Project> AddProjectAsync(Project project)
         {
             _taskDbContext.projects.Add(project);
             await _taskDbContext.SaveChangesAsync();
             return project;
         }
+
     }
 }

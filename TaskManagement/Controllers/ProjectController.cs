@@ -21,15 +21,30 @@ namespace TaskManagementServerAPi.Controllers
         [HttpGet]
         public async Task<ActionResult<PagedResult<ProjectDto>>> GetProjectsAsync(string? filter = "All", int page = 1, int pageSize = 6, string? search = null,
                                                                                    int? managerId = null,
+                                                                                   int? memberId=null,
                                                                                   DateTime? createdDate = null,
                                                                                 DateTime? startDate = null,
                                                                                   DateTime? endDate = null)
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
-            var isAdmin = User.IsInRole("Admin");
-            Console.WriteLine($"UserId: {userId}, IsAdmin: {isAdmin}");
-            var result = await _taskService.GetAllProjectsPagedAsync(userId, isAdmin, filter, page, pageSize, search, managerId, createdDate, startDate, endDate);
+            //string role = User.IsInRole("Admin");
+            string role =
+       User.IsInRole("Admin") ? "Admin" :
+       User.IsInRole("Manager") ? "Manager" :
+       "Member";
+            if(role=="Manager")
+            {
+                managerId = null;
+            }
+            else if(role=="Member")
+            {
+                managerId = null;
+                memberId = null;
+            }
+
+            //Console.WriteLine($"UserId: {userId}, IsAdmin: {isAdmin}");
+            var result = await _taskService.GetAllProjectsPagedAsync(userId, role, filter, page, pageSize, search, managerId,memberId, createdDate, startDate, endDate);
             if (result == null)
             {
                 return NotFound();
@@ -100,7 +115,7 @@ namespace TaskManagementServerAPi.Controllers
             return Ok(data);
         }
 
-        [Authorize(Policy = "RequireAdminRole")]
+        [Authorize(Policy = "RequireAdminOrMangerOrMemberRole")]
 
         [HttpPut("{id}")]
         public async Task<ActionResult<ProjectDto>> UpdateProjectAsync(int id, [FromBody] ProjectDto projectDto)

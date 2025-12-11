@@ -18,9 +18,9 @@ namespace Task.Application.Services
             this.taskRepository = taskRepository;
         }
 
-        public async Task<PagedResult<ProjectDto>> GetAllProjectsPagedAsync(string currentUserId, bool isAdmin, string? filter, int page, int pageSize, string? search, int? managerId, DateTime? createdDate, DateTime? startDate, DateTime? endDate)
+        public async Task<PagedResult<ProjectDto>> GetAllProjectsPagedAsync(string currentUserId, string role, string? filter, int page, int pageSize, string? search, int? managerId, int? memberId, DateTime? createdDate, DateTime? startDate, DateTime? endDate)
         {
-            var result = await taskRepository.GetAllProjectsPagedAsync(currentUserId, isAdmin, filter, page, pageSize, search, managerId, createdDate, startDate, endDate);
+            var result = await taskRepository.GetAllProjectsPagedAsync(currentUserId, role, filter, page, pageSize, search, managerId,memberId, createdDate, startDate, endDate);
 
             return new PagedResult<ProjectDto>
             {

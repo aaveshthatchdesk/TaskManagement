@@ -11,7 +11,7 @@ namespace Task.Application.Interaces
     public interface ITaskRepository
     {
 
-        public Task<PagedResult<Project>> GetAllProjectsPagedAsync(string currentUserId, bool isAdmin, string? filter, int page, int pageSize, string? search, int? managerId, DateTime? createdDate, DateTime? startDate, DateTime? endDate);
+        public Task<PagedResult<Project>> GetAllProjectsPagedAsync(string currentUserId, string role, string? filter, int page, int pageSize, string? search, int? managerId,int ? memberId, DateTime? createdDate, DateTime? startDate, DateTime? endDate);
         Task<List<AppUser>> GetProjectMembersAsync(int projectId);
 
         //public Task<List<ProjectMember>> GetProjectMembersAssignedAsync(int projectId);

@@ -1,7 +1,9 @@
-﻿@using Task.Application.DTOs
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Task.Application.DTOs
 @using TaskMangementClientSide.Component.Sprint
 @inject NavigationManager nav;
 @inject HttpClient Http
+@inject  AuthenticationStateProvider AuthStateProvider;
 <style>
     .card {
         /* border: 1px solid #2c3e50 !important; */
@@ -413,6 +415,15 @@
     margin-top: auto;   
     padding-top: 8px;   
 }
+.btn-back:hover{
+        background-color: #22303A;
+    color: white;
+    
+}
+.bold-arrow {
+    font-weight: 900;
+    text-shadow: 1px 0 0 currentColor;
+}
 
 </style>
 
@@ -428,10 +439,10 @@
 
 <div style="display: inline-block;">
     <div class="d-flex justify-content-start gap-2">
-        <button class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center"
-                style="width: 40px; height: 40px; padding: 0;"
+        <button class="btn btn-back d-flex align-items-center justify-content-center fw-bolder"
+                style="width: 40px; height: 40px; padding: 0; font-size:20px;"
                 @onclick="Back">
-            <i class="bi bi-arrow-left"></i>
+            <i class="bi bi-arrow-left bold-arrow"></i>
         </button>
         <h2 class="fw-bold text-dark mb-0" style="font-family: 'Poppins', sans-serif;">
         <i class="bi bi-kanban me-2"></i> @CurrentProject.Name
@@ -1676,6 +1687,9 @@
     private string serverError="";
     private bool showDeleteSprintConfirm=false;
     private int sprintToDelete;
+      bool isAdmin=false;
+    bool isManager = false;
+    bool isMember = false;
 
 
     protected override async Task OnInitializedAsync()
@@ -1687,9 +1701,33 @@
       
 
     }
-    private void Back()
+    private async void Back()
     {
-        nav.NavigateTo("/dashboard");
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+    var user = authState.User;
+
+    
+
+        isAdmin = user.IsInRole("Admin");
+        isManager = user.IsInRole("Manager");
+        isMember = user.IsInRole("Member");
+   
+
+        if (isAdmin)
+        {
+            nav.NavigateTo("/dashboard");
+        }
+        else if (isManager)
+        {
+            nav.NavigateTo("/managerdashboard");
+        }
+        else
+        {
+            
+            nav.NavigateTo("/userdashboard");
+        }
+    
+  
     }
 
     private async Task LoadProject()
@@ -2229,6 +2267,7 @@
                 Role = "Member"
 
             };
+
         showForm = true;
     }
       private void CancelEdit()
