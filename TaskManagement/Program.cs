@@ -131,7 +131,7 @@ namespace TaskManagement
        policy => policy.RequireRole("Admin"));
                 options.AddPolicy("RequireManagerOrAdminRole",
                     policy => policy.RequireRole("Manager", "Admin"));
-                options.AddPolicy("RequireAdminOrMangerOrMemberRole",
+                options.AddPolicy("RequireAdminOrMangerOrMemberRole", 
                     policy => policy.RequireRole("Admin", "Member", "Manager"));
             });
             builder.Services.AddCors(options =>

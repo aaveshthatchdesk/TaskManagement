@@ -18,85 +18,97 @@ namespace Task.Application.Services
             _sprintRepository = sprintRepository;
         }
 
-        //    public async Task<IEnumerable<SprintDto>> GetAllAsync()
-        //    {
-        //        var sprints = await _sprintRepository.GetAllAsync();
-        //        return sprints
-        //            .Select(s => new SprintDto
-        //            {
-        //                Id = s.Id,
-        //                Name = s.Name,
-        //                StartDate = s.StartDate,
-        //                EndDate = s.EndDate,
-        //                TaskItems = s.TaskItems.Select(t => new TaskItemDto
-        //                {
-        //                    Id = t.Id,
-        //                    Title = t.Title,
-        //                    Description = t.Description,
-        //                    DueDate = t.DueDate,
-        //                    BoardId = t.BoardId,
-        //                    SprintId = t.SprintId,
-        //                    Order = t.Order,
-        //                    TaskAssignments = t.TaskAssignments.Select(a => new TaskAssignmentDto
-        //                    {
-        //                        TaskItemId = a.TaskItemId,
-        //                        AppUserId = a.AppUserId,
+        public async Task<IEnumerable<SprintDto>> GetAllAsync()
+        {
+            var sprints = await _sprintRepository.GetAllAsync();
+            return sprints
+                .Select(s => new SprintDto
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    StartDate = s.StartDate,
+                    EndDate = s.EndDate,
+                    TaskItems = s.TaskItems.Select(t => new TaskItemDto
+                    {
+                        Id = t.Id,
+                        Title = t.Title,
+                        Description = t.Description,
+                        DueDate = t.DueDate,
+                        BoardId = t.BoardId,
+                        SprintId = t.SprintId,
+                        Order = t.Order,
+                        TaskAssignments = t.TaskAssignments.Select(a => new TaskAssignmentDto
+                        {
+                            TaskItemId = a.TaskItemId,
+                            AppUserId = a.AppUserId,
 
-        //                    }).ToList()
-        //                }).ToList(),
-        //                Boards = s.TaskItems
-        //               .Where(t => t.Board != null)
-        //               .Select(t => t.Board!)
-        //                .GroupBy(b => b.Id)
-        //                 .Select(g => new BoardDto
-        //                 {
-        //                     Id = g.Key,
-        //                     Name = g.First().Name
-        //                 }).ToList(),
+                        }).ToList()
+                    }).ToList(),
+    //                Boards = s.TaskItems
+    //               .Where(t => t.Board != null)
+    //               .Select(t => t.Board!)
+    //                .GroupBy(b => b.Id)
+    //                 .Select(g => new BoardDto
+    //                 {
+    //                     Id = g.Key,
+    //                     Name = g.First().Name
+    //                 }).ToList(),
 
-        //                Projects = s.TaskItems
-        //                .Where(t => t.Board?.Project != null)
-        //                 .Select(t => t.Board!.Project!)
-        //                      .GroupBy(p => p.Id)
-        //                      .Select(g => new ProjectDto
-        //                      {
-        //                          Id = g.Key,
-        //                          Name = g.First().Name
-        //                      })
-        //                         .ToList(),
-
-
-        //                ProjectName = s.TaskItems
-        //             .Where(t => t.Board?.Project != null)
-        //                .Select(t => t.Board!.Project!.Name)
-        //.Distinct()
-        //.DefaultIfEmpty("No Project")
-        //.Aggregate((a, b) => a + ", " + b),
-        //                TotalTasks = s.TaskItems.Count,
-        //                CompletedTasks = s.TaskItems.Count(t => t.IsCompleted),
-        //                AssignedUsers = s.TaskItems
-        //        .SelectMany(t => t.TaskAssignments.Select(a => a.AppUser))
-        //        .DistinctBy(u => u.Id)
-        //        .Select(u => new AppUserDto
-        //        {
-        //            Id = u.Id,
-        //            Name = u.Name,
-        //            Email = u.Email
-        //        }).ToList(),
-        //                Status = s.TaskItems.All(t => t.IsCompleted) ? "Completed" : "Active"
-        //            });
+    //                Projects = s.TaskItems
+    //                .Where(t => t.Board?.Project != null)
+    //                 .Select(t => t.Board!.Project!)
+    //                      .GroupBy(p => p.Id)
+    //                      .Select(g => new ProjectDto
+    //                      {
+    //                          Id = g.Key,
+    //                          Name = g.First().Name
+    //                      })
+    //                         .ToList(),
 
 
-        //    }
-        //public async Task<IEnumerable<SprintDto>> GetAllSprintsOnly()
-        //{
-        //    var sprints = await _sprintRepository.GetAllSprintsOnly();
-        //    return sprints.Select(sprint => new SprintDto
-        //    {
-        //        Id = sprint.Id,
-        //        Name = sprint.Name,
-        //    }).ToList();
-        //}
+    //                ProjectName = s.TaskItems
+    //             .Where(t => t.Board?.Project != null)
+    //                .Select(t => t.Board!.Project!.Name)
+    //.Distinct()
+    //.DefaultIfEmpty("No Project")
+    //.Aggregate((a, b) => a + ", " + b),
+                    TotalTasks = s.TaskItems.Count,
+                    CompletedTasks = s.TaskItems.Count(t => t.IsCompleted),
+                    //        AssignedUsers = s.TaskItems
+                    //.SelectMany(t => t.TaskAssignments.Select(a => a.AppUser))
+                    //.DistinctBy(u => u.Id)
+                    //.Select(u => new AppUserDto
+                    //{
+                    //    Id = u.Id,
+                    //    Name = u.Name,
+                    //    Email = u.Email
+                    //}).ToList(),
+                    //Status = s.TaskItems.All(t => t.IsCompleted) ? "Completed" : "Active"
+
+
+                    Status =
+    s.TaskItems.Count(t => t.IsCompleted) == 0
+        ? "Planned"
+        : s.TaskItems.All(t => t.IsCompleted)
+            ? "Completed"
+            : "Active"
+
+                });
+
+
+        }
+        public async Task<IEnumerable<SprintDto>> GetAllSprintsOnly()
+        {
+            var sprints = await _sprintRepository.GetAllSprintsOnly();
+            return sprints.Select(s=>new SprintDto
+            {
+                Id = s.Id,
+                Name = s.Name,
+                StartDate = s.StartDate,
+                EndDate = s.EndDate
+            }).ToList();
+        }
+
 
         public async Task<SprintDto?> GetSprintsByProjectAsync(int projectId)
         {
@@ -125,76 +137,90 @@ namespace Task.Application.Services
         //    return "Active";
         //}
 
-        //public async Task<SprintStatsDto> GetsSprintsStats()
-        //{
-        //    var allSprints= await _sprintRepository.GetAllAsync();
-        //    if (allSprints == null || !allSprints.Any())
-        //        if (allSprints == null || !allSprints.Any())
-        //        return new SprintStatsDto();
+        public async Task<SprintStatsDto> GetsSprintsStats()
+        {
+            var allSprints = await _sprintRepository.GetSprintsStats();
+            
+                if (allSprints == null || !allSprints.Any())
+                    return new SprintStatsDto();
 
-        //    var activeSprints = allSprints.Count(s => s.EndDate >= DateTime.UtcNow);
-        //    var completedSprints = allSprints.Count(s => s.EndDate < DateTime.UtcNow);
-        //    var tasksCompleted = allSprints.Sum(s => s.TaskItems?.Count(t => t.IsCompleted)??0);
+            int activeSprints = 0;
+            int completedSprints = 0;
+            //var activeSprints = allSprints.Count(s => s.EndDate >= DateTime.UtcNow);
+            //var completedSprints = allSprints.Count(s => s.EndDate < DateTime.Now);
+            var tasksCompleted = allSprints.Sum(s => s.TaskItems?.Count(t => t.IsCompleted) ?? 0);
 
+            foreach(var sprint in allSprints)
+            {
+                var totalTasks = sprint.TaskItems?.Count() ?? 0;
+                var doneTasks = sprint.TaskItems?.Count(t => t.IsCompleted) ?? 0;
 
-        //    var avgVelocity = allSprints.Any() ?
-        //        (int)Math.Round(allSprints.Average(s => s.TaskItems?.Count() ?? 0)) : 0;
-        //    return new SprintStatsDto
-        //    {
-        //        ActiveSprints = activeSprints,
-        //        CompletedSprints = completedSprints,
-        //        TaskCompleted = tasksCompleted,
-        //        AverageVelocity = avgVelocity
-        //    };
-        //}
-        //public async Task<SprintDto?>GetSprintByIdAsync(int id)
-        //{
-        //    var sprints = await _sprintRepository.GetSprintByIdAsync(id);
-        //    return new SprintDto
-        //    {
-        //        Id = sprints.Id,
-        //        Name = sprints.Name,
-        //        StartDate = sprints.StartDate,
-        //        EndDate = sprints.EndDate,
-        //        TaskItems = sprints.TaskItems.Select(t => new TaskItemDto
-        //        {
-        //            Id = t.Id,
-        //            Title = t.Title,
-        //            Description = t.Description,
-        //            DueDate = t.DueDate,
-        //            BoardId = t.BoardId,
-        //            SprintId = t.SprintId,
-        //            Order = t.Order,
-        //            TaskAssignments = t.TaskAssignments.Select(a => new TaskAssignmentDto
-        //            {
-        //                TaskItemId = a.TaskItemId,
-        //                AppUserId = a.AppUserId,
+                // ✔ Sprint is completed only if it has tasks AND all tasks are completed
+                bool isCompletedSprint = totalTasks > 0 && doneTasks == totalTasks;
 
-        //            }).ToList()
-        //        }).ToList(),
-        //        Boards=sprints.TaskItems
-        //           .Where(t => t.Board != null)
-        //           .Select(t => t.Board!)
-        //            .GroupBy(b => b.Id)
-        //             .Select(g => new BoardDto
-        //             {
-        //                 Id = g.Key,
-        //                 Name = g.First().Name
-        //             }).ToList(),
+                if (isCompletedSprint)
+                    completedSprints++;
+                else
+                    activeSprints++;
+            }
+            var avgVelocity = allSprints.Any() ?
+                (int)Math.Round(allSprints.Average(s => s.TaskItems?.Count() ?? 0)) : 0;
+            return new SprintStatsDto
+            {
+                ActiveSprints = activeSprints,
+                CompletedSprints = completedSprints,
+                TaskCompleted = tasksCompleted,
+                AverageVelocity = avgVelocity
+            };
+        }
+        public async Task<SprintDto?> GetSprintByIdAsync(int id)
+        {
+            var sprints = await _sprintRepository.GetSprintByIdAsync(id);
+            return new SprintDto
+            {
+                Id = sprints.Id,
+                Name = sprints.Name,
+                StartDate = sprints.StartDate,
+                EndDate = sprints.EndDate,
+                TaskItems = sprints.TaskItems.Select(t => new TaskItemDto
+                {
+                    Id = t.Id,
+                    Title = t.Title,
+                    Description = t.Description,
+                    DueDate = t.DueDate,
+                    BoardId = t.BoardId,
+                    SprintId = t.SprintId,
+                    Order = t.Order,
+                    TaskAssignments = t.TaskAssignments.Select(a => new TaskAssignmentDto
+                    {
+                        TaskItemId = a.TaskItemId,
+                        AppUserId = a.AppUserId,
 
-        //               Projects = sprints.TaskItems
-        //            .Where(t => t.Board?.Project != null)
-        //             .Select(t => t.Board!.Project!)
-        //                  .GroupBy(p => p.Id)
-        //                  .Select(g => new ProjectDto
-        //                   {
-        //                   Id = g.Key,
-        //                  Name = g.First().Name
-        //                       })
-        //                     .ToList()
-        //    };
+                    }).ToList()
+                }).ToList(),
+                Boards = sprints.TaskItems
+                   .Where(t => t.Board != null)
+                   .Select(t => t.Board!)
+                    .GroupBy(b => b.Id)
+                     .Select(g => new BoardDto
+                     {
+                         Id = g.Key,
+                         Name = g.First().Name
+                     }).ToList(),
 
-        //}
+                Projects = sprints.TaskItems
+                    .Where(t => t.Board?.Project != null)
+                     .Select(t => t.Board!.Project!)
+                          .GroupBy(p => p.Id)
+                          .Select(g => new ProjectDto
+                          {
+                              Id = g.Key,
+                              Name = g.First().Name
+                          })
+                             .ToList()
+            };
+
+        }
         public async Task<SprintDto> AddAsync(int projectId,SprintDto dto)
         {
             var sprint = new Sprint

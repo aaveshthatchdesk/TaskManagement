@@ -19,6 +19,7 @@ namespace Task.Application.Interaces
         Task<List<AppUser>> GetManagersByProjectAsync(int projectId);
         public Task<Project> GetProjectByIdAsync(int id);
         public  Task<Project> AddProjectAsync(Project project);
+        public Task<Project> CreateProjectAsync(Project project);
 
         public Task<Project> UpdateProjectAsync(int id, Project project, ProjectDto projectDto);
         public Task<bool> DeleteProjectAsync(int id);

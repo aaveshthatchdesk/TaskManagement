@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using Task.Application.DTOs;
 using Task.Application.Interaces;
+using Task.Application.Services;
 
 namespace TaskManagementServerAPi.Controllers
 {
@@ -115,6 +117,20 @@ namespace TaskManagementServerAPi.Controllers
             return Ok(data);
         }
 
+
+        [Authorize]
+        [HttpPost("new")]
+        public async Task<IActionResult> CreateProject(ProjectDto dto)
+        {
+
+            
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var project = await _taskService.AddProjectAsync(dto);
+            return Ok(project);
+        }
         [Authorize(Policy = "RequireAdminOrMangerOrMemberRole")]
 
         [HttpPut("{id}")]

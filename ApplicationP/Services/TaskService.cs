@@ -285,6 +285,37 @@ namespace Task.Application.Services
 
         }
 
+        public async Task<ProjectDto> CreateProjectAsync(ProjectDto projectdto)
+        {
+            var project = new Project
+            {
+                Name = projectdto.Name,
+                Description = projectdto.Description,
+                Visibility = projectdto.Visibility,
+                CreatedDate = DateTime.Now,
+            };
+            foreach (var managerId in projectdto.ManagerIds)
+            {
+                project.ProjectMembers.Add(new ProjectMember
+                {
+                    AppUserId = managerId
+                });
+
+            }
+        
+            var created = await taskRepository.CreateProjectAsync(project);
+            return new ProjectDto
+            {
+                Id = created.Id,
+                Name = created.Name,
+                Description = created.Description,
+                Visibility = created.Visibility,
+                CreatedDate = created.CreatedDate,
+               
+                ManagerIds = created.Managers.Select(pm => pm.AppUserId).ToList()
+            };
+        }
+
         //public async Task<ProjectDto> UpdateProjectAsync(int id, ProjectDto projectDto)
         //{
         //    var project = new Project

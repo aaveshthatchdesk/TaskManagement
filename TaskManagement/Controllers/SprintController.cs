@@ -16,12 +16,12 @@ namespace TaskManagementServerAPi.Controllers
         {
             _sprintService = sprintService;
         }
-        //[HttpGet]
-        //public async Task<IActionResult> GetAll()
-        //{
-        //    var result = await _sprintService.GetAllAsync();
-        //    return Ok(result);
-        //}
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var result = await _sprintService.GetAllAsync();
+            return Ok(result);
+        }
         [HttpGet("Project/{projectId}")]
         public async Task<IActionResult> GetSprintsByProject(int projectId)
         {
@@ -31,21 +31,21 @@ namespace TaskManagementServerAPi.Controllers
         }
 
 
-        //[HttpGet("stats")]
-        //public async Task<ActionResult<SprintStatsDto>> GetSprintStats()
-        //{
-        //    var stats = await _sprintService.GetsSprintsStats();
-        //    return Ok(stats);
+        [HttpGet("stats")]
+        public async Task<ActionResult<SprintStatsDto>> GetSprintStats()
+        {
+            var stats = await _sprintService.GetsSprintsStats();
+            return Ok(stats);
 
-        //}
+        }
 
-        //[HttpGet("{id}")]
-        //public async Task<IActionResult> GetByID(int id)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetByID(int id)
 
-        //{
-        //    var sprint = await _sprintService.GetSprintByIdAsync(id);
-        //    return Ok(sprint);
-        //}
+        {
+            var sprint = await _sprintService.GetSprintByIdAsync(id);
+            return Ok(sprint);
+        }
         [HttpPost("project/{projectId}")]
         public async Task<IActionResult> Create(int projectId,SprintDto sprint)
         {

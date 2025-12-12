@@ -9,13 +9,17 @@ namespace Task.Application
 {
    public class FutureDateAttribute:ValidationAttribute
     {
-
+        //public bool AllowPast { get; set; } = false;
         public override bool IsValid(object? value)
         {
+            
             if (value == null) return true; 
 
             DateTime date = (DateTime)value;
 
+        
+        //      if (AllowPast)
+        //return true;
             return date.Date >= DateTime.Today;
         }
     }

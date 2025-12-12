@@ -760,7 +760,7 @@
                     Archived
                 </button>
             </div>
-           
+          
        
         <div class="container-fluid px-3">
             <div class="row g-4">
@@ -877,7 +877,7 @@
                                                 
                                               
                                         </div>
-                                            <small class="ms-2 text-black fw-medium">Team</small>
+                                            <small class="ms-2 mb-1 text-black fw-medium">Team</small>
                                     </div>
 
                                     <div class="d-flex justify-content-between mt-3 flex-wrap" style="gap:10px;">
@@ -1482,7 +1482,7 @@
         try
         {
 
-            var response = await Http.PostAsJsonAsync("api/Project", newProject);
+            var response = await Http.PostAsJsonAsync("api/Project/new", newProject);
             if (response.IsSuccessStatusCode)
             {
                 var createdProject = await response.Content.ReadFromJsonAsync<ProjectDto>();

@@ -20,7 +20,7 @@ namespace Task.Application.Interaces
 
         public Task<ProjectDto> GetProjectByIdAsync(int id);
         public Task<ProjectDto> AddProjectAsync(ProjectDto projectDto);
-
+        public Task<ProjectDto> CreateProjectAsync(ProjectDto projectdto);
         public Task<ProjectDto> UpdateProjectAsync(int id, ProjectDto project);
         public Task<bool> DeleteProjectAsync(int id);
     }

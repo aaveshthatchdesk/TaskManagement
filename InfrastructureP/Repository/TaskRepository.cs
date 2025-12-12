@@ -239,7 +239,12 @@ namespace Task.Infrastructure.Repository
             }
         }
 
-
+        public async Task<Project> CreateProjectAsync(Project project)
+        {
+            _taskDbContext.projects.Add(project);
+            await _taskDbContext.SaveChangesAsync();
+            return project;
+        }
 
         //public async Task<Project> UpdateProjectAsync(int id, Project project, ProjectDto projectDto)
         //{
@@ -369,6 +374,7 @@ namespace Task.Infrastructure.Repository
         public async Task<Project> UpdateProjectAsync(int id, Project project, ProjectDto projectDto)
         {
             var existingProject = await _taskDbContext.projects
+                .Include(p=>p.Sprint)
                 .Include(p => p.Managers)
                 .Include(p => p.Boards)
                     .ThenInclude(b => b.TaskItems)
@@ -377,6 +383,15 @@ namespace Task.Infrastructure.Repository
 
             if (existingProject == null)
                 throw new Exception("Project not found");
+
+
+            //     var projectSprint = await _taskDbContext.projects
+            //.Where(p => p.Id == existingProject.Id)
+            //.Include(p => p.Sprint)
+            //.Select(p => p.Sprint)
+            //.FirstOrDefaultAsync();
+            var projectSprint = existingProject.Sprint;
+
 
             // -----------------------------
             // Update basic project fields
@@ -485,7 +500,7 @@ namespace Task.Infrastructure.Repository
                             Title = taskDto.Title,
                             Description = taskDto.Description,
                             DueDate = taskDto.DueDate,
-                            SprintId = taskDto.SprintId,
+                            SprintId = projectSprint?.Id,
                             Order = taskDto.Order,
                             
                             Priority = taskDto.Priority ?? "Low",
@@ -502,7 +517,7 @@ namespace Task.Infrastructure.Repository
                     existingTask.Description = taskDto.Description;
                     existingTask.DueDate = taskDto.DueDate ?? DateTime.UtcNow.AddDays(1);
                     existingTask.Order = taskDto.Order;
-                    existingTask.SprintId = taskDto.SprintId;
+                    existingTask.SprintId = projectSprint?.Id;
                     existingTask.IsCompleted = taskDto.IsCompleted;
                     existingTask.CompletedDate=taskDto.CompletedDate;
                     existingTask.Priority = taskDto.Priority ?? existingTask.Priority;
