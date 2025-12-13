@@ -18,85 +18,104 @@ namespace Task.Application.Services
             _sprintRepository = sprintRepository;
         }
 
-        public async Task<IEnumerable<SprintDto>> GetAllAsync()
+        //    public async Task<IEnumerable<SprintDto>> GetAllAsync()
+        //    {
+        //        var sprints = await _sprintRepository.GetAllAsync();
+        //        return sprints
+        //            .Select(s => new SprintDto
+        //            {
+        //                Id = s.Id,
+        //                Name = s.Name,
+        //                StartDate = s.StartDate,
+        //                EndDate = s.EndDate,
+        //                TaskItems = s.TaskItems.Select(t => new TaskItemDto
+        //                {
+        //                    Id = t.Id,
+        //                    Title = t.Title,
+        //                    Description = t.Description,
+        //                    DueDate = t.DueDate,
+        //                    BoardId = t.BoardId,
+        //                    SprintId = t.SprintId,
+        //                    Order = t.Order,
+        //                    TaskAssignments = t.TaskAssignments.Select(a => new TaskAssignmentDto
+        //                    {
+        //                        TaskItemId = a.TaskItemId,
+        //                        AppUserId = a.AppUserId,
+
+        //                    }).ToList()
+        //                }).ToList(),
+
+        //                TotalTasks = s.TaskItems.Count,
+        //                CompletedTasks = s.TaskItems.Count(t => t.IsCompleted),
+
+
+
+        //                Status =
+        //s.TaskItems.Count(t => t.IsCompleted) == 0
+        //    ? "Planned"
+        //    : s.TaskItems.All(t => t.IsCompleted)
+        //        ? "Completed"
+        //        : "Active"
+
+        //            });
+
+
+
+
+        //    }
+
+
+        public async Task<PagedResult<SprintDto>> GetSprintsAsync(
+    string? search,
+    string filter,
+    int page,
+    int pageSize)
         {
-            var sprints = await _sprintRepository.GetAllAsync();
-            return sprints
-                .Select(s => new SprintDto
+            var (sprints, totalCount) =
+                await _sprintRepository.GetSprintsAsync(search, filter, page, pageSize);
+
+            var sprintDtos = sprints.Select(s => new SprintDto
+            {
+                Id = s.Id,
+                Name = s.Name,
+                StartDate = s.StartDate,
+                EndDate = s.EndDate,
+
+                TaskItems = s.TaskItems.Select(t => new TaskItemDto
                 {
-                    Id = s.Id,
-                    Name = s.Name,
-                    StartDate = s.StartDate,
-                    EndDate = s.EndDate,
-                    TaskItems = s.TaskItems.Select(t => new TaskItemDto
+                    Id = t.Id,
+                    Title = t.Title,
+                    Description = t.Description,
+                    DueDate = t.DueDate,
+                    BoardId = t.BoardId,
+                    SprintId = t.SprintId,
+                    Order = t.Order,
+                    TaskAssignments = t.TaskAssignments.Select(a => new TaskAssignmentDto
                     {
-                        Id = t.Id,
-                        Title = t.Title,
-                        Description = t.Description,
-                        DueDate = t.DueDate,
-                        BoardId = t.BoardId,
-                        SprintId = t.SprintId,
-                        Order = t.Order,
-                        TaskAssignments = t.TaskAssignments.Select(a => new TaskAssignmentDto
-                        {
-                            TaskItemId = a.TaskItemId,
-                            AppUserId = a.AppUserId,
+                        TaskItemId = a.TaskItemId,
+                        AppUserId = a.AppUserId
+                    }).ToList()
+                }).ToList(),
 
-                        }).ToList()
-                    }).ToList(),
-    //                Boards = s.TaskItems
-    //               .Where(t => t.Board != null)
-    //               .Select(t => t.Board!)
-    //                .GroupBy(b => b.Id)
-    //                 .Select(g => new BoardDto
-    //                 {
-    //                     Id = g.Key,
-    //                     Name = g.First().Name
-    //                 }).ToList(),
+                TotalTasks = s.TaskItems.Count,
+                CompletedTasks = s.TaskItems.Count(t => t.IsCompleted),
 
-    //                Projects = s.TaskItems
-    //                .Where(t => t.Board?.Project != null)
-    //                 .Select(t => t.Board!.Project!)
-    //                      .GroupBy(p => p.Id)
-    //                      .Select(g => new ProjectDto
-    //                      {
-    //                          Id = g.Key,
-    //                          Name = g.First().Name
-    //                      })
-    //                         .ToList(),
+                Status =
+                    s.TaskItems.Count(t => t.IsCompleted) == 0
+                        ? "Planned"
+                        : s.TaskItems.All(t => t.IsCompleted)
+                            ? "Completed"
+                            : "Active"
+            }).ToList();
 
-
-    //                ProjectName = s.TaskItems
-    //             .Where(t => t.Board?.Project != null)
-    //                .Select(t => t.Board!.Project!.Name)
-    //.Distinct()
-    //.DefaultIfEmpty("No Project")
-    //.Aggregate((a, b) => a + ", " + b),
-                    TotalTasks = s.TaskItems.Count,
-                    CompletedTasks = s.TaskItems.Count(t => t.IsCompleted),
-                    //        AssignedUsers = s.TaskItems
-                    //.SelectMany(t => t.TaskAssignments.Select(a => a.AppUser))
-                    //.DistinctBy(u => u.Id)
-                    //.Select(u => new AppUserDto
-                    //{
-                    //    Id = u.Id,
-                    //    Name = u.Name,
-                    //    Email = u.Email
-                    //}).ToList(),
-                    //Status = s.TaskItems.All(t => t.IsCompleted) ? "Completed" : "Active"
-
-
-                    Status =
-    s.TaskItems.Count(t => t.IsCompleted) == 0
-        ? "Planned"
-        : s.TaskItems.All(t => t.IsCompleted)
-            ? "Completed"
-            : "Active"
-
-                });
-
-
+            return new PagedResult<SprintDto>
+            {
+                Items = sprintDtos,
+                TotalCount = totalCount,
+              
+            };
         }
+
         public async Task<IEnumerable<SprintDto>> GetAllSprintsOnly()
         {
             var sprints = await _sprintRepository.GetAllSprintsOnly();

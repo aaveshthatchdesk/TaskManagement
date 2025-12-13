@@ -28,13 +28,8 @@ namespace Task.Infrastructure.Repository
         }
         public async Task<IEnumerable<Sprint>> GetSprintsStats()
         {
-            //return await _taskDbContext.sprints
-
-            //    .ToListAsync();
+          
             return await _taskDbContext.sprints.Include(s => s.TaskItems)
-
-                   //.ThenInclude(t => t.Board)
-                   //      .ThenInclude(b => b.Project)
 
            
                .ThenInclude(t => t.TaskAssignments)
@@ -52,6 +47,32 @@ namespace Task.Infrastructure.Repository
          .FirstOrDefaultAsync();
 
 
+        }
+
+        public async Task<(List<Sprint> Sprints,int TotalCount)>GetSprintsAsync(string ?search ,string filter,int page,int pageSize)
+        {
+           IQueryable<Sprint>query= _taskDbContext.sprints.Include(s => s.TaskItems)
+                   .ThenInclude(t => t.TaskAssignments)
+                       .ThenInclude(a => a.AppUser)
+                   .Include(s => s.TaskItems)
+                       .ThenInclude(t => t.Board)
+                           .ThenInclude(b => b.Project);
+
+            query = filter switch
+            {
+                "Completed" => query.Where(s => s.TaskItems.Any() && s.TaskItems.All(t => t.IsCompleted)),
+                "Active" => query.Where(s => s.TaskItems.Any(t => t.IsCompleted)),
+                "Planning" => query.Where(s => !s.TaskItems.Any(t => t.IsCompleted)),
+                _ => query
+            };
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query=query.Where(s=>s.Name.Contains(search)||s.TaskItems.Any(t=>t.Board!.Project!.Name.Contains(search)));
+            }
+            int totalCount = await query.CountAsync();
+            var sprints=await query.OrderByDescending(s=>s.StartDate).Skip((page-1)*pageSize).Take(pageSize).ToListAsync();
+            return (sprints, totalCount);
         }
         public async Task<IEnumerable<Sprint>> GetAllWithTasksAsync()
         {

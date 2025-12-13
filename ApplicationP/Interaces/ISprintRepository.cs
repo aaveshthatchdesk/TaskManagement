@@ -11,6 +11,8 @@ namespace Task.Application.Interaces
     public interface ISprintRepository
     {
         Task<IEnumerable<Sprint>> GetAllAsync();
+       
+        public  Task<(List<Sprint> Sprints, int TotalCount)> GetSprintsAsync(string? search, string filter, int page, int pageSize);
         public Task<IEnumerable<Sprint>> GetSprintsStats();
         Task<IEnumerable<Sprint>> GetAllSprintsOnly();
         Task<Sprint> GetSprintsByProjectAsync(int projectId);

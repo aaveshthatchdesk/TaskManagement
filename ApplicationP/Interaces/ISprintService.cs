@@ -10,7 +10,9 @@ namespace Task.Application.Interaces
 {
     public interface ISprintService
     {
-        Task<IEnumerable<SprintDto>> GetAllAsync();
+        //Task<IEnumerable<SprintDto>> GetAllAsync();
+
+        public Task<PagedResult<SprintDto>> GetSprintsAsync(string? search, string filter, int page, int pageSize);
 
         Task<IEnumerable<SprintDto>> GetAllSprintsOnly();
         Task<SprintDto?> GetSprintsByProjectAsync(int projectId);

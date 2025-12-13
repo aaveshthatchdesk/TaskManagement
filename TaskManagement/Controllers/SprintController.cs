@@ -16,12 +16,23 @@ namespace TaskManagementServerAPi.Controllers
         {
             _sprintService = sprintService;
         }
+        //[HttpGet]
+        //public async Task<IActionResult> GetAll()
+        //{
+        //    var result = await _sprintService.GetAllAsync();
+        //    return Ok(result);
+        //}
+
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<ActionResult<PagedResult<SprintDto>>> GetSprints(
+    string? search = null,
+    string filter = "All",
+    int page = 1,
+    int pageSize = 5)
         {
-            var result = await _sprintService.GetAllAsync();
-            return Ok(result);
+            return Ok(await _sprintService.GetSprintsAsync(search, filter, page, pageSize));
         }
+
         [HttpGet("Project/{projectId}")]
         public async Task<IActionResult> GetSprintsByProject(int projectId)
         {

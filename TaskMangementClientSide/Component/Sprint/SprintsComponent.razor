@@ -33,6 +33,35 @@
             transform: translateY(-3px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
+    .pagination-btn {
+        border: none;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+        .pagination-btn.primary {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        .pagination-btn.secondary {
+            background-color: #e9ecef;
+            color: #2c3e50;
+        }
+
+        .pagination-btn:disabled {
+            background-color: #dee2e6;
+            color: #adb5bd;
+            cursor: not-allowed;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background-color: #0b5ed7;
+            color: white;
+        }
+
 
 </style>
 
@@ -46,40 +75,28 @@
             <h3 class="fw-bold mb-1" style="color:#2c3e50;">Sprint Management</h3>
           
         </div>
-
-        <div class="d-flex align-items-center">
-           
-            <form class="d-flex align-items-center flex-grow-1 justify-content-center mx-4" role="search" @onsubmit="OnSearch">
-                <div class="position-relative w-100" style="max-width: 250px;">
-                    <input class="form-control ps-3 pe-5 shadow-sm"
-                           type="search"
+                <div class="position-relative mx-4" style="max-width:250px;">
+                    <input class="form-control pe-5 shadow-sm"
                            placeholder="Search sprints..."
-                           aria-label="Search"
-                           @bind="SearchTerm"
+                           @bind="searchTerm"
                            @bind:event="oninput"
-                           style="background-color: #fff; border-radius: 20px; border: 1px solid #ced4da;" />
+                           @bind:after="OnSearchChanged" />
+
                     <span class="position-absolute top-50 end-0 translate-middle-y me-3 text-muted">
                         <i class="bi bi-search"></i>
                     </span>
                 </div>
-            </form>
 
-
-           
-
-            <button class="btn btn-primary  fw-semibold shadow-sm px-4" @onclick="ShowCreateForm">
-                <i class="bi bi-plus-lg me-2"></i> New Sprint
-            </button>
-         </div>
+       
     </div>
-            <hr class="my-0" style="border-top: 2px solid #e0e0e0;" />
+@*             <hr class="my-0" style="border-top: 2px solid #e0e0e0;" />
             <div class="p-4">
                 @if (showCreateForm)
 {
     <div class="mt-4">
         <AddSprint OnSaved="HandleSprintSaved" OnCancel="HandleSprintCancelled" />
     </div>
-}
+} *@
 
     <!-- Stats Cards -->
 
@@ -176,13 +193,13 @@
                     <div class="spinner-border text-primary" role="status"></div>
                 </div>
             }
-            else if (filteredSprints == null)
+            else if (pagedResult.Items == null)
             {
                 <div class="text-center py-5">
                     <div class="spinner-border text-primary" role="status"></div>
                 </div>
             }
-            else if (!filteredSprints.Any())
+            else if (!pagedResult.Items.Any())
             {
                 <p class="text-muted text-center py-3">No sprints found for this filter.</p>
             }
@@ -190,7 +207,7 @@
             {
   
 
-                @foreach (var sprint in PaginatedSprints)
+                @foreach (var sprint in pagedResult.Items)
                 {
                    
                 <div class="card mb-3 border-0 rounded-4 shadow-sm">
@@ -289,30 +306,38 @@
                     <small class="text-muted">
                         Showing @(((currentPage - 1) * pageSize) + 1)
                         -
-                        @(Math.Min(currentPage * pageSize, filteredSprints?.Count() ?? 0))
-                        of @(filteredSprints?.Count() ?? 0) Sprints
+                        @(Math.Min(currentPage * pageSize, pagedResult.TotalCount))
+                        of @pagedResult.TotalCount
                     </small>
 
-                    <nav class="d-flex justify-content-end align-items-center mt-3">
-                        <ul class="pagination pagination-sm mb-0 shadow-sm" style="border-radius: 8px; overflow: hidden;">
+                    @* <div>
+                        <button class="btn btn-sm "
+                                disabled="@(currentPage == 1)"
+                                @onclick="PreviousPage">
+                            Previous
+                        </button>
+
+                        <span class="mx-2">@currentPage</span>
+
+                        <button class="btn btn-sm "
+                                disabled="@(currentPage* pageSize >= pagedResult.TotalCount)"
+                                @onclick="NextPage">
+                            Next
+                        </button>
+                    </div> *@
+
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0 shadow-sm">
                             <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                                <button class="page-link border-0"
-                                        style="border-radius: 8px 0 0 8px; transition: background-color 0.2s;"
-                                        @onclick="PreviousPage">
-                                    Previous
-                                </button>
+                                <button class="page-link" @onclick="PreviousPage">Previous</button>
                             </li>
 
                             <li class="page-item active">
-                                <span class="page-link border-0 bg-primary text-white">@currentPage</span>
+                                <span class="page-link">@currentPage</span>
                             </li>
 
-                            <li class="page-item @(currentPage == TotalPages ? "disabled" : "")">
-                                <button class="page-link border-0"
-                                        style="border-radius: 0 8px 8px 0; transition: background-color 0.2s;"
-                                        @onclick="NextPage">
-                                    Next
-                                </button>
+                            <li class="page-item @(currentPage* pageSize >= pagedResult.TotalCount? "disabled" : "")">
+                                <button class="page-link" @onclick="NextPage">Next</button>
                             </li>
                         </ul>
                     </nav>
@@ -321,94 +346,86 @@
 </div>
 </div>
 </div>
-</div>
+
 
 @code {
-    private string searchTerm ;
+    private string searchTerm ="";
     private string filter = "All";
     private SprintStatsDto stats = new();
-    private List<SprintDto> sprints = new();
-    private IEnumerable<SprintDto> filteredSprints=new List<SprintDto>();
+ 
     private bool isLoading = true;
     private bool isListLoading = false;
     private bool showCreateForm = false;
     private bool showEditForm = false;
     private bool showDeleteConfirm=false;
     private int sprintIdToDelete;
-    private SprintDto selectedSprint = new();
     private int currentPage = 1;
     private int pageSize = 3;
-    private int TotalPages=>(int)Math.Ceiling((double)(filteredSprints?.Count() ?? 0) / pageSize);
+    private PagedResult<SprintDto> pagedResult = new();
+
+    private SprintDto selectedSprint = new();
+  
+   
 
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            isLoading = true;
+        isLoading = true;
             stats = await Http.GetFromJsonAsync<SprintStatsDto>("api/sprint/stats") ?? new();
-            sprints = await Http.GetFromJsonAsync<List<SprintDto>>("api/sprint") ?? new();
-            FilterSprints();
-        }
-        catch(Exception ex)
-        {
-            Console.WriteLine($"Error loading sprint stats: {ex.Message}");
-        }
-        finally
-        {
-            isLoading = false;
-        }
+            // sprints = await Http.GetFromJsonAsync<List<SprintDto>>("api/sprint") ?? new();
+            // FilterSprints();
+            await LoadSprints();
+        isLoading = false;
+        
+     
     }
-    private async Task OnSearch()
+    private async Task LoadSprints()
     {
-        FilterSprints();
-        await InvokeAsync(StateHasChanged);
+        isListLoading = true;
+
+        pagedResult = await Http.GetFromJsonAsync<PagedResult<SprintDto>>(
+            $"api/sprint?search={searchTerm}&filter={filter}&page={currentPage}&pageSize={pageSize}"
+        ) ?? new();
+
+        isListLoading = false;
+    }
+    private async Task OnSearchChanged()
+    {
+        currentPage = 1;          
+        await LoadSprints();      
     }
 
-    private string SearchTerm
+    private async Task OnSearch()
     {
-        get => searchTerm;
-        set
-        {
-            searchTerm = value;
-            FilterSprints();
-        }
+        currentPage = 1;
+        await LoadSprints();
     }
+
     private async Task SetFilter(string selected)
     {
         filter = selected;
-        isListLoading = true;
-        StateHasChanged();
-
-        await Task.Delay(800);
-        FilterSprints();
-
-        isListLoading = false; 
-        await InvokeAsync(StateHasChanged);
-
-    }
-    private void FilterSprints()
-    {
-        IEnumerable<SprintDto> temp = (filter switch
-        {
-            "Active" => sprints.Where(s => s.EndDate >= DateTime.Now),
-            "Completed" => sprints.Where(s => s.EndDate < DateTime.Now),
-            "Planning" => sprints.Where(s => s.StartDate > DateTime.Now),
-            _ => sprints,
-
-         
-
-        });
-        if (!string.IsNullOrWhiteSpace(searchTerm))
-        {
-            temp = temp.Where(s => s.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
-                                || s.Projects.Any(p => p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)));
-        }
-
-        filteredSprints = temp.ToList();
-        InvokeAsync(StateHasChanged);
         currentPage = 1;
+        await LoadSprints();
     }
+    private async Task NextPage()
+    {
+        if (currentPage * pageSize < pagedResult.TotalCount)
+        {
+            currentPage++;
+            await LoadSprints();
+        }
+    }
+
+    private async Task PreviousPage()
+    {
+        if (currentPage > 1)
+        {
+            currentPage--;
+            await LoadSprints();
+        }
+    }
+   
+   
     private double GetProgress(SprintDto sprint)
     {
         if(sprint.TotalTasks==0)
@@ -429,10 +446,9 @@
     private async Task HandleSprintSaved()
     {
         showCreateForm = false;
-
+        await LoadSprints();
       
-        sprints = await Http.GetFromJsonAsync<List<SprintDto>>("api/sprint") ?? new();
-        FilterSprints();
+        
     }
 
     private Task HandleSprintCancelled()
@@ -449,8 +465,7 @@
     private async Task HandleSprintUpdated()
     {
         showEditForm = false;
-        sprints = await Http.GetFromJsonAsync<List<SprintDto>>("api/sprint") ?? new();
-        FilterSprints();
+        await LoadSprints();
     }
 
     private Task HandleEditCancelled()
@@ -481,9 +496,8 @@ private async Task ConfirmDelete()
             var response = await Http.DeleteAsync($"api/sprint/{sprintIdToDelete}");
             if (response.IsSuccessStatusCode)
             {
-             
-                sprints = await Http.GetFromJsonAsync<List<SprintDto>>("api/sprint") ?? new();
-                FilterSprints();
+             await LoadSprints();
+                    Console.WriteLine($"Sprint {sprintIdToDelete} deleted successfully");
             }
             else
             {
@@ -501,24 +515,7 @@ private async Task ConfirmDelete()
         sprintIdToDelete = 0;
     }
 }
-private IEnumerable<SprintDto>PaginatedSprints=>
-      filteredSprints.Skip((currentPage - 1) * pageSize).Take(pageSize);
 
-    private void NextPage()
-    {
-        if (currentPage < TotalPages)
-        {
-            currentPage++;
-        }
-    }
-
-    private void PreviousPage()
-    {
-        if (currentPage > 1)
-        {
-            currentPage--;
-        }
-    }
 
 
 
