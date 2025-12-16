@@ -12,8 +12,8 @@ namespace Task.Application.Interaces
     {
         Task<IEnumerable<Sprint>> GetAllAsync();
        
-        public  Task<(List<Sprint> Sprints, int TotalCount)> GetSprintsAsync(string? search, string filter, int page, int pageSize);
-        public Task<IEnumerable<Sprint>> GetSprintsStats();
+        public  Task<(List<Sprint> Sprints, int TotalCount)> GetSprintsAsync(int userID,string role,string? search, string filter, int page, int pageSize);
+        public Task<IEnumerable<Sprint>> GetSprintsStats(int userId, string role);
         Task<IEnumerable<Sprint>> GetAllSprintsOnly();
         Task<Sprint> GetSprintsByProjectAsync(int projectId);
         Task<Sprint?> GetSprintByIdAsync(int id);

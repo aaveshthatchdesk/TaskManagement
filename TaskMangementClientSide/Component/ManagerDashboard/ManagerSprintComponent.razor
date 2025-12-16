@@ -1,0 +1,718 @@
+﻿@using Task.Application.DTOs
+@using TaskMangementClientSide.Component.Sprint
+
+@inject HttpClient Http
+@inject NavigationManager nav
+
+
+<style>
+    .filter-buttons button:focus,
+    .filter-buttons button:active {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    .icon-btn:focus,
+    .icon-btn:active {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    input.form-control:focus {
+        border-color: #0d6efd !important;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
+    }
+
+    .stat-card {
+        border-left: 5px solid #0d6efd;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+    .pagination-btn {
+        border: none;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+        .pagination-btn.primary {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        .pagination-btn.secondary {
+            background-color: #e9ecef;
+            color: #2c3e50;
+        }
+
+        .pagination-btn:disabled {
+            background-color: #dee2e6;
+            color: #adb5bd;
+            cursor: not-allowed;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background-color: #0b5ed7;
+            color: white;
+        }
+
+    .avatar-stack {
+        display: flex;
+        align-items: center;
+    }
+
+    .avatar-circle {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background-color: #2c3e50;
+        color: white;
+        font-size: 12px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: -3px; /* 👈 overlap */
+        border: 2px solid #fff; /* clean separation */
+        cursor: default;
+    }
+
+        .avatar-circle:first-child {
+            margin-left: 0;
+        }
+</style>
+
+<div class="container-fluid mt-4">
+    <div class="card shadow-lg border-0 rounded-4 overflow-hidden" style="background-color: #f8f9fa;">
+        <div class="card-body p-0">
+
+
+            <div class="px-4 py-3 d-flex justify-content-between align-items-center bg-white">
+                <div>
+                    <h3 class="fw-bold mb-1" style="color:#2c3e50;">Sprint Management</h3>
+
+                </div>
+                <div class="position-relative mx-4" style="max-width:250px;">
+                    <input class="form-control pe-5 shadow-sm"
+                           placeholder="Search sprints..."
+                           @bind="searchTerm"
+                           @bind:event="oninput"
+                           @bind:after="OnSearchChanged" />
+
+                    <span class="position-absolute top-50 end-0 translate-middle-y me-3 text-muted">
+                        <i class="bi bi-search"></i>
+                    </span>
+                </div>
+
+
+            </div>
+            @*             <hr class="my-0" style="border-top: 2px solid #e0e0e0;" />
+            <div class="p-4">
+                @if (showCreateForm)
+{
+    <div class="mt-4">
+        <AddSprint OnSaved="HandleSprintSaved" OnCancel="HandleSprintCancelled" />
+    </div>
+} *@
+
+            <!-- Stats Cards -->
+            @if (isLoading)
+            {
+                <div class="text-center" mt-5>
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="container mt-2">
+                    <div class="row g-3">
+
+                        <div class="col-md-3">
+                            <div class="card stat-card  " style="background-color: #ecf0f1;">
+
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class=" text-center ms-2  ">ACTIVE SPRINTS</h6>
+                                        <i class="bi bi-play-circle text-primary fs-4 "></i>
+                                    </div>
+                                    <h3 class="fw-bold mt-2 ">@stats.ActiveSprints</h3>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="card stat-card  shadow-sm h-100" style="background-color: #ecf0f1;">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="text-center">COMPLETED SPRINTS</h6>
+                                        <i class="bi bi-check-circle text-success fs-4"></i>
+                                    </div>
+                                    <h3 class="fw-bold mt-2">@stats.CompletedSprints</h3>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3 ">
+                            <div class="card stat-card   shadow-sm h-100" style="background-color: #ecf0f1;">
+
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="text-center">TASKS COMPLETED</h6>
+                                        <i class="bi bi-list-check text-info fs-4"></i>
+                                    </div>
+                                    <h3 class="fw-bold mt-2">@stats.TaskCompleted</h3>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="card stat-card shadow-sm h-100" style="background-color: #ecf0f1;">
+
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="text-center">AVG. VELOCITY</h6>
+                                        <i class="bi bi-speedometer2 text-warning fs-4"></i>
+                                    </div>
+                                    <h3 class="fw-bold mt-2">@stats.AverageVelocity</h3>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            <div class="container mt-3">
+                <div class="card shadow-sm border-0  p-3" style="background-color:#ecf0f1;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">All Sprints</h5>
+
+                        <div class="btn-group filter-buttons">
+
+                            @foreach (var f in new[] { "All", "Active", "Planning", "Completed" })
+                            {
+                                <button class="btn btn-outline-secondary btn-sm @(filter == f ? "active" : "")"
+                                        @onclick="() => SetFilter(f)">
+                                    @f
+                                </button>
+                            }
+
+                        </div>
+                    </div>
+                    @if (isListLoading)
+                    {
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status"></div>
+                        </div>
+                    }
+                    else if (pagedResult.Items == null)
+                    {
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status"></div>
+                        </div>
+                    }
+                    else if (!pagedResult.Items.Any())
+                    {
+                        <p class="text-muted text-center py-3">No sprints found for this filter.</p>
+                    }
+                    else
+                    {
+
+
+                        @foreach (var sprint in pagedResult.Items)
+                        {
+
+                            <div class="card mb-3 border-0 rounded-4 shadow-sm">
+                                <div class="card-body bg-light rounded-4">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="fw-bold mb-1">@sprint.Name</h6>
+                                            <p class="text-muted small mb-1">
+                                                @foreach (var project in sprint.Projects)
+                                                {
+                                                    <span>@project.Name</span>
+                                                    @(project != sprint.Projects.Last() ? "," : "")
+                                                }
+                                            </p>
+                                            <span class="badge "style="background-color:#2c3e50;">@sprint.Status</span>
+                                            <span class="ms-2 small text-secondary">
+                                                <i class="bi bi-calendar-event"></i>
+                                                @sprint.StartDate.ToString("MMM dd") - @sprint.EndDate.ToString("MMM dd, yyyy")
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn-outline-secondary btn-sm rounded-circle icon-btn"
+                                                    @onclick="() => OpenSprintModal(sprint.Id)">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button class="btn btn-outline-primary btn-sm rounded-circle icon-btn" @onclick="() => EditSprint(sprint)">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger btn-sm rounded-circle icon-btn" @onclick="() => ShowDeleteConfirm(sprint.Id)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    @if (showEditForm)
+                                    {
+                                        <div class="mt-4">
+                                            <EditSprintcomponent SprintToEdit="selectedSprint" OnUpdated="HandleSprintUpdated" OnCancel="HandleEditCancelled" />
+                                        </div>
+                                    }
+                                    @if (showDeleteConfirm)
+                                    {
+                                        <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center"
+                                             style="z-index:1050;">
+                                            <div class="bg-white shadow-lg rounded-4 p-4 text-center" style="width: 380px;">
+                                                <i class="bi bi-exclamation-triangle-fill text-warning fs-1 mb-3"></i>
+                                                <h5 class="fw-bold text-dark mb-2">Confirm Deletion</h5>
+                                                <p class="text-muted small mb-4">
+                                                    Are you sure you want to delete this sprint? This action cannot be undone.
+                                                </p>
+
+                                                <div class="d-flex justify-content-center gap-3">
+                                                    <button class="btn px-4 shadow-sm" style="background-color:#2c3e50; color:white;"
+                                                            @onclick="ConfirmDelete">
+                                                        <i class="bi bi-check-circle me-1"></i> Yes, Delete
+                                                    </button>
+                                                    <button class="btn btn-outline-secondary px-4 shadow-sm" @onclick="CancelDelete">
+                                                        <i class="bi bi-x-circle me-1"></i> Cancel
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    <div class="progress mt-3" style="height: 6px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width:@GetProgress(sprint)%"></div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                        <span class="small  ">
+                                            <span class="fw-bold">Tasks:</span> <b class="text-secondary">@sprint.CompletedTasks/@sprint.TotalTasks</b>
+                                        </span>
+
+                                        <div class="d-flex align-items-center">
+                                            @if (sprint.AssignedUsers != null && sprint.AssignedUsers.Any())
+                                            {
+                                                @foreach (var user in sprint.AssignedUsers.Take(3))
+                                                {
+                                                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-semibold"
+                                                         style="width:30px;height:30px;margin-left:-6px;font-size:12px;border:2px solid white;">
+                                                    </div>
+                                                }
+
+
+                                            }
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        }
+                    }
+                    @if (showSprintModal && modalSprint != null)
+                    {
+                        <div class="position-fixed top-0 start-0 w-100 h-100
+                                            d-flex align-items-center justify-content-center" style=" background: rgba(0,0,0,0.55); z-index: 9999;">
+
+
+                            <div class="bg-white rounded-4 shadow-lg p-4"
+                                 style="width:900px; max-height:90vh; overflow:auto;">
+
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div>
+                                        <h5 class="fw-bold mb-0">@modalSprint.Name</h5>
+                                        <small class="text-muted">
+                                            @modalSprint.StartDate.ToString("MMM dd, yyyy")
+                                            -
+                                            @modalSprint.EndDate.ToString("MMM dd, yyyy")
+                                            |
+                                            <span class="text-primary fw-semibold">
+                                                @modalSprint.Status.ToUpper()
+                                            </span>
+                                        </small>
+                                    </div>
+                                    <button class="btn-close" @onclick="() => showSprintModal = false"></button>
+                                </div>
+
+                                <hr />
+
+                                <div class="row g-4">
+
+                                    <!-- Sprint Overview (LEFT) -->
+                                    <div class="col-md-6">
+                                        <h6 class="fw-bold mb-3">Sprint Overview</h6>
+
+                                        <div class="d-flex justify-content-between small me-3 mb-2">
+                                            <span>Progress:</span>
+                                            <span class="fw-semibold">
+                                                @GetProgress(modalSprint)%
+                                            </span>
+                                        </div>
+
+                                        <div class="d-flex justify-content-between small me-3 mb-2">
+                                            <span>Total Tasks:</span>
+                                            <span class="fw-semibold">@modalSprint.TotalTasks</span>
+                                        </div>
+
+                                        <div class="d-flex justify-content-between small me-3  mb-2">
+                                            <span>Completed Tasks:</span>
+                                            <span class="fw-semibold">@modalSprint.CompletedTasks</span>
+                                        </div>
+
+                                        <div class="d-flex justify-content-between small me-3 mb-2">
+                                            <span>Remaining Days:</span>
+                                            <span class="fw-semibold">
+                                                @GetRemainingDays(modalSprint)
+                                            </span>
+                                        </div>
+
+                                        @* <div class="d-flex justify-content-between small me-3">
+                                                            <span>Team Velocity:</span>
+                                                            <span class="fw-semibold">
+                                                                @modalSprint.TotalTask
+                                                            </span>
+                                                        </div> *@
+
+                                        <h6 class="fw-bold mb-3 mt-4">Project</h6>
+
+
+                                        <div class="p-3 border rounded-3 ">
+                                            <span class="fw-semibold ">
+                                                @modalSprint.ProjectName
+                                            </span>
+                                        </div>
+
+
+                                        <!-- Team Members -->
+
+                                        <h6 class="fw-bold mb-3 mt-4">Team Members</h6>
+
+                                        <div class="d-flex gap-2 flex-wrap">
+                                            @foreach (var user in modalSprint.AssignedUsers)
+                                            {
+                                                <div class="rounded-circle  text-white
+                                                                        d-flex align-items-center justify-content-center fw-semibold"
+                                                     style=" background:#2c3e50; width:40px;height:40px;font-size:16px;">
+                                                    @user.Name.Substring(0, 1).ToUpper()
+                                                </div>
+                                            }
+                                        </div>
+
+
+
+                                    </div>
+
+
+
+                                    <!-- EMPTY RIGHT SPACE (keeps layout same as screenshot) -->
+
+
+                                    <div class="col-md-6">
+                                        <h6 class="fw-bold">Sprint Tasks</h6>
+
+
+
+                                        @foreach (var task in modalSprint.TaskItems.OrderBy(t => t.Order))
+                                        {
+                                            <div class="d-flex align-items-center justify-content-between mb-2 p-2 border rounded-3">
+                                                <div class="d-flex justify-content-start">
+                                                    <input type="checkbox" @bind="task.IsCompleted" disabled />
+
+                                                    <span class="ms-2">@task.Title</span>
+                                                </div>
+
+                                                @if (task.TaskAssignments != null && task.TaskAssignments.Any())
+                                                {
+                                                    <div class="avatar-stack ms-4 mt-1">
+                                                        @foreach (var member in task.TaskAssignments)
+                                                        {
+                                                            <div class="avatar-circle" title="@member.AppUserName">
+                                                                @member.AppUserName.Substring(0, 1).ToUpper()
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+
+
+                                    </div>
+
+
+
+
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+             
+
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-2 px-3 mb-3">
+                <small class="text-muted">
+                    Showing @(((currentPage - 1) * pageSize) + 1)
+                    -
+                    @(Math.Min(currentPage * pageSize, pagedResult.TotalCount))
+                    of @pagedResult.TotalCount
+                </small>
+
+                @* <div>
+                        <button class="btn btn-sm "
+                                disabled="@(currentPage == 1)"
+                                @onclick="PreviousPage">
+                            Previous
+                        </button>
+
+                        <span class="mx-2">@currentPage</span>
+
+                        <button class="btn btn-sm "
+                                disabled="@(currentPage* pageSize >= pagedResult.TotalCount)"
+                                @onclick="NextPage">
+                            Next
+                        </button>
+                    </div> *@
+
+                <nav>
+                    <ul class="pagination pagination-sm mb-0 shadow-sm">
+                        <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                            <button class="page-link" @onclick="PreviousPage">Previous</button>
+                        </li>
+
+                        <li class="page-item active">
+                            <span class="page-link">@currentPage</span>
+                        </li>
+
+                        <li class="page-item @(currentPage* pageSize >= pagedResult.TotalCount? "disabled" : "")">
+                            <button class="page-link" @onclick="NextPage">Next</button>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+@code {
+    private string searchTerm = "";
+    private string filter = "All";
+    private SprintStatsDto stats = new();
+
+    private bool isLoading = true;
+    private bool isListLoading = false;
+    private bool showCreateForm = false;
+    private bool showEditForm = false;
+    private bool showDeleteConfirm = false;
+    private int sprintIdToDelete;
+    private int currentPage = 1;
+    private int pageSize = 3;
+    private PagedResult<SprintDto> pagedResult = new();
+
+    private SprintDto selectedSprint = new();
+
+    
+    private bool showSprintModal;
+    private SprintDto? modalSprint;
+    private bool isModalLoading = false;
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        stats = await Http.GetFromJsonAsync<SprintStatsDto>("api/sprint/stats") ?? new();
+        // sprints = await Http.GetFromJsonAsync<List<SprintDto>>("api/sprint") ?? new();
+        // FilterSprints();
+        await LoadSprints();
+        isLoading = false;
+
+
+    }
+    private async Task LoadSprints()
+    {
+        isListLoading = true;
+
+        pagedResult = await Http.GetFromJsonAsync<PagedResult<SprintDto>>(
+            $"api/sprint?search={searchTerm}&filter={filter}&page={currentPage}&pageSize={pageSize}"
+        ) ?? new();
+
+        isListLoading = false;
+    }
+    private async Task OpenSprintModal(int sprintId)
+    {
+        showSprintModal = true;
+        isModalLoading = true;
+
+        modalSprint = await Http
+            .GetFromJsonAsync<SprintDto>($"api/sprint/{sprintId}");
+
+        isModalLoading = false;
+    }
+    private async Task OnSearchChanged()
+    {
+        currentPage = 1;
+        await LoadSprints();
+    }
+
+    private async Task OnSearch()
+    {
+        currentPage = 1;
+        await LoadSprints();
+    }
+
+    private int GetRemainingDays(SprintDto sprint)
+    {
+        var today = DateTime.UtcNow.Date;
+        var endDate = sprint.EndDate.Date;
+
+        // Sprint not started yet
+        if (today < sprint.StartDate.Date)
+            return (sprint.EndDate.Date - sprint.StartDate.Date).Days;
+
+        // Sprint already ended
+        if (today > endDate)
+            return 0;
+
+        // Ongoing sprint
+        return (endDate - today).Days;
+    }
+
+    private async Task SetFilter(string selected)
+    {
+        filter = selected;
+        currentPage = 1;
+        await LoadSprints();
+    }
+    private async Task NextPage()
+    {
+        if (currentPage * pageSize < pagedResult.TotalCount)
+        {
+            currentPage++;
+            await LoadSprints();
+        }
+    }
+
+    private async Task PreviousPage()
+    {
+        if (currentPage > 1)
+        {
+            currentPage--;
+            await LoadSprints();
+        }
+    }
+
+
+    private double GetProgress(SprintDto sprint)
+    {
+        if (sprint.TotalTasks == 0)
+        {
+            return 0;
+        }
+        else
+        {
+            return ((double)sprint.CompletedTasks / sprint.TotalTasks) * 100;
+        }
+
+    }
+
+    private void ShowCreateForm()
+    {
+        showCreateForm = true;
+    }
+    private async Task HandleSprintSaved()
+    {
+        showCreateForm = false;
+        await LoadSprints();
+
+
+    }
+
+    private Task HandleSprintCancelled()
+    {
+        showCreateForm = false;
+        return Task.CompletedTask;
+    }
+    private void EditSprint(SprintDto sprint)
+    {
+        selectedSprint = sprint;
+        showEditForm = true;
+    }
+
+    private async Task HandleSprintUpdated()
+    {
+        showEditForm = false;
+        await LoadSprints();
+    }
+
+    private Task HandleEditCancelled()
+    {
+        showEditForm = false;
+        return Task.CompletedTask;
+    }
+
+    private void ShowDeleteConfirm(int sprintId)
+    {
+        sprintIdToDelete = sprintId;
+        showDeleteConfirm = true;
+    }
+
+    private void CancelDelete()
+    {
+        showDeleteConfirm = false;
+        sprintIdToDelete = 0;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        try
+        {
+            if (sprintIdToDelete > 0)
+            {
+
+                var response = await Http.DeleteAsync($"api/sprint/{sprintIdToDelete}");
+                if (response.IsSuccessStatusCode)
+                {
+                    await LoadSprints();
+                    Console.WriteLine($"Sprint {sprintIdToDelete} deleted successfully");
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to delete sprint {sprintIdToDelete}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting sprint: {ex.Message}");
+        }
+        finally
+        {
+            showDeleteConfirm = false;
+            sprintIdToDelete = 0;
+        }
+    }
+
+
+
+
+
+}
+

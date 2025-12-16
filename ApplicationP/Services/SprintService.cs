@@ -65,14 +65,14 @@ namespace Task.Application.Services
         //    }
 
 
-        public async Task<PagedResult<SprintDto>> GetSprintsAsync(
+        public async Task<PagedResult<SprintDto>> GetSprintsAsync(int userId,string role,
     string? search,
     string filter,
     int page,
     int pageSize)
         {
             var (sprints, totalCount) =
-                await _sprintRepository.GetSprintsAsync(search, filter, page, pageSize);
+                await _sprintRepository.GetSprintsAsync(userId,role,search, filter, page, pageSize);
 
             var sprintDtos = sprints.Select(s => new SprintDto
             {
@@ -81,7 +81,11 @@ namespace Task.Application.Services
                 StartDate = s.StartDate,
                 EndDate = s.EndDate,
 
-                TaskItems = s.TaskItems.Select(t => new TaskItemDto
+                TaskItems = (role == "Member"
+            ? s.TaskItems.Where(t =>
+                t.TaskAssignments.Any(a => a.AppUserId == userId))
+            : s.TaskItems)
+                .Select(t => new TaskItemDto
                 {
                     Id = t.Id,
                     Title = t.Title,
@@ -90,6 +94,7 @@ namespace Task.Application.Services
                     BoardId = t.BoardId,
                     SprintId = t.SprintId,
                     Order = t.Order,
+                   
                     TaskAssignments = t.TaskAssignments.Select(a => new TaskAssignmentDto
                     {
                         TaskItemId = a.TaskItemId,
@@ -156,9 +161,9 @@ namespace Task.Application.Services
         //    return "Active";
         //}
 
-        public async Task<SprintStatsDto> GetsSprintsStats()
+        public async Task<SprintStatsDto> GetsSprintsStats(int userId, string role)
         {
-            var allSprints = await _sprintRepository.GetSprintsStats();
+            var allSprints = await _sprintRepository.GetSprintsStats(userId,role);
             
                 if (allSprints == null || !allSprints.Any())
                     return new SprintStatsDto();
@@ -195,12 +200,40 @@ namespace Task.Application.Services
         public async Task<SprintDto?> GetSprintByIdAsync(int id)
         {
             var sprints = await _sprintRepository.GetSprintByIdAsync(id);
+
+            if (sprints == null)
+                return null;    
+
+            var totalTasks = sprints.TaskItems.Count;
+            var completedTasks = sprints.TaskItems.Count(t => t.IsCompleted);
+            var assignedUsers = sprints.TaskItems
+       .SelectMany(t => t.TaskAssignments)
+       .Where(a => a.AppUser != null)
+       .GroupBy(a => a.AppUser.Id)
+       .Select(g => new AppUserDto
+       {
+           Id = g.Key,
+           Name = g.First().AppUser.Name 
+       })
+       .ToList();
+
+            Console.WriteLine(
+    sprints.TaskItems.SelectMany(t => t.TaskAssignments).Count()
+);
+
             return new SprintDto
             {
                 Id = sprints.Id,
                 Name = sprints.Name,
                 StartDate = sprints.StartDate,
                 EndDate = sprints.EndDate,
+                TotalTasks = totalTasks,
+                CompletedTasks= completedTasks,
+                Status = sprints.TaskItems.Count(t => t.IsCompleted) == 0
+                        ? "Planned"
+                        : sprints.TaskItems.All(t => t.IsCompleted)
+                            ? "Completed"
+                            : "Active",
                 TaskItems = sprints.TaskItems.Select(t => new TaskItemDto
                 {
                     Id = t.Id,
@@ -209,34 +242,37 @@ namespace Task.Application.Services
                     DueDate = t.DueDate,
                     BoardId = t.BoardId,
                     SprintId = t.SprintId,
+                    IsCompleted= t.IsCompleted,
                     Order = t.Order,
-                    TaskAssignments = t.TaskAssignments.Select(a => new TaskAssignmentDto
-                    {
-                        TaskItemId = a.TaskItemId,
-                        AppUserId = a.AppUserId,
+                    //    TaskAssignments = t.TaskAssignments.Select(a => new TaskAssignmentDto
+                    //    {
+                    //        TaskItemId = a.TaskItemId,
+                    //        AppUserId = a.AppUserId,
 
-                    }).ToList()
+                    //    }).ToList()
+                    //}).ToList(),
+                    TaskAssignments = t.TaskAssignments
+        .Where(a => a.AppUser != null)
+        .Select(a => new TaskAssignmentDto
+        {
+            TaskItemId = t.Id,
+            AppUserId = a.AppUser.Id,
+            AppUserName = a.AppUser.Name
+        }).ToList()
                 }).ToList(),
-                Boards = sprints.TaskItems
-                   .Where(t => t.Board != null)
-                   .Select(t => t.Board!)
-                    .GroupBy(b => b.Id)
-                     .Select(g => new BoardDto
-                     {
-                         Id = g.Key,
-                         Name = g.First().Name
-                     }).ToList(),
+                //Boards = sprints.TaskItems
+                //   .Where(t => t.Board != null)
+                //   .Select(t => t.Board!)
+                //    .GroupBy(b => b.Id)
+                //     .Select(g => new BoardDto
+                //     {
+                //         Id = g.Key,
+                //         Name = g.First().Name
+                //     }).ToList(),
 
-                Projects = sprints.TaskItems
-                    .Where(t => t.Board?.Project != null)
-                     .Select(t => t.Board!.Project!)
-                          .GroupBy(p => p.Id)
-                          .Select(g => new ProjectDto
-                          {
-                              Id = g.Key,
-                              Name = g.First().Name
-                          })
-                             .ToList()
+                ProjectName = sprints.TaskItems
+                    .Select(t=>t.Board?.Project?.Name).FirstOrDefault(),
+                AssignedUsers = assignedUsers
             };
 
         }
