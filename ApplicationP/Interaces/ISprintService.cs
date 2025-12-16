@@ -12,12 +12,12 @@ namespace Task.Application.Interaces
     {
         //Task<IEnumerable<SprintDto>> GetAllAsync();
 
-        public Task<PagedResult<SprintDto>> GetSprintsAsync(int userId,string role,string? search, string filter, int page, int pageSize);
+        public Task<PagedResult<SprintDto>> GetSprintsAsync(string? search, string filter, int page, int pageSize);
 
         Task<IEnumerable<SprintDto>> GetAllSprintsOnly();
         Task<SprintDto?> GetSprintsByProjectAsync(int projectId);
 
-        Task<SprintStatsDto> GetsSprintsStats(int userId, string role);
+        Task<SprintStatsDto> GetsSprintsStats();
         Task<SprintDto?> GetSprintByIdAsync(int id);
         Task<SprintDto> AddAsync(int ProjectId,SprintDto dto);
         Task<SprintDto?> UpdateAsync(int id, SprintDto dto);
