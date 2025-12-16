@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Task.Application.DTOs;
@@ -23,6 +24,9 @@ namespace TaskManagementServerAPi.Controllers
         //    return Ok(result);
         //}
 
+
+        [Authorize]
+
         [HttpGet]
         public async Task<ActionResult<PagedResult<SprintDto>>> GetSprints(
     string? search = null,
@@ -30,7 +34,9 @@ namespace TaskManagementServerAPi.Controllers
     int page = 1,
     int pageSize = 5)
         {
-            return Ok(await _sprintService.GetSprintsAsync(search, filter, page, pageSize));
+            var userId=int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+            var role=User.FindFirst(System.Security.Claims.ClaimTypes.Role)!.Value;
+            return Ok(await _sprintService.GetSprintsAsync(userId,role,search, filter, page, pageSize));
         }
 
         [HttpGet("Project/{projectId}")]
@@ -41,11 +47,16 @@ namespace TaskManagementServerAPi.Controllers
             return new JsonResult(result);
         }
 
-
+        [Authorize]
         [HttpGet("stats")]
         public async Task<ActionResult<SprintStatsDto>> GetSprintStats()
         {
-            var stats = await _sprintService.GetsSprintsStats();
+            var userId = int.Parse(
+      User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+
+            var role = User.FindFirst(
+                System.Security.Claims.ClaimTypes.Role)!.Value;
+            var stats = await _sprintService.GetsSprintsStats(userId,role);
             return Ok(stats);
 
         }

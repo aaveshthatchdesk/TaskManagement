@@ -1,12 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Task.Application.Interaces;
 using Task.Domain.Entities;
 using Task.Infrastructure.DbContext;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Task.Infrastructure.Repository
 {
@@ -26,14 +28,33 @@ namespace Task.Infrastructure.Repository
                 .ThenInclude(t => t.TaskAssignments)
                     .ThenInclude(a => a.AppUser).ToListAsync();
         }
-        public async Task<IEnumerable<Sprint>> GetSprintsStats()
+        public async Task<IEnumerable<Sprint>> GetSprintsStats(int userId,string role)
         {
-          
-            return await _taskDbContext.sprints.Include(s => s.TaskItems)
+            IQueryable<Sprint> query = _taskDbContext.sprints
+        .Include(s => s.TaskItems)
+            .ThenInclude(t => t.TaskAssignments)
+        .Include(s => s.Project)
+            .ThenInclude(p => p.Managers);
 
-           
-               .ThenInclude(t => t.TaskAssignments)
-                   .ThenInclude(a => a.AppUser).ToListAsync();
+            if (role == "Manager")
+            {
+                query = query.Where(s =>
+                    s.Project.Managers.Any(m => m.AppUserId == userId));
+            }
+            else if (role == "Member")
+            {
+                query = query.Where(s =>
+                    s.TaskItems.Any(t =>
+                        t.TaskAssignments.Any(a => a.AppUserId == userId)));
+            }
+
+            //return await _taskDbContext.sprints.Include(s => s.TaskItems)
+
+
+            //   .ThenInclude(t => t.TaskAssignments)
+            //       .ThenInclude(a => a.AppUser).ToListAsync();
+
+            return await query.ToListAsync();
         }
         public async Task<IEnumerable<Sprint>> GetAllSprintsOnly()
         {
@@ -49,22 +70,32 @@ namespace Task.Infrastructure.Repository
 
         }
 
-        public async Task<(List<Sprint> Sprints,int TotalCount)>GetSprintsAsync(string ?search ,string filter,int page,int pageSize)
+        public async Task<(List<Sprint> Sprints,int TotalCount)>GetSprintsAsync(int userId,string role,string ?search ,string filter,int page,int pageSize)
         {
-           IQueryable<Sprint>query= _taskDbContext.sprints.Include(s => s.TaskItems)
-                   .ThenInclude(t => t.TaskAssignments)
-                       .ThenInclude(a => a.AppUser)
-                   .Include(s => s.TaskItems)
-                       .ThenInclude(t => t.Board)
-                           .ThenInclude(b => b.Project);
+            IQueryable<Sprint> query = _taskDbContext.sprints.Include(s => s.TaskItems)
+                    .ThenInclude(t => t.TaskAssignments)
+                        .ThenInclude(a => a.AppUser)
+                    .Include(s => s.TaskItems)
+                        .ThenInclude(t => t.Board)
+                            .ThenInclude(b => b.Project)
+                               .ThenInclude(t => t.Managers);
 
-            query = filter switch
+
+            if(role=="Manager")
             {
-                "Completed" => query.Where(s => s.TaskItems.Any() && s.TaskItems.All(t => t.IsCompleted)),
-                "Active" => query.Where(s => s.TaskItems.Any(t => t.IsCompleted)),
-                "Planning" => query.Where(s => !s.TaskItems.Any(t => t.IsCompleted)),
-                _ => query
-            };
+                query=query.Where(s => s.Project.Managers.Any(m => m.AppUserId == userId));
+            }
+            else if(role=="Member")
+            {
+                query=query.Where(s=> s.TaskItems.Any(t => t.TaskAssignments.Any(a => a.AppUserId == userId)) );
+            }
+                query = filter switch
+                {
+                    "Completed" => query.Where(s => s.TaskItems.Any() && s.TaskItems.All(t => t.IsCompleted)),
+                    "Active" => query.Where(s => s.TaskItems.Any(t => t.IsCompleted)),
+                    "Planning" => query.Where(s => !s.TaskItems.Any(t => t.IsCompleted)),
+                    _ => query
+                };
 
             if (!string.IsNullOrEmpty(search))
             {

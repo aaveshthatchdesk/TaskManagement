@@ -379,6 +379,7 @@ namespace Task.Infrastructure.Repository
                 .Include(p => p.Boards)
                     .ThenInclude(b => b.TaskItems)
                         .ThenInclude(t => t.TaskAssignments)
+                          
                 .FirstOrDefaultAsync(x => x.Id == id);
 
             if (existingProject == null)
@@ -486,11 +487,13 @@ namespace Task.Infrastructure.Repository
                 foreach (var taskDto in boardDto.TaskItems ?? new List<TaskItemDto>())
                 {
                     TaskItem existingTask = null;
-
-                    if (taskDto.Id != 0)
-                    {
-                        existingTask = board.TaskItems.FirstOrDefault(t => t.Id == taskDto.Id);
-                    }
+                    existingTask = board.TaskItems.FirstOrDefault(t => t.Id == taskDto.Id);
+                    bool isNewTask=false;
+                    //if (taskDto.Id != 0)
+                    //{
+                    //    existingTask = board.TaskItems.FirstOrDefault(t => t.Id == taskDto.Id);
+                        
+                    //}
 
                     // Insert new task
                     if (existingTask == null)
@@ -510,6 +513,7 @@ namespace Task.Infrastructure.Repository
 
                         _taskDbContext.tasks.Add(existingTask);
                         board.TaskItems.Add(existingTask);
+                        isNewTask= true;
                     }
 
                     // Update task
@@ -523,11 +527,21 @@ namespace Task.Infrastructure.Repository
                     existingTask.Priority = taskDto.Priority ?? existingTask.Priority;
                     existingTask.BoardId = board.Id;
 
+                    if (isNewTask)
+                        await _taskDbContext.SaveChangesAsync();
+
                     // -----------------------------
                     // Update TaskAssignments
                     // -----------------------------
+
+
                     _taskDbContext.taskAssignments.RemoveRange(existingTask.TaskAssignments);
-                    existingTask.TaskAssignments.Clear();
+                        existingTask.TaskAssignments.Clear();
+                    
+                    if(existingTask.Id==0)
+                    {
+                        await _taskDbContext.SaveChangesAsync();
+                    }
 
                     foreach (var assignment in taskDto.TaskAssignments ?? new List<TaskAssignmentDto>())
                     {
@@ -536,6 +550,14 @@ namespace Task.Infrastructure.Repository
                             AppUserId = assignment.AppUserId,
                             TaskItemId = existingTask.Id
                         });
+
+                        //var taskAssignment = new TaskAssignment
+                        //{
+                        //    AppUserId = assignment.AppUserId,
+                        //    TaskItemId = existingTask.Id
+                        //};
+                        //_taskDbContext.taskAssignments.Add(taskAssignment);
+
                     }
                 }
             }
@@ -552,7 +574,9 @@ namespace Task.Infrastructure.Repository
         .ThenInclude(pm => pm.AppUser)
     .Include(p => p.Boards)
         .ThenInclude(b => b.TaskItems)
+            
             .ThenInclude(t => t.TaskAssignments)
+           
     .FirstOrDefaultAsync(p => p.Id == id);
         }
 
