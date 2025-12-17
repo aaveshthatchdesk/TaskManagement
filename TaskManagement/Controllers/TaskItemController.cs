@@ -19,16 +19,59 @@ namespace TaskManagementServerAPi.Controllers
         [HttpPut("{taskId}")]
         public async Task<IActionResult> UpdateTask(int taskId, [FromBody] TaskItemDto dto)
         {
-           
 
-            var success = await _taskItemService.UpdateTaskAsync(taskId,dto);
+
+            var success = await _taskItemService.UpdateTaskAsync(taskId, dto);
 
             if (!success)
                 return NotFound("Task not found");
 
             return Ok("Task updated successfully");
         }
+        [HttpGet("project/{projectId}/tasks")]
+        public async Task<IActionResult> GetTasks(int projectId)
+        {
+            var tasks = await _taskItemService.GetTasksByProjectAsync(projectId);
+            return Ok(tasks);
+        }
+        [HttpGet("tasks/{taskId}")]
+        public async Task<IActionResult> GetTaskById(int taskId)
+        {
+            var task = await _taskItemService.GetTaskByIdAsync(taskId);
+            if (task == null)
+                return NotFound("Task not found");
+            return Ok(task);
+        }
+        [HttpPost("boards/{boardId}/tasks")]
+        public async Task<IActionResult> CreateTask(int boardId, [FromBody] TaskItemDto dto)
+        {
+            dto.BoardId = boardId;
+            var createdTask = await _taskItemService.CreateTaskAsync(dto);
+            return CreatedAtAction(nameof(GetTaskById), new { taskId = createdTask.Id }, createdTask);
+        }
+        [HttpPut("tasks/{taskId}")]
+        public async Task<IActionResult> UpdateTaskItem(int taskId, [FromBody] TaskItemDto dto)
+        {
+            var updatedTask = await _taskItemService.UpdateTasksAsync(taskId, dto);
+            return Ok(updatedTask);
+        }
+        [HttpDelete("tasks/{taskId}")]
+        public async Task<IActionResult> DeleteTask(int taskId)
+        {
+            var success = await _taskItemService.DeleteTaskAsync(taskId);
+            if (!success)
+                return NotFound("Task not found");
+            return Ok("Task deleted successfully");
+        }
+        [HttpPut("tasks/reorder")]
+        public async Task<IActionResult> ReorderTasks([FromBody] List<TaskReorderDto> tasks)
+        {
+            var success = await _taskItemService.ReorderTasksAsync(tasks);
+            if (!success)
+                return BadRequest("Failed to reorder tasks");
+            return Ok("Tasks reordered successfully");
 
+        }
     }
 }
 

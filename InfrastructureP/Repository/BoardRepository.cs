@@ -11,7 +11,7 @@ using Task.Infrastructure.DbContext;
 
 namespace Task.Infrastructure.Repository
 {
-    public  class BoardRepository:IBoardRepository
+    public  class BoardRepository: IBoardRepository
     {
         private readonly TaskDbContext _taskDbContext;
 
@@ -21,18 +21,52 @@ namespace Task.Infrastructure.Repository
             _taskDbContext = taskDbContext;
           
         }
-        public async Task<Board?>GetBoardByIdAsync(int bordId)
+    
+
+        public async Task<IEnumerable<Board>> GetBoardsByProjectIdAsync(int projectId)
         {
-            return await _taskDbContext.boards.FirstOrDefaultAsync(b => b.Id == bordId);
+            return await _taskDbContext.boards
+               
+                .Where(b => b.ProjectId == projectId)
+                  .Include(b => b.TaskItems)
+                   .ThenInclude(t => t.TaskAssignments)
+                .ThenInclude(a => a.AppUser)
+                .ToListAsync();
         }
-        public async Task<bool>UpdateBoardNameAsync(int boardId,string name)
+        public async Task<Board?> GetBoardByIdAsync(int boardId)
         {
-            var board=await _taskDbContext.boards.FirstOrDefaultAsync(board => board.Id == boardId);
-            if(board == null)
-                return false;
-            board.Name = name;
+            return await _taskDbContext.boards
+                .Include(b => b.TaskItems)
+                .FirstOrDefaultAsync(b => b.Id == boardId);
+        }
+        public async Task<Board> CreateBoardAsync(Board board)
+        {
+            _taskDbContext.boards.Add(board);
             await _taskDbContext.SaveChangesAsync();
-            return true;
+            return await _taskDbContext.boards
+        .Include(b => b.TaskItems)
+            .ThenInclude(t => t.TaskAssignments)
+                .ThenInclude(a => a.AppUser)
+        .FirstAsync(b => b.Id == board.Id);
         }
+        public async Task<Board> UpdateBoardAsync(Board board)
+        {
+            _taskDbContext.boards.Update(board);
+            await _taskDbContext.SaveChangesAsync();
+            return board;
+        }
+        public async Task<bool> DeleteBoardAsync(Board board)
+        {
+            var existing = await _taskDbContext.boards
+     .FirstOrDefaultAsync(b => b.Id == board.Id);
+
+            if (existing == null)
+                return false;
+            _taskDbContext.boards.Remove(existing);
+            var rows = await _taskDbContext.SaveChangesAsync();
+            return rows > 0;
+        }
+
+     
     }
 }

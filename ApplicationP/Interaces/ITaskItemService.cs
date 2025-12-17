@@ -10,5 +10,13 @@ namespace Task.Application.Interaces
     public interface ITaskItemService
     {
         Task<bool> UpdateTaskAsync(int taskId,TaskItemDto dto);
+
+        Task<IEnumerable<TaskItemDto>> GetTasksByProjectAsync(int projectID);
+        Task<TaskItemDto?> GetTaskByIdAsync(int taskId);
+
+        Task<TaskItemDto> CreateTaskAsync(TaskItemDto dto);
+        Task<TaskItemDto> UpdateTasksAsync(int taskId, TaskItemDto dto);
+        Task<bool> DeleteTaskAsync(int taskId);
+        Task<bool> ReorderTasksAsync(List<TaskReorderDto> tasks);
     }
 }

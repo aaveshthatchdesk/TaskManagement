@@ -1,11 +1,14 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
+@using System.Threading.Tasks
 @using Task.Application.DTOs
 @using TaskMangementClientSide.Component.Sprint
 @inject NavigationManager nav;
 @inject HttpClient Http
-@inject  AuthenticationStateProvider AuthStateProvider;
+@inject AuthenticationStateProvider AuthStateProvider;
+
 <style>
-    .card {
+    
+     .card {
        
         border-radius: 12px !important;
         overflow: hidden; 
@@ -21,7 +24,7 @@
         gap:6px;
         overflow:visible;
     }
-    .add-btn {
+      .add-btn {
         height: 35px;
         width: 35px; 
         border: none;
@@ -37,8 +40,7 @@
     padding: 0;  
         
     }
-
-    .kanban-column {
+     .kanban-column {
         position: relative;
         overflow: visible !important;
     }
@@ -53,6 +55,8 @@
         padding-right: 6px;
     }
 
+
+    
 
     .modal-backdrop-custom {
         position: fixed;
@@ -101,29 +105,60 @@
         border-top: 1px solid #eee;
     }
 
-    .delete-btn:hover i {
-        color: red !important; 
-    }
-    .deletebtn{
-        background-color:#2c3e50;
-        color:white;
-    }
-    .deletebtn:hover{
-            background-color: #22303A;
-            color:white;
+
+     .task-avatar-stack {
+        display: flex;
+        align-items: center;
     }
 
-    .savebtn {
-        background-color: #2c3e50;
+    .task-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #546476;
         color: white;
+        font-size: 12px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        margin-left: -8px; /* 👈 overlap effect */
+        border: 2px solid white; /* clean ring */
     }
 
-        .savebtn:hover {
-            background-color: #22303A;
-            color: white;
+        .task-avatar:first-child {
+            margin-left: 0;
         }
-        
-    .dropdown-submenu {
+
+
+        .desc-toggle-btn {
+        font-size: 12px;
+        border: none;
+        background: #d5dfe6;
+        color: black;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+    }
+
+        .desc-toggle-btn:hover {
+            text-decoration: underline;
+        }
+
+    .description-expanded {
+        white-space: pre-line;
+    }
+    .task-no-desc-gap {
+    margin-top: 12px;   
+    display: block;
+}
+
+.task-actions {
+    margin-top: auto;   
+    padding-top: 8px;   
+}
+dropdown-submenu {
         position: relative;
     }
 
@@ -178,35 +213,7 @@
     .priority-high-border {
         border-left: 5px solid #e67e22 !important;
     }
-
-  
-
-   
-
-    .badge-circle {
-        width: 44px; /* adjust size */
-        height: 25px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 10px;
-        padding: 0 !important;
-        margin-top: -2px;
-       
-    }
-    /* .kanban-dropzone
-    {
-        min-height:80px;
-    } */
-
-        /* .kanban-dropzone.drag-over {
-            background: #f4f6f8;
-            border: 2px dashed #90a4ae;
-        } */
-
-
-    .kanban-tasks:empty {
+      .kanban-tasks:empty {
         min-height: 10px;
     }
 
@@ -229,47 +236,31 @@
         border-color: #2c3e50 !important;
         
     }
-    /* Overlapping Task Member Avatars */
-    .task-avatar-stack {
-        display: flex;
-        align-items: center;
+
+    .delete-btn:hover i {
+        color: red !important; 
+    }
+    .deletebtn{
+        background-color:#2c3e50;
+        color:white;
+    }
+    .deletebtn:hover{
+            background-color: #22303A;
+            color:white;
     }
 
-    .task-avatar {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        background: #546476;
+    .savebtn {
+        background-color: #2c3e50;
         color: white;
-        font-size: 12px;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        margin-left: -8px; /* 👈 overlap effect */
-        border: 2px solid white; /* clean ring */
     }
 
-        .task-avatar:first-child {
-            margin-left: 0;
+        .savebtn:hover {
+            background-color: #22303A;
+            color: white;
         }
 
-    .delete-circle-btn {
-        /* width: 24px;
-        height: 24px;
-        border-radius: 50%; 
-   
-        color: #cc0000;
-        background: transparent;
-        font-size: 18px;
-        font-weight: 700;
-        line-height: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding-bottom:0;
-        transition: transform 0.2s ease; */
+        .delete-circle-btn {
+       
 
         width: 30px;
         height: 30px;
@@ -282,20 +273,17 @@
         align-items: center;
         justify-content: center;
         padding: 0 !important;
-        /* ⭐ Move whole circle upward */
+      
         margin-top: -25px;
         line-height: 30px;
         transition: background 0.2s ease, transform 0.2s ease;
     }
 
         .delete-circle-btn:hover {
-            /* background: rgba(204, 0, 0, 0.15);
-          
-            border-color: #a30000;
-            color: #2c3e50; */
+           
 
             background: rgba(204, 0, 0, 0.15);
-            /* transform: translateY(-2px); */
+           
         }
         .deletemember-circle-btn
         {
@@ -318,83 +306,25 @@
         }
 
     .deletemember-circle-btn:hover {
-        /* background: rgba(204, 0, 0, 0.15);
-
-                border-color: #a30000;
-                color: #2c3e50; */
+       
 
         background: rgba(204, 0, 0, 0.15);
-        /* transform: translateY(-2px); */
+        
     }
-
-    .task-title {
-        display: -webkit-box;
-        -webkit-line-clamp: 2; /* ⬅ show max 2 lines */
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 160px; /* adjust as needed */
-        line-height: 1.3rem;
-    }
-    /* .task-description
-    {
-        display: -webkit-box;
-        -webkit-line-clamp: 2; 
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 160px; 
-        line-height: 1.2rem;
-
-    } */
-
-    .desc-toggle-btn {
-        font-size: 12px;
-        border: none;
-        background: #d5dfe6;
-        color: black;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-    }
-
-        .desc-toggle-btn:hover {
-            text-decoration: underline;
-        }
-
-    .description-expanded {
-        white-space: pre-line;
-    }
-    .task-no-desc-gap {
-    margin-top: 12px;   
-    display: block;
-}
-
-.task-actions {
-    margin-top: auto;   
-    padding-top: 8px;   
-}
-.btn-back:hover{
-        background-color: #22303A;
-    color: white;
-    
-}
-.bold-arrow {
-    font-weight: 900;
-    text-shadow: 1px 0 0 currentColor;
-}
 
 </style>
 
-@* <div class="d-flex justify-content-start gap-2">
-    <button class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center"
-            style="width: 40px; height: 40px; padding: 0;"
-            @onclick="Back">
-        <i class="bi bi-arrow-left"></i>
-    </button>
 
-    <h3 class="fw-bold text-dark"> Projects</h3>
-</div> *@
+
+
+
+
+
+
+
+
+
+
 
 <div style="display: inline-block;">
     <div class="d-flex justify-content-start gap-2">
@@ -583,173 +513,7 @@
         </div>
     }
 
-
-
-
-    <!-- Members Card (Right Column — Spans Whole Height) -->
- @*    <div class="card shadow-sm  rounded-4"
-         style="min-width: 200px; grid-row: span 2;">
-
-        <div class="d-flex justify-content-between align-items-center px-3 py-1 rounded-top"
-             style="background: linear-gradient(135deg, #283048, #859398);
- color:white;">
-            <h6 class="fw-bold m-0">Members</h6>
-            <div class="d-flex gap-3 ">
-                <div class="d-flex align-items-center">
-                    <span class="badge badge-tall bg-light text-dark">@members.Count</span>
-                </div>
-                <button class="btn  btn-light"
-                        style=" width:25px; height:25px; border-radius:50%; padding:0;"
-                        @onclick="showMembermodel">
-                    <i class="bi bi-plus-lg"></i>
-                </button>
-            </div>
-        </div>
-
-
-        <div class="card-body p-0" style="max-height: 360px; overflow-y: auto;">
-            @foreach (var mem in members)
-            {
-                
-
-                <div class="d-flex align-items-center justify-content-between px-3 py-1">
-                    <div class="d-flex align-items-center">
-                    <div class="rounded-circle   me-3 d-flex align-items-center justify-content-center"
-                         style="width:25px; height:25px; background: linear-gradient(135deg,#4a687f
-     );">
-
-                        <span class="fw-bold fs-7">@GetInitials(mem.Name)</span>
-                    </div>
-                    
-                    
-                        <div class="fw-semibold  fs-7 me-2">@mem.Name</div>
-                        </div>
-                 
-                        <button type="button"
-                            class="btn btn-sm delete-btn d-flex align-items-center" style="color:#2c3e50;"
-                        @onclick="() => OpenDeleteMemberConfirm(mem.Id)">
-                            <i class="bi bi-trash fs-6"></i>
-                        </button>
-
-                    </div>
-                    
-                
-
-               
-
-                @if (mem != members.Last())
-                {
-                    <hr class="m-0" />
-                }
-            }
-        </div>
-    </div>
-    @if (showMemberModel)
-    {
-        <div class="modal-overlay d-flex justify-content-center align-items-center">
-            <div class="modal-content shadow-lg rounded-4 p-4"
-                 style="width: 500px; background-color:#ecf0f1;">
-
-                <h5 class="fw-bold mb-3 text-center" style="color:#2c3e50;">
-                    Select Team Members
-                </h5>
-
-             
-                <div class="mb-3">
-                    <label class="form-label fw-semibold" style="color:#2c3e50;">
-                        Choose Members
-                    </label>
-
-                    <select class="form-select"
-                            @bind="selectedMemberId" @key="selectedMemberId">
-                        <option value="0" disabled selected hidden>Select  members</option>
-
-                        @foreach (var m in allMembers)
-                        {
-                            <option value="@m.Id">@m.Name</option>
-                        }
-                    </select>
-                </div>
-
-                <button class="btn btn-primary mb-3 "
-                        style="background-color:#2c3e50;"
-                        @onclick="AddMember">
-                    Add Member
-
-                </button>
-
-                <div class="mb-3">
-                    <label class="form-label fw-semibold" style="color:#2c3e50;">
-                        Selected Members:
-                    </label>
-
-                    @if (selectedMembers.Count == 0)
-                    {
-                        <div class="text-muted">No members selected</div>
-                    }
-                    else
-                    {
-                        <div class="d-flex flex-wrap gap-2">
-                            @foreach (var m in selectedMembers)
-                            {
-                                <span class="tag-item">
-                                    @m.Name
-                                    <button type="button" class="remove-tag"
-                                            @onclick="() => RemoveMember(m.Id)">
-                                        ×
-                                    </button>
-                                </span>
-                            }
-                        </div>
-                    }
-                </div>
-
-               
-                <div class="d-flex justify-content-end gap-2 mt-4">
-                    <button class="btn btn-secondary"
-                            @onclick="() => showMemberModel = false">
-                        Cancel
-                    </button>
-
-                    <button class="btn savebtn"
-                            
-                            @onclick="SaveSelection"  >
-                        Save Selection
-                    </button>
-                </div>
-
-            </div>
-        </div>
-    }
-    @if (showDeleteMemberConfirm)
-    {
-        <div class="modal-backdrop-custom"></div>
-
-        <div class="custom-modal">
-            <div class="custom-modal-header">
-                <h5 class="m-0 fw-bold">Confirm Delete</h5>
-                <button class="btn-close" @onclick="CloseDeleteMemberConfirm"></button>
-            </div>
-
-            <div class="custom-modal-body">
-                <p class="text-dark">
-                    Are you sure you want to remove this member from the project?
-                </p>
-            </div>
-
-            <div class="custom-modal-footer">
-                <button class="btn btn-secondary" @onclick="CloseDeleteMemberConfirm">
-                    Cancel
-                </button>
-
-                <button class="btn deletebtn" @onclick="DeleteMemberConfirmed">
-                    Remove
-                </button>
-            </div>
-        </div>
-    } *@
-
-    <!-- Sprints Card (Below Manager, Left Column) -->
+     <!-- Sprints Card (Below Manager, Left Column) -->
     <div class="card shadow-sm rounded-4"
          style="min-width: 520px; ">
 
@@ -883,10 +647,7 @@
        
     </div>
 
-
-
-
-    @if (Boards.Count == 0)
+      @if (Boards.Count == 0)
     {
         <div class="text-center text-muted mt-5">
             <i class="bi bi-kanban fs-1 mb-3 d-block"></i>
@@ -913,7 +674,7 @@
                                        @bind="editingBoardName"
                                        @bind:event="oninput"
                                        @onblur="() => SaveBoardName(board)"
-                                       @onkeydown="(e => OnBoardNameKeyDown(e, board))" />
+                                       @onkeydown="(e =>OnBoardNameKeyDown(e, board))" />
                             }
                             else
                             {
@@ -1119,35 +880,290 @@
                     </button>
 
                 </div>
-                
+
 
             }
         </div>
     }
-    @if (showAddBoard)
-    {
-        <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center" style="z-index:1050;">
-             <EditForm Model="@boardModel" OnValidSubmit="ConfirmAddBoard">
-        <DataAnnotationsValidator />
-            <div class="bg-white rounded-4 shadow-lg p-4" style="width:400px;">
-                <h5 class="fw-bold mb-3 text-center">Add New Board</h5>
 
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Board Name<span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" @bind="boardModel.Name" placeholder="Enter board name" />
-                        <ValidationMessage For="@(() => boardModel.Name)" />
-                </div>
 
-                <div class="d-flex justify-content-end gap-2">
-                    <button class="btn btn-outline-secondary" @onclick="CancelAddBoard">Cancel</button>
-                    <button class="btn btn-board savebtn"  >Add Board</button> 
-                </div>
+    </div>
+
+        @if (showAddBoard)
+        {
+            <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center" style="z-index:1050;">
+                <EditForm Model="@boardModel" OnValidSubmit="ConfirmAddBoard">
+                    <DataAnnotationsValidator />
+                    <div class="bg-white rounded-4 shadow-lg p-4" style="width:400px;">
+                        <h5 class="fw-bold mb-3 text-center">Add New Board</h5>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Board Name<span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" @bind="boardModel.Name" placeholder="Enter board name" />
+                            <ValidationMessage For="@(() => boardModel.Name)" />
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button class="btn btn-outline-secondary" @onclick="CancelAddBoard">Cancel</button>
+                            <button class="btn btn-board savebtn">Add Board</button>
+                        </div>
+                    </div>
+                </EditForm>
             </div>
-            </EditForm>
+        }
+            @if (showDeleteBoardConfirm)
+    {
+        <div class="modal-backdrop-custom"></div>
+
+        <div class="custom-modal">
+            <div class="custom-modal-header">
+                <h5 class="m-0 fw-bold">Delete Board</h5>
+                <button class="btn-close" @onclick="CloseDeleteBoardConfirm"></button>
+            </div>
+
+            <div class="custom-modal-body">
+                <p class="text-dark">
+                    Are you sure you want to delete the board <strong>@boardToDelete?.Name</strong>?
+                    All tasks inside this board will also be removed.
+                </p>
+            </div>
+
+            <div class="custom-modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseDeleteBoardConfirm">Cancel</button>
+                <button class="btn deletebtn" @onclick="DeleteBoardConfirmed">Delete</button>
+            </div>
         </div>
     }
 
-    @if (showTaskModal)
+
+
+
+     <div class="card shadow-sm  rounded-4"
+         style="min-width: 200px; grid-row: span 2;">
+
+        <div class="d-flex justify-content-between align-items-center px-3 py-1 rounded-top"
+             style="background: linear-gradient(135deg, #283048, #859398);
+ color:white;">
+            <h6 class="fw-bold m-0">Members</h6>
+            <div class="d-flex gap-3 ">
+                <div class="d-flex align-items-center">
+                    <span class="badge badge-tall bg-light text-dark">@members.Count</span>
+                </div>
+                <button class="btn  btn-light"
+                        style=" width:25px; height:25px; border-radius:50%; padding:0;"
+                        @onclick="showMembermodel">
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+            </div>
+        </div>
+
+
+        <div class="card-body p-0" style="max-height: 360px; overflow-y: auto;">
+            @foreach (var mem in members)
+            {
+                
+
+                <div class="d-flex align-items-center justify-content-between  px-3 py-2 ">
+                    <div class="d-flex align-items-center">
+                    <div class="rounded-circle   me-3 d-flex align-items-center justify-content-center"
+                             style="width:25px; height:25px; border:1px solid #283048" >
+
+                        <span class="fw-bold fs-8">@GetInitials(mem.Name)</span>
+                    </div>
+
+
+                        <div class=" fw-semibold  fs-6 me-2">@mem.Name</div>
+                        </div>
+                 
+                        <button type="button"
+                            class="btn btn-sm deletemember-circle-btn d-flex align-items-center" 
+                        @onclick="() => OpenDeleteMemberConfirm(mem.Id)">
+                            <span>-</span>
+                        </button>
+
+                    </div>
+                    
+                
+
+               
+
+                @if (mem != members.Last())
+                {
+                    <hr class="m-0" />
+                }
+            }
+        </div>
+    </div>
+    @if (showMemberModel)
+    {
+        <div class="modal-overlay d-flex justify-content-center align-items-center">
+            <div class="modal-content shadow-lg rounded-4 p-4"
+                 style="width: 500px; background-color:#ecf0f1;">
+
+                <h5 class="fw-bold mb-3 text-center" style="color:#2c3e50;">
+                    Select Team Members
+                </h5>
+
+             
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="color:#2c3e50;">
+                        Choose Members
+                    </label>
+                    <div  class="d-flex align-items-center gap-2">
+                    <select class="form-select w-75"
+                            @bind="selectedMemberId" @key="selectedMemberId">
+                        <option value="0" disabled selected hidden>Select  members</option>
+
+                        @foreach (var m in allMembers)
+                        {
+                            <option value="@m.Id">@m.Name</option>
+                        }
+                    </select>
+                  
+                
+                 <button type="button" class="add-btn" @onclick="ShowAddForm"> <Span class="plus mb-1">+</Span></button>
+                 </div>
+                  @if (!string.IsNullOrEmpty(memberError))
+                    {
+                        <div class="text-danger mt-1">@memberError</div>
+                    }
+                 </div>
+                <button class="btn btn-primary mb-3 "
+                        style="background-color:#2c3e50;"
+                        @onclick="AddMember">
+                    Add Member
+
+                </button>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="color:#2c3e50;">
+                        Selected Members:
+                    </label>
+
+                    @if (selectedMembers.Count == 0)
+                    {
+                        <div class="text-muted">No members selected</div>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var m in selectedMembers)
+                            {
+                                <span class="tag-item">
+                                    @m.Name
+                                    <button type="button" class="remove-tag"
+                                            @onclick="() => RemoveMember(m.Id)">
+                                        ×
+                                    </button>
+                                </span>
+                            }
+                        </div>
+                    }
+                </div>
+
+               
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <button class="btn btn-secondary"
+                            @onclick="() => showMemberModel = false">
+                        Cancel
+                    </button>
+
+                    <button class="btn savebtn"
+                            
+                            @onclick="SaveSelection"  >
+                        Save Selection
+                    </button>
+                </div>
+                 
+
+            </div>
+        </div>
+    }
+    </div>
+    @if (showDeleteMemberConfirm)
+    {
+        <div class="modal-backdrop-custom"></div>
+
+        <div class="custom-modal">
+            <div class="custom-modal-header">
+                <h5 class="m-0 fw-bold">Confirm Delete</h5>
+                <button class="btn-close" @onclick="CloseDeleteMemberConfirm"></button>
+            </div>
+
+            <div class="custom-modal-body">
+                <p class="text-dark">
+                    Are you sure you want to remove this member from the project?
+                </p>
+            </div>
+
+            <div class="custom-modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseDeleteMemberConfirm">
+                    Cancel
+                </button>
+
+                <button class="btn deletebtn" @onclick="DeleteMemberConfirmed">
+                    Remove
+                </button>
+            </div>
+        </div>
+    }
+    
+   
+@if (showForm)
+{
+    <div class="modal-overlay">
+        <div class="modal-content shadow-lg rounded-4 p-4 bg-white">
+            <!-- Header -->
+            <h5 class="fw-bold mb-3 text-center" style="color:#2c3e50;">
+                <i class="bi @(currentUser.Id == 0 ? "bi-person-plus" : "bi-pencil-square") me-2"></i>
+                @(currentUser.Id == 0 ? "Add Member" : "Edit Member")
+            </h5>
+
+            <!-- Form -->
+            <EditForm Model="@currentUser" OnValidSubmit="SaveUser">
+                <DataAnnotationsValidator />
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="color:#2c3e50;">Full Name<span class="text-danger">*</span></label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light border-0" style="background-color:#ecf0f1;">
+                            <i class="bi bi-person-fill"></i>
+                        </span>
+                        <InputText class="form-control border-0 shadow-sm" style="background-color:#ecf0f1;"
+                                   @bind-Value="currentUser.Name" placeholder="Enter  name" />
+                    </div>
+                    <ValidationMessage For="@(() => currentUser.Name)" class="text-danger small" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="color:#2c3e50;">Email Address<span class="text-danger">*</span></label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light border-0" style="background-color:#ecf0f1;">
+                            <i class="bi bi-envelope-fill"></i>
+                        </span>
+                        <InputText type="email" class="form-control border-0 shadow-sm" style="background-color:#ecf0f1;"
+                                   @bind-Value="currentUser.Email" placeholder="Enter email" />
+                    </div>
+                    <ValidationMessage For="@(() => currentUser.Email)" class="text-danger small" />
+                </div>
+                @if (!string.IsNullOrWhiteSpace(serverError))
+                {
+                    <div class="text-danger small mt-1">@serverError</div>
+                }
+
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="background-color:#2c3e50;">
+                         Save
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+ @if (showTaskModal)
     {
         <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center" style="z-index:1050;">
             <div class="bg-white rounded-4 shadow-lg p-4" style="width:400px;">
@@ -1240,32 +1256,7 @@
                 </div>
             </div>
         }
-
-    @if (showDeleteBoardConfirm)
-    {
-        <div class="modal-backdrop-custom"></div>
-
-        <div class="custom-modal">
-            <div class="custom-modal-header">
-                <h5 class="m-0 fw-bold">Delete Board</h5>
-                <button class="btn-close" @onclick="CloseDeleteBoardConfirm"></button>
-            </div>
-
-            <div class="custom-modal-body">
-                <p class="text-dark">
-                    Are you sure you want to delete the board <strong>@boardToDelete?.Name</strong>?
-                    All tasks inside this board will also be removed.
-                </p>
-            </div>
-
-            <div class="custom-modal-footer">
-                <button class="btn btn-secondary" @onclick="CloseDeleteBoardConfirm">Cancel</button>
-                <button class="btn deletebtn" @onclick="DeleteBoardConfirmed">Delete</button>
-            </div>
-        </div>
-    }
-
-    @if (showTaskDeleteConfirm)
+         @if (showTaskDeleteConfirm)
     {
         <div class="modal-backdrop-custom"></div>
 
@@ -1292,343 +1283,73 @@
             </div>
         </div>
     }
-    </div>
-           <div class="card shadow-sm  rounded-4"
-         style="min-width: 200px; grid-row: span 2;">
-
-        <div class="d-flex justify-content-between align-items-center px-3 py-1 rounded-top"
-             style="background: linear-gradient(135deg, #283048, #859398);
- color:white;">
-            <h6 class="fw-bold m-0">Members</h6>
-            <div class="d-flex gap-3 ">
-                <div class="d-flex align-items-center">
-                    <span class="badge badge-tall bg-light text-dark">@members.Count</span>
-                </div>
-                <button class="btn  btn-light"
-                        style=" width:25px; height:25px; border-radius:50%; padding:0;"
-                        @onclick="showMembermodel">
-                    <i class="bi bi-plus-lg"></i>
-                </button>
-            </div>
-        </div>
-
-
-        <div class="card-body p-0" style="max-height: 360px; overflow-y: auto;">
-            @foreach (var mem in members)
-            {
-                
-
-                <div class="d-flex align-items-center justify-content-between  px-3 py-2 ">
-                    <div class="d-flex align-items-center">
-                    <div class="rounded-circle   me-3 d-flex align-items-center justify-content-center"
-                             style="width:25px; height:25px; border:1px solid #283048" >
-
-                        <span class="fw-bold fs-8">@GetInitials(mem.Name)</span>
-                    </div>
-
-
-                        <div class=" fw-semibold  fs-6 me-2">@mem.Name</div>
-                        </div>
-                 
-                        <button type="button"
-                            class="btn btn-sm deletemember-circle-btn d-flex align-items-center" 
-                        @onclick="() => OpenDeleteMemberConfirm(mem.Id)">
-                            <span>-</span>
-                        </button>
-
-                    </div>
-                    
-                
-
-               
-
-                @if (mem != members.Last())
-                {
-                    <hr class="m-0" />
-                }
-            }
-        </div>
-    </div>
-    @if (showMemberModel)
-    {
-        <div class="modal-overlay d-flex justify-content-center align-items-center">
-            <div class="modal-content shadow-lg rounded-4 p-4"
-                 style="width: 500px; background-color:#ecf0f1;">
-
-                <h5 class="fw-bold mb-3 text-center" style="color:#2c3e50;">
-                    Select Team Members
-                </h5>
-
-             
-                <div class="mb-3">
-                    <label class="form-label fw-semibold" style="color:#2c3e50;">
-                        Choose Members
-                    </label>
-                    <div  class="d-flex align-items-center gap-2">
-                    <select class="form-select w-75"
-                            @bind="selectedMemberId" @key="selectedMemberId">
-                        <option value="0" disabled selected hidden>Select  members</option>
-
-                        @foreach (var m in allMembers)
-                        {
-                            <option value="@m.Id">@m.Name</option>
-                        }
-                    </select>
-                    @if (!string.IsNullOrEmpty(memberError))
-                    {
-                        <div class="text-danger mt-1">@memberError</div>
-                    }
-                
-                 <button type="button" class="add-btn" @onclick="ShowAddForm"> <Span class="plus mb-1">+</Span></button>
-                 </div>
-                 </div>
-                <button class="btn btn-primary mb-3 "
-                        style="background-color:#2c3e50;"
-                        @onclick="AddMember">
-                    Add Member
-
-                </button>
-
-                <div class="mb-3">
-                    <label class="form-label fw-semibold" style="color:#2c3e50;">
-                        Selected Members:
-                    </label>
-
-                    @if (selectedMembers.Count == 0)
-                    {
-                        <div class="text-muted">No members selected</div>
-                    }
-                    else
-                    {
-                        <div class="d-flex flex-wrap gap-2">
-                            @foreach (var m in selectedMembers)
-                            {
-                                <span class="tag-item">
-                                    @m.Name
-                                    <button type="button" class="remove-tag"
-                                            @onclick="() => RemoveMember(m.Id)">
-                                        ×
-                                    </button>
-                                </span>
-                            }
-                        </div>
-                    }
-                </div>
-
-               
-                <div class="d-flex justify-content-end gap-2 mt-4">
-                    <button class="btn btn-secondary"
-                            @onclick="() => showMemberModel = false">
-                        Cancel
-                    </button>
-
-                    <button class="btn savebtn"
-                            
-                            @onclick="SaveSelection"  >
-                        Save Selection
-                    </button>
-                </div>
-
-            </div>
-        </div>
-    }
-
-    @if (showDeleteMemberConfirm)
-    {
-        <div class="modal-backdrop-custom"></div>
-
-        <div class="custom-modal">
-            <div class="custom-modal-header">
-                <h5 class="m-0 fw-bold">Confirm Delete</h5>
-                <button class="btn-close" @onclick="CloseDeleteMemberConfirm"></button>
-            </div>
-
-            <div class="custom-modal-body">
-                <p class="text-dark">
-                    Are you sure you want to remove this member from the project?
-                </p>
-            </div>
-
-            <div class="custom-modal-footer">
-                <button class="btn btn-secondary" @onclick="CloseDeleteMemberConfirm">
-                    Cancel
-                </button>
-
-                <button class="btn deletebtn" @onclick="DeleteMemberConfirmed">
-                    Remove
-                </button>
-            </div>
-        </div>
-    }
-    </div>
-   
-
-@if (showForm)
-{
-    <div class="modal-overlay">
-        <div class="modal-content shadow-lg rounded-4 p-4 bg-white">
-            <!-- Header -->
-            <h5 class="fw-bold mb-3 text-center" style="color:#2c3e50;">
-                <i class="bi @(currentUser.Id == 0 ? "bi-person-plus" : "bi-pencil-square") me-2"></i>
-                @(currentUser.Id == 0 ? "Add Member" : "Edit Member")
-            </h5>
-
-            <!-- Form -->
-            <EditForm Model="@currentUser" OnValidSubmit="SaveUser">
-                <DataAnnotationsValidator />
-
-                <div class="mb-3">
-                    <label class="form-label fw-semibold" style="color:#2c3e50;">Full Name<span class="text-danger">*</span></label>
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-light border-0" style="background-color:#ecf0f1;">
-                            <i class="bi bi-person-fill"></i>
-                        </span>
-                        <InputText class="form-control border-0 shadow-sm" style="background-color:#ecf0f1;"
-                                   @bind-Value="currentUser.Name" placeholder="Enter  name" />
-                    </div>
-                    <ValidationMessage For="@(() => currentUser.Name)" class="text-danger small" />
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-semibold" style="color:#2c3e50;">Email Address<span class="text-danger">*</span></label>
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-light border-0" style="background-color:#ecf0f1;">
-                            <i class="bi bi-envelope-fill"></i>
-                        </span>
-                        <InputText type="email" class="form-control border-0 shadow-sm" style="background-color:#ecf0f1;"
-                                   @bind-Value="currentUser.Email" placeholder="Enter email" />
-                    </div>
-                    <ValidationMessage For="@(() => currentUser.Email)" class="text-danger small" />
-                </div>
-                @if (!string.IsNullOrWhiteSpace(serverError))
-                {
-                    <div class="text-danger small mt-1">@serverError</div>
-                }
-
-
-                <!-- Buttons -->
-                <div class="d-flex justify-content-end gap-2 mt-4">
-                    <button type="button" class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
-                    <button type="submit" class="btn btn-primary" style="background-color:#2c3e50;">
-                         Save
-                    </button>
-                </div>
-            </EditForm>
-        </div>
-    </div>
-}
-
 
 @code {
+
     [Parameter]
     public int ProjectId { get; set; }
-    private bool showAddBoard = false;
-    // private string newBoardName = "";
-    private List<BoardDto> Boards = new();
     private ProjectDto CurrentProject = new();
-    private bool showTaskModal = false;
-    private BoardDto? selectedBoard;
-    private TaskItemDto newTask = new();
-    private int editingBoardId = 0;
-    private string editingBoardName = "";
-
-    private TaskItemDto draggedTask;
-    private BoardDto draggedFromBoard;
-
-    private bool showAssignUsersModal = false;
-    private bool showAssignSprintModal = false;
-    private TaskItemDto selectedMenuTask;
-    private bool dropHandled = false;
-
-    // User assignment
-    private List<AppUserDto> allUsers = new();
-    private List<int> selectedUserIds = new();
-
-    // Sprint assignment
-    private List<SprintDto> Sprints = new();
-    private int? selectedSprintId;
-
-    private BoardDto boardModel = new();
-
-    private List<ManagerDto> managers = new();
+    private List<BoardDto> Boards = new();
     private List<SprintDto> projectSprints = new();
+
+    private List<ManagerDto> allManagers = new();
+    private List<ManagerDto> managers = new();
     private List<MemberDto> members = new();
-    private List<MemberDto> allMembers = new();
-    private List<MemberDto> selectedMembers = new();
-    private bool showMemberModel = false;
-    private int selectedMemberId;
-
     private bool showManagerModal = false;
-    private List<ManagerDto> allManagers=new();
-    private List<ManagerDto> selectedManagers=new();
+    private List<ManagerDto> selectedManagers = new();
     private int selectedManagerId;
-
-    private string? managerError;
+    public string? managerError;
     private bool showDeleteManagerConfirm = false;
     private int managerToDelete;
-    private bool showDeleteMemberConfirm = false;
-    private int memberToDelete;
+    private  bool isAdmin = false;
+    private  bool isManager = false;
+    private  bool isMember = false;
+    private bool showSprintCreateForm = false;
+    private bool showSprintEditForm = false;
+    private SprintDto? sprintToEdit;
+    private int sprintToDelete = 0;
+    private bool showDeleteSprintConfirm = false;
+    private bool showAddBoard = false;
+    private BoardDto boardModel = new BoardDto();
+    private int editingBoardId = 0;
+    private string editingBoardName = "";
+    private TaskItemDto draggedTask;
+    private BoardDto draggedFromBoard;
+    private BoardDto boardToDelete;
+    private bool showDeleteBoardConfirm = false;
+    private HashSet<int> expandedDescriptions = new();
     private bool showTaskDeleteConfirm = false;
     private TaskItemDto taskToDelete;
     private BoardDto boardOfTaskToDelete;
-    private bool showDeleteBoardConfirm = false;
-    private BoardDto boardToDelete;
-    private bool showSprintCreateForm = false;
+    private BoardDto? editTaskBoard;
+    private TaskItemDto? taskToEdit;
     private bool showUpdateTaskModal = false;
     private TaskItemDto editTask = new();
-    private BoardDto? editTaskBoard;
-    // private bool showDescriptionModal=false;
-    // private string selectedDescription = "";
-    private HashSet<int> expandedDescriptions = new();
+    private List<MemberDto> allMembers = new();
+    private List<MemberDto> selectedMembers = new();
+    private int selectedMemberId;
     private string? memberError;
-    private bool showSprintEditForm=false;
-    private SprintDto? sprintToEdit;
-    private bool showForm=false;
-    private AppUserDto? currentUser = new();
-    private string serverError="";
-    private bool showDeleteSprintConfirm=false;
-    private int sprintToDelete;
-      bool isAdmin=false;
-    bool isManager = false;
-    bool isMember = false;
+    private bool showMemberModel = false;
+    private bool showDeleteMemberConfirm = false;
+    private int memberToDelete;
+    private AppUserDto currentUser = new();
+    private bool showForm = false;
+    private string? serverError;
+     private BoardDto? selectedBoard;
+    private TaskItemDto newTask = new();
+    private bool showAddTaskModal = false;
+    private bool showTaskModal= false;
+
+
+
+
+
+
 
 
     protected override async Task OnInitializedAsync()
     {
-
-  
-
         await LoadProject();
-      
-
-    }
-    private async void Back()
-    {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-    var user = authState.User;
-
-    
-
-        isAdmin = user.IsInRole("Admin");
-        isManager = user.IsInRole("Manager");
-        isMember = user.IsInRole("Member");
-   
-
-        if (isAdmin)
-        {
-            nav.NavigateTo("/dashboard");
-        }
-        else if (isManager)
-        {
-            nav.NavigateTo("/managerdashboard");
-        }
-        else
-        {
-            
-            nav.NavigateTo("/userdashboard");
-        }
-    
-  
     }
 
     private async Task LoadProject()
@@ -1637,7 +1358,7 @@
         Boards = CurrentProject.Boards?.ToList() ?? new();
         managers = await Http.GetFromJsonAsync<List<ManagerDto>>($"api/Project/{ProjectId}/Managers") ?? new();
 
-       
+
 
         var response = await Http.GetAsync($"api/sprint/project/{ProjectId}");
 
@@ -1645,12 +1366,12 @@
         {
             var sprintt = await response.Content.ReadFromJsonAsync<SprintDto>();
             projectSprints = sprintt != null
-                ? new List<SprintDto> { sprintt }
-                : new List<SprintDto>();
+            ? new List<SprintDto> { sprintt }
+            : new List<SprintDto>();
         }
         else
         {
-            projectSprints = new List<SprintDto>(); 
+            projectSprints = new List<SprintDto>();
         }
 
         members = await Http.GetFromJsonAsync<List<MemberDto>>($"api/Project/{ProjectId}/Members") ?? new();
@@ -1662,19 +1383,35 @@
                  ?? new List<MemberDto>();
 
     }
-    // string GetPriorityClass(string priority)
-    // {
-    //     if (string.IsNullOrWhiteSpace(priority))
-    //         return "priority-medium";
-    //     return priority.ToLower() switch
+   
 
-    //     {
-    //         "low" => "priority-low",
-    //         "medium" => "priority-medium",
-    //         "high" => "priority-high"
+    private async void Back()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
 
-    //     };
-    // }
+
+
+        isAdmin = user.IsInRole("Admin");
+        isManager = user.IsInRole("Manager");
+        isMember = user.IsInRole("Member");
+
+
+        if (isAdmin)
+        {
+            nav.NavigateTo("/dashboard");
+        }
+        else if (isManager)
+        {
+            nav.NavigateTo("/managerdashboard");
+        }
+        else
+        {
+
+            nav.NavigateTo("/userdashboard");
+        }
+    }
+
     string GetPriorityBorder(string? priority)
     {
         if (string.IsNullOrWhiteSpace(priority))
@@ -1698,7 +1435,6 @@
     private void CancelAddBoard()
     {
         showAddBoard = false;
-
     }
     private void StartEditingBoard(BoardDto board)
     {
@@ -1720,9 +1456,14 @@
 
         if (board.Name != editingBoardName)
         {
+            var dto = new BoardDto
+        {
+            Id = board.Id,
+            Name = editingBoardName
+        };
             var response = await Http.PutAsJsonAsync(
-                $"api/Board/{board.Id}/Rename",
-                editingBoardName
+                $"api/Board/{board.Id}?projectId={ProjectId}",
+                dto
             );
 
             if (response.IsSuccessStatusCode)
@@ -1737,8 +1478,6 @@
 
         editingBoardId = 0;
     }
-
-
     private void OpenDeleteBoardConfirm(BoardDto board)
     {
         boardToDelete=board;
@@ -1752,12 +1491,14 @@
 
     private async Task DeleteBoardConfirmed()
     {
-        if (boardToDelete != null)
+
+
+        var response = await Http.DeleteAsync($"api/Board/{boardToDelete.Id}?projectId={ProjectId}");
+        if (response.IsSuccessStatusCode)
         {
             Boards.Remove(boardToDelete);
-            CurrentProject.Boards = Boards;
+            // CurrentProject.Boards = Boards;
 
-            await SaveProject(); // already implemented
 
 
         }
@@ -1766,213 +1507,64 @@
         boardToDelete = null;
     }
 
-    private void ShowSprintCreateForm()
+
+    private async Task ConfirmAddBoard()
     {
-        showSprintCreateForm = true;
-    }
-    private async Task HandleSprintSaved()
-    {
-        showSprintCreateForm = false;
 
 
-        // Sprints = await Http.GetFromJsonAsync<List<SprintDto>>("api/sprint") ?? new();
-        @* FilterSprints(); *@
-        await LoadProject();
-    }
-
-    private Task HandleSprintCancelled()
-    {
-        showSprintCreateForm = false;
-        return Task.CompletedTask;
-    }
-    private void OpenSprintEdit(SprintDto sprint)
-    {
-        sprintToEdit = sprint;
-        showSprintEditForm = true;
-    }
-    private async Task HandleSprintUpdated()
-    {
-        showSprintEditForm = false;
-        sprintToEdit = null;
-
-        await LoadProject();   
-        StateHasChanged();
-    }
-
-    private void CancelSprintEdit()
-    {
-        showSprintEditForm = false;
-        sprintToEdit = null;
-    }
-
-    private void OpenDeleteSprintConfirm(int sprintId)
-    {
-        sprintToDelete=sprintId;
-        showDeleteSprintConfirm = true;
-    }
-    private void CloseDeleteSprintConfirm()
-    {
-        sprintToDelete=0;
-        showDeleteSprintConfirm = false;
-    }
-    private async Task DeleteSprintConfirm()
-    {
-        var response = await Http.DeleteAsync($"api/sprint/{sprintToDelete}");
-        if(response.IsSuccessStatusCode)
+        var newBoard = new BoardDto
         {
-            await LoadProject();
-        }
-        showDeleteSprintConfirm=false;
-        sprintToDelete = 0;
-    }
-    private bool IsUserAssigned(TaskItemDto task, int userId)
-    {
-        return task.TaskAssignments != null &&
-               task.TaskAssignments.Any(a => a.AppUserId == userId);
-    }
+            Name = boardModel.Name,
 
-
-    private void ToggleMemberSelection(TaskItemDto task, int memberId, object value)
-    {
-        bool isChecked = (bool)value;
-
-        if (task.TaskAssignments == null)
-            task.TaskAssignments = new List<TaskAssignmentDto>();
-
-        if (isChecked)
-        {
-            if (!task.TaskAssignments.Any(a => a.AppUserId == memberId))
-            {
-                task.TaskAssignments.Add(new TaskAssignmentDto
-                {
-                    AppUserId = memberId,
-                    TaskItemId = task.Id
-                });
-            }
-        }
-        else
-        {
-            var existing = task.TaskAssignments.FirstOrDefault(a => a.AppUserId == memberId);
-            if (existing != null)
-                task.TaskAssignments.Remove(existing);
-        }
-    }
-    private async Task SaveMultiMemberAssignment(TaskItemDto task)
-    {
-        // update project boards structure
-        foreach (var board in Boards)
-        {
-            var t = board.TaskItems.FirstOrDefault(x => x.Id == task.Id);
-            if (t != null)
-            {
-                t.TaskAssignments = task.TaskAssignments;
-                break;
-            }
-        }
-
-        await SaveProject();
-    }
-
-
-
-    // private async Task AssignUserToTask(TaskItemDto task, int userId)
-    // {
-    //     selectedMenuTask = task;
-
-    //     selectedUserIds = new() { userId };
-    //     await SaveAssignedUsers();
-    // }
-
-    private async Task AssignSprintToTask(TaskItemDto task, int sprintId)
-    {
-        selectedMenuTask = task;
-
-        selectedSprintId = sprintId;
-        await SaveAssignedSprint();
-    }
-
-    private void OpenUpdateTaskModal(BoardDto board, TaskItemDto task)
-    {
-        editTaskBoard = board;
-
-
-        editTask = new TaskItemDto
-        {
-            Id = task.Id,
-            Title = task.Title,
-            Description = task.Description,
-            Priority = task.Priority,
-            DueDate = task.DueDate,
-            BoardId = task.BoardId,
-
-
-            Order = task.Order,
+            // ProjectId = CurrentProject.Id,
 
         };
 
-        showUpdateTaskModal = true;
-    }
+        // Boards.Add(newBoard);
+        // CurrentProject.Boards = Boards;
 
-    // private void OpenDescriptionPreview(TaskItemDto task)
-    // {
-    //     selectedDescription = task.Description ?? "";
-    //     showDescriptionModal = true;
-    // }
-    // private void closeDescriptionPreview()
-    // {
-    //     showDescriptionModal=false;
-    //     selectedDescription = "";
-    // }
-    private void ToggleDescription(TaskItemDto task)
-    {
-        if (expandedDescriptions.Contains(task.Id))
-            expandedDescriptions.Remove(task.Id);
-        else
-            expandedDescriptions.Add(task.Id);
-    }
-    private async Task ConfirmUpdateTask()
-    {
-        if (editTaskBoard == null) return;
-
-        var response = await Http.PutAsJsonAsync($"api/TaskItem/{editTask.Id}", editTask);
-
-        if (response.IsSuccessStatusCode)
+        try
         {
-            // Update UI
-            var original = editTaskBoard.TaskItems.FirstOrDefault(t => t.Id == editTask.Id);
 
-            if (original != null)
+            var response = await Http.PostAsJsonAsync($"api/Board/{ProjectId}", newBoard);
+
+
+            if (response.IsSuccessStatusCode)
             {
-                original.Title = editTask.Title;
-                original.Description = editTask.Description;
-                original.Priority = editTask.Priority;
-                original.DueDate = editTask.DueDate;
-                original.Order = editTask.Order;
 
+
+                var responseget = await Http.GetAsync($"api/Board?projectId={ProjectId}");
+                if (responseget.IsSuccessStatusCode)
+                {
+                    var createdBoard = await responseget.Content.ReadFromJsonAsync<List<BoardDto>>();
+
+
+
+                    Boards = createdBoard ?? new List<BoardDto>();
+                    showAddBoard = false;
+                    boardModel = new BoardDto();
+                    StateHasChanged();
+
+                }
             }
-
-            showUpdateTaskModal = false;
-
-            await SaveProject(); 
-            StateHasChanged();
+            else
+            {
+                Console.WriteLine($"Failed to update project. Status: {response.StatusCode}");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            Console.WriteLine("Task update failed!");
+            Console.WriteLine("Error saving board: " + ex.Message);
         }
+        showAddBoard = false;
+        boardModel = new BoardDto();
     }
-
-    private void CloseUpdateTaskModal()
-    {
-        showUpdateTaskModal = false;
-    }
-
     private async Task ShowMangerModal()
     {
         allManagers = await Http.GetFromJsonAsync<List<ManagerDto>>("api/Manager/All")
-                 ?? new List<ManagerDto>();
+        ?? new List<ManagerDto>();
 
-        // selectedManagers = managers      
+        // selectedManagers = managers
         //     .Select(m => new ManagerDto { Id = m.Id, Name = m.Name })
         //     .ToList();
         showManagerModal = true;
@@ -2021,10 +1613,9 @@
 
         var managerIds = selectedManagers.Select(m => m.Id).ToList();
 
-        // Send to backend
         await Http.PostAsJsonAsync(
-            $"api/Manager/{ProjectId}/Manager/Assign",
-            managerIds
+        $"api/Manager/{ProjectId}/Manager/Assign",
+        managerIds
         );
 
         // Refresh project
@@ -2048,7 +1639,7 @@
         showDeleteManagerConfirm = false;
 
         var response = await Http.DeleteAsync(
-            $"api/Manager/RemoveFromProject?projectId={ProjectId}&managerId={managerToDelete}"
+        $"api/Manager/RemoveFromProject?projectId={ProjectId}&managerId={managerToDelete}"
         );
 
         if (response.IsSuccessStatusCode)
@@ -2061,22 +1652,53 @@
             Console.WriteLine("Failed to delete manager.");
         }
     }
+    private void ShowAddForm()
+    {
+        currentUser = new AppUserDto
+            {
+                Role = "Member"
 
+            };
+
+        showForm = true;
+    }
+    private void CancelEdit()
+    {
+        showForm = false;
+        currentUser = new();
+    }
+
+    private async Task SaveSelection()
+    {
+        memberError = null;
+        if (selectedMembers.Count == 0)
+        {
+            memberError = "Please select at least one member.";
+            StateHasChanged();
+            return; // DO NOT close modal
+        }
+        showMemberModel = false;
+
+
+        // StateHasChanged();
+
+        // 4. Send to backend (optional but required for saving)
+        var memberIds = selectedMembers.Select(m => m.Id).ToList();
+
+        await Http.PostAsJsonAsync(
+            $"api/Project/{ProjectId}/Members/Assign",
+            memberIds
+        );
+        await LoadProject();
+        StateHasChanged();
+    }
     async Task showMembermodel()
     {
         await LoadMembers();
         showMemberModel = true;
     }
 
-    private string GetInitials(string name)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-            return string.Empty;
 
-        return string.Join("", name.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                                   .Select(n => n[0]))
-                                   .ToUpper();
-    }
     private void AddMember()
     {
         memberError = null;
@@ -2132,7 +1754,7 @@
             Console.WriteLine("Failed to delete manager.");
         }
     }
-     private async Task SaveUser()
+    private async Task SaveUser()
     {
         serverError = "";
 
@@ -2140,12 +1762,12 @@
             currentUser.Role = "Member";
         if (currentUser.Id == 0)
         {
-            // var client = HttpClientFactory.CreateClient("AuthClient");
+
             var response = await Http.PostAsJsonAsync("api/Member", currentUser);
             if (response.IsSuccessStatusCode)
             {
                 showForm = false;
-                
+
                 await LoadMembers();
             }
             else
@@ -2154,148 +1776,82 @@
 
             }
         }
-       
-     
+    }
+    private string GetInitials(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return string.Empty;
 
-        // showForm = false;
-
+        return string.Join("", name.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Select(n => n[0]))
+        .ToUpper();
     }
 
-    private void ShowAddForm()
+       private void ToggleDescription(TaskItemDto task)
     {
-        currentUser = new AppUserDto
-            {
-                Role = "Member"
-
-            };
-
-        showForm = true;
+        if (expandedDescriptions.Contains(task.Id))
+            expandedDescriptions.Remove(task.Id);
+        else
+            expandedDescriptions.Add(task.Id);
     }
-      private void CancelEdit()
+    private void ShowSprintCreateForm()
     {
-        showForm = false;
-        currentUser = new();
+        showSprintCreateForm = true;
+    }
+    private async Task HandleSprintSaved()
+    {
+        showSprintCreateForm = false;
+
+
+        // Sprints = await Http.GetFromJsonAsync<List<SprintDto>>("api/sprint") ?? new();
+        @* FilterSprints(); *@
+        await LoadProject();
     }
 
-    private async Task SaveSelection()
+    private Task HandleSprintCancelled()
     {
-        memberError = null;
-        if (selectedMembers.Count == 0)
-        {
-            memberError = "Please select at least one member.";
-            StateHasChanged();
-            return; // DO NOT close modal
-        }
-        showMemberModel = false;
+        showSprintCreateForm = false;
+        return Task.CompletedTask;
+    }
+    private void OpenSprintEdit(SprintDto sprint)
+    {
+        sprintToEdit = sprint;
+        showSprintEditForm = true;
+    }
+    private async Task HandleSprintUpdated()
+    {
+        showSprintEditForm = false;
+        sprintToEdit = null;
 
-       
-        // StateHasChanged();
-
-        // 4. Send to backend (optional but required for saving)
-        var memberIds = selectedMembers.Select(m => m.Id).ToList();
-
-        await Http.PostAsJsonAsync(
-            $"api/Project/{ProjectId}/Members/Assign",
-            memberIds
-        );
         await LoadProject();
         StateHasChanged();
     }
 
-
-    private async Task ConfirmAddBoard()
+    private void CancelSprintEdit()
     {
-        // return;
+        showSprintEditForm = false;
+        sprintToEdit = null;
+    }
 
-        var newBoard = new BoardDto
+    private void OpenDeleteSprintConfirm(int sprintId)
+    {
+        sprintToDelete = sprintId;
+        showDeleteSprintConfirm = true;
+    }
+    private void CloseDeleteSprintConfirm()
+    {
+        sprintToDelete = 0;
+        showDeleteSprintConfirm = false;
+    }
+    private async Task DeleteSprintConfirm()
+    {
+        var response = await Http.DeleteAsync($"api/sprint/{sprintToDelete}");
+        if (response.IsSuccessStatusCode)
         {
-            Name = boardModel.Name,
-            ProjectId = CurrentProject.Id,
-            TaskItems = new List<TaskItemDto>()
-        };
-
-        Boards.Add(newBoard);
-        CurrentProject.Boards = Boards;
-
-        try
-        {
-
-            var response = await Http.PutAsJsonAsync($"api/Project/{ProjectId}", CurrentProject);
-
-
-            if (response.IsSuccessStatusCode)
-            {
-
-                // CurrentProject = await Http.GetFromJsonAsync<ProjectDto>($"api/Project/{ProjectId}");
-                var responseget = await Http.GetAsync($"api/Project/{ProjectId}");
-                if(responseget.IsSuccessStatusCode)
-                {
-                    CurrentProject = await responseget.Content.ReadFromJsonAsync<ProjectDto>();
-                }
-                Boards = CurrentProject.Boards.ToList() ?? new List<BoardDto>();
-                showAddBoard = false;
-                // newBoardName = "";
-            }
-            else
-            {
-                Console.WriteLine($"Failed to update project. Status: {response.StatusCode}");
-            }
+            await LoadProject();
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Error saving board: " + ex.Message);
-        }
-        showAddBoard = false;
-        boardModel = new BoardDto();
-    }
-    // private int GetSprintProgressPercent(SprintDto s)
-    // {
-    //     if (s.TotalTasks == 0) return 0;
-    //     return (int)((double)s.CompletedTasks / s.TotalTasks * 100);
-    // }
-
-    private void OpenAddManagerModal()
-    {
-
-        Console.WriteLine("Add Manager clicked");
-    }
-
-    private void OpenAddTaskModal(BoardDto board)
-    {
-        selectedBoard = board;
-        newTask = new TaskItemDto
-            {
-                BoardId = board.Id,
-            // Priority = "Low",
-            // DueDate = DateTime.UtcNow.AddDays(1)
-
-            };
-        showTaskModal = true;
-    }
-
-    private void CancelAddTask()
-    {
-        showTaskModal = false;
-        newTask = new TaskItemDto();
-        selectedBoard = null;
-    }
-    private async Task ConfirmAddTask()
-    {
-        if (selectedBoard == null || string.IsNullOrWhiteSpace(newTask.Title))
-            return;
-
-        selectedBoard.TaskItems.Add(newTask);
-        // CurrentProject.Boards = Boards;
-        UpdateOrderNumbers(selectedBoard);
-        Console.WriteLine("SENT PRIORITY = " + newTask.Priority);
-        Console.WriteLine("SENT DUEDATE = " + newTask.DueDate);
-
-        await SaveProject();
-
-
-
-        showTaskModal = false;
-        newTask = new TaskItemDto();
+        showDeleteSprintConfirm = false;
+        sprintToDelete = 0;
     }
 
     private void OpenTaskDeleteConfirm(BoardDto board,TaskItemDto task)
@@ -2312,28 +1868,34 @@
     }
     private async Task DeleteTaskConfirmed()
     {
-        if(boardOfTaskToDelete!=null&&taskToDelete!=null)
+        if (boardOfTaskToDelete == null || taskToDelete == null)
         {
-            boardOfTaskToDelete.TaskItems.Remove(taskToDelete);
-            UpdateOrderNumbers(boardOfTaskToDelete);
-            await SaveProject();
+            return;
+        }
+        try
+        {
+            var response = await Http.DeleteAsync($"api/TaskItem/tasks/{taskToDelete.Id}");
+            if(response.IsSuccessStatusCode)
+            {
+                boardOfTaskToDelete.TaskItems.Remove(taskToDelete);
+                UpdateOrderNumbers(boardOfTaskToDelete);
+                StateHasChanged();
 
+            }
+            else
+            {
+                Console.WriteLine("Failed to delete task.");
+            }
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.Message);
         }
         showTaskDeleteConfirm = false;
-        taskToDelete=null;
+        taskToDelete = null;
         boardOfTaskToDelete = null;
+
     }
-    // private async void RemoveTask(BoardDto board, TaskItemDto task)
-    // {
-
-    //     board.TaskItems.Remove(task);
-    //     UpdateOrderNumbers(board);
-    //     await SaveProject();
-
-
-    // }
-
-
     private void OnTaskDragStart(DragEventArgs e, BoardDto fromBoard, TaskItemDto task)
     {
 
@@ -2396,7 +1958,8 @@
 
             NormalizeOrder(toBoard);
 
-            await SaveProject();
+            await PersistBoardOrders(fromBoard);
+            await PersistBoardOrders(toBoard);
 
             draggedTask = null;
             draggedFromBoard = null;
@@ -2461,7 +2024,8 @@
         NormalizeOrder(fromBoard);
         NormalizeOrder(toBoard);
 
-        await SaveProject();
+        await PersistBoardOrders(fromBoard);
+        await PersistBoardOrders(toBoard);
 
         draggedTask = null;
         draggedFromBoard = null;
@@ -2477,121 +2041,195 @@
             order++;
         }
     }
-
-    private async Task<bool> SaveProject()
+    private bool IsUserAssigned(TaskItemDto task, int userId)
     {
-        CurrentProject.Boards = Boards;
+        return task.TaskAssignments != null &&
+               task.TaskAssignments.Any(a => a.AppUserId == userId);
+    }
 
-        Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(CurrentProject));
+
+    private async Task ToggleMemberSelection(TaskItemDto task, int memberId, object value)
+    {
+        bool isChecked = (bool)value;
+
+        if (task.TaskAssignments == null)
+            task.TaskAssignments = new List<TaskAssignmentDto>();
+
+        try
+        {
+            if (isChecked)
+            {
+                var resonse = await Http.PostAsJsonAsync($"api/AssignMember/{task.Id}/assign",memberId);
+                if (resonse.IsSuccessStatusCode)
+
+                {
+                    if (!task.TaskAssignments.Any(a => a.AppUserId == memberId))
+                    {
+                        task.TaskAssignments.Add(new TaskAssignmentDto
+                            {
+                                AppUserId = memberId,
+                                TaskItemId = task.Id
+                            });
+                    }
+                }
+            }
+            else
+            {
+                var response = await Http.DeleteAsync($"api/AssignMember/{task.Id}/remove?memberId={memberId}");
+                if (response.IsSuccessStatusCode)
+                {
+
+                    var existing = task.TaskAssignments.FirstOrDefault(a => a.AppUserId == memberId);
+                    if (existing != null)
+                        task.TaskAssignments.Remove(existing);
+                }
+            }
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+    // private async Task SaveMultiMemberAssignment(TaskItemDto task)
+    // {
+        
+    //     foreach (var board in Boards)
+    //     {
+    //         var t = board.TaskItems.FirstOrDefault(x => x.Id == task.Id);
+    //         if (t != null)
+    //         {
+    //             t.TaskAssignments = task.TaskAssignments;
+    //             break;
+    //         }
+    //     }
+
+        
+    // }
+
+    private void OpenUpdateTaskModal(BoardDto board, TaskItemDto task)
+    {
+        editTaskBoard = board;
 
 
-        var response = await Http.PutAsJsonAsync($"api/Project/{ProjectId}", CurrentProject);
+        editTask = new TaskItemDto
+        {
+            Id = task.Id,
+            Title = task.Title,
+            Description = task.Description,
+            Priority = task.Priority,
+            DueDate = task.DueDate,
+            BoardId = task.BoardId,
+
+
+            Order = task.Order,
+
+        };
+
+        showUpdateTaskModal = true;
+    }
+    private void OpenAddTaskModal(BoardDto board)
+    {
+        selectedBoard = board;
+        newTask = new TaskItemDto
+            {
+                BoardId = board.Id,
+            // Priority = "Low",
+            // DueDate = DateTime.UtcNow.AddDays(1)
+
+            };
+        showTaskModal = true;
+    }
+
+    private void CancelAddTask()
+    {
+        showTaskModal = false;
+        newTask = new TaskItemDto();
+        selectedBoard = null;
+    }
+    private async Task ConfirmAddTask()
+    {
+        if (selectedBoard == null || string.IsNullOrWhiteSpace(newTask.Title))
+            return;
+
+             newTask.Order = selectedBoard.TaskItems.Count + 1;
+        try
+        {
+            var response = await Http.PostAsJsonAsync($"api/TaskItem/boards/{selectedBoard.Id}/tasks", newTask); 
+            if (response.IsSuccessStatusCode)
+            {
+                var createdTask = await response.Content.ReadFromJsonAsync<TaskItemDto>();
+                if (createdTask != null)
+                {
+                    selectedBoard.TaskItems.Add(createdTask);
+                    UpdateOrderNumbers(selectedBoard);
+                }
+                showTaskModal = false;
+                newTask= new TaskItemDto();
+                selectedBoard = null;
+
+                StateHasChanged();
+            }
+            else
+            {
+                Console.WriteLine("Failed to create task.");
+             
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error creating task: " + ex.Message);
+        }
+   
+       
+    }
+      
+    private async Task ConfirmUpdateTask()
+    {
+        if (editTaskBoard == null) return;
+
+        var response = await Http.PutAsJsonAsync($"api/TaskItem/{editTask.Id}", editTask);
 
         if (response.IsSuccessStatusCode)
         {
-            CurrentProject = await Http.GetFromJsonAsync<ProjectDto>($"api/Project/{ProjectId}");
-            Boards = CurrentProject.Boards.ToList();
-            await LoadProject();
+            // Update UI
+            var original = editTaskBoard.TaskItems.FirstOrDefault(t => t.Id == editTask.Id);
+
+            if (original != null)
+            {
+                original.Title = editTask.Title;
+                original.Description = editTask.Description;
+                original.Priority = editTask.Priority;
+                original.DueDate = editTask.DueDate;
+                original.Order = editTask.Order;
+
+            }
+
+            showUpdateTaskModal = false;
+
+            @* await SaveProject();  *@
             StateHasChanged();
-            return true;
         }
-        return false;
-    }
-    private void OnUsersChanged(ChangeEventArgs e)
-    {
-        var selectedValues = e.Value as IEnumerable<string>;
-
-        if (selectedValues != null)
+        else
         {
-            selectedUserIds = selectedValues
-                .Select(int.Parse)
-                .ToList();
+            Console.WriteLine("Task update failed!");
         }
     }
-    private void OnSprintChanged(ChangeEventArgs e)
+
+    private void CloseUpdateTaskModal()
     {
-        if (int.TryParse(e.Value?.ToString(), out int sprintId))
-            selectedSprintId = sprintId;
+        showUpdateTaskModal = false;
     }
-
-
-    // private async void OpenAssignUsersModal(TaskItemDto task)
-    // {
-    //     selectedMenuTask = task;
-
-    //     allUsers = await Http.GetFromJsonAsync<List<AppUserDto>>("api/member");
-
-    //     selectedUserIds = task.TaskAssignments?
-    //                   .Select(a => a.AppUserId)
-    //                   .ToList()
-    //                   ?? new List<int>();
-    //     showAssignUsersModal = true;
-    //     StateHasChanged();
-    // }
-
-    // private void CloseAssignUsersModal()
-    // {
-    //     showAssignUsersModal = false;
-    //     selectedUserIds.Clear();
-    // }
-
-    private async Task SaveAssignedUsers()
+    private async Task PersistBoardOrders(BoardDto board)
+{
+    var payload = board.TaskItems.Select(t => new TaskReorderDto
     {
-        selectedMenuTask.TaskAssignments = selectedUserIds
-        .Select(id => new TaskAssignmentDto
-        {
-            TaskItemId = selectedMenuTask.Id,
-            AppUserId = id
-        })
-        .ToList();
+        TaskId = t.Id,
+        BoardId = board.Id,
+        Order = t.Order
+    }).ToList();
 
-        foreach(var board in CurrentProject.Boards)
-        {
-            var task = board.TaskItems.FirstOrDefault(t => t.Id == selectedMenuTask.Id);
-            if (task != null)
-            {
-                task.TaskAssignments = selectedMenuTask.TaskAssignments;
-                break;
-            }
-        }
+    await Http.PutAsJsonAsync("api/TaskItem/tasks/reorder", payload);
+}
 
-        await SaveProject();  
-
-
-    }
-    // private async void OpenAssignSprintModal(TaskItemDto task)
-    // {
-    //     selectedMenuTask = task;
-
-    //     allSprints = await Http.GetFromJsonAsync<List<SprintDto>>("api/Sprint");
-
-    //     selectedSprintId = task.SprintId;
-
-    //     showAssignSprintModal = true;
-    //     StateHasChanged();
-    // }
-
-    // private void CloseAssignSprintModal()
-    // {
-    //     showAssignSprintModal = false;
-    // }
-    private async Task SaveAssignedSprint()
-    {
-        selectedMenuTask.SprintId = selectedSprintId;
-        foreach (var board in CurrentProject.Boards)
-        {
-            var task = board.TaskItems.FirstOrDefault(t => t.Id == selectedMenuTask.Id);
-            if (task != null)
-            {
-                task.SprintId = selectedSprintId;
-                break;
-            }
-        }
-
-        await SaveProject();
-
-        
-    }
-
-    
 }

@@ -1482,7 +1482,7 @@
         try
         {
 
-            var response = await Http.PostAsJsonAsync("api/Project/new", newProject);
+            var response = await Http.PostAsJsonAsync("api/NewProject", newProject);
             if (response.IsSuccessStatusCode)
             {
                 var createdProject = await response.Content.ReadFromJsonAsync<ProjectDto>();

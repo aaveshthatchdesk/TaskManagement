@@ -9,7 +9,12 @@ namespace Task.Application.Interaces
 {
     public  interface IBoardRepository
     {
-        Task<Board> GetBoardByIdAsync(int boardId);
-        Task<bool> UpdateBoardNameAsync(int  boardId, string name);
+        
+
+        Task<IEnumerable<Board>> GetBoardsByProjectIdAsync(int projectId);
+        Task<Board?> GetBoardByIdAsync(int id);
+        Task<Board> CreateBoardAsync(Board board);
+        Task<Board> UpdateBoardAsync(Board board);
+        Task<bool> DeleteBoardAsync(Board board);
     }
 }
