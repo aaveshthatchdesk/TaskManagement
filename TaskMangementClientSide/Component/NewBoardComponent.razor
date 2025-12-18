@@ -16,7 +16,7 @@
     }
   
     .task-card {
-        min-height: 240px;
+        /* min-height: 240px; */
         max-height:400px;/* consistent height */
         display: flex;
         flex-direction: column;
@@ -794,9 +794,9 @@ dropdown-submenu {
 
                                         <div>
 
-                                            @if (!string.IsNullOrWhiteSpace(task.Description))
+                                            @* @if (!string.IsNullOrWhiteSpace(task.Description))
                                             {
-                                                bool showPreview = task.Description.Length > 60;
+                                                bool showPreview = task.Description.Length > 20;
 
                                                 <!-- Description -->
                                             @if (expandedDescriptions.Contains(task.Id))
@@ -820,7 +820,9 @@ dropdown-submenu {
                                                 @if (showPreview)
                                                 {
                                             <button class="desc-toggle-btn"
-                                                    @onclick="() => ToggleDescription(task)">
+                                                    @onclick="() => ToggleDescription(task)"
+                                                    @onclick="stopPropagation"
+                                                    @onmousedown:stopPropagation">
                                                 @(expandedDescriptions.Contains(task.Id) ? "Hide Description ↑" : "Preview ↓")
                                             </button>
                                             }
@@ -828,7 +830,7 @@ dropdown-submenu {
                                             else
                                             {
                                                  <div class="task-no-desc-gap"></div> <!-- ⭐ ADD THIS -->
-                                                  }
+                                                  } *@
 
                                         </div>
 
@@ -2056,6 +2058,10 @@ dropdown-submenu {
             task.TaskAssignments = new List<TaskAssignmentDto>();
 
         try
+        
+        
+        
+        
         {
             if (isChecked)
             {
