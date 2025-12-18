@@ -26,8 +26,11 @@ namespace Task.Domain.Entities
         public bool IsCompleted { get; set; } = false;
 
         public DateTime? CompletedDate { get; set; }
+        //public DateTime? CreatedOn { get; set; }
 
+        //public DateTime? LastUpdatedOn { get; set; }
 
+  
         public ICollection<TaskAssignment> TaskAssignments { get; set; } = new List<TaskAssignment>();
     }
 }

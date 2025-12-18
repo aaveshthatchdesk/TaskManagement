@@ -30,6 +30,8 @@ namespace Task.Infrastructure.DbContext
 
         public DbSet<ProjectManager> ProjectManagers { get; set; } 
 
+     
+
 
 
 
@@ -64,6 +66,7 @@ namespace Task.Infrastructure.DbContext
                 .HasForeignKey(t => t.SprintId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+          
             //      modelBuilder.Entity<Project>()
             //.HasOne(s => s.Sprint)
             //.WithOne(p => p.Project)
