@@ -37,6 +37,22 @@ namespace Task.Application.Services
 
 
         }
+        public async Task<bool> UpdateTaskDescriptionAsync(int taskId, string description)
+        {
+            var task = await _taskItemRepository.GetTaskByIdAsync(taskId);
+            if (task == null)
+                return false;
+
+
+      
+            task.Description = description;
+            task.LastUpdatedOn = DateTime.UtcNow;
+
+
+            return await _taskItemRepository.SaveChangesAsync();
+
+
+        }
         public async Task<IEnumerable<TaskItemDto>> GetTasksByProjectAsync(int projectId)
         {
             var tasks = await _taskItemRepository.GetByProjectIdAsync(projectId);
@@ -59,6 +75,7 @@ namespace Task.Application.Services
                 Priority = dto.Priority,
                 DueDate = dto.DueDate,
                 BoardId = dto.BoardId,
+                CreatedOn= DateTime.UtcNow,
                 Order = dto.Order,
                 IsCompleted = false,
             };
@@ -71,6 +88,7 @@ namespace Task.Application.Services
                 Priority = created.Priority,
                 DueDate = created.DueDate,
                 BoardId = created.BoardId,
+                CreatedOn= created.CreatedOn,
                 IsCompleted = false,
                 TaskAssignments = new List<TaskAssignmentDto>() 
             };
@@ -86,6 +104,7 @@ namespace Task.Application.Services
             task.DueDate = dto.DueDate;
             task.Order = dto.Order;
             task.IsCompleted = dto.IsCompleted;
+            task.LastUpdatedOn = DateTime.UtcNow;
             task.CompletedDate = dto.IsCompleted ? DateTime.UtcNow : null;
             var updated = await _taskItemRepository.UpdateAsync(task);
             return new TaskItemDto
@@ -97,6 +116,7 @@ namespace Task.Application.Services
                 DueDate = updated.DueDate,
                 BoardId = updated.BoardId,
                 IsCompleted = updated.IsCompleted,
+                LastUpdatedOn= updated.LastUpdatedOn,
                 CompletedDate = updated.CompletedDate,
                 TaskAssignments = new List<TaskAssignmentDto>() 
 
@@ -142,6 +162,21 @@ namespace Task.Application.Services
 
                 task.BoardId = dto.BoardId;
                 task.Order = dto.Order;
+                if (dto.IsDoneBoard)
+                {
+                   
+                        task.IsCompleted = true;
+                        task.CompletedDate = DateTime.UtcNow;
+                    
+                }
+                else
+                {
+                    task.IsCompleted = false;
+                    task.CompletedDate = null;
+
+                }
+
+                task.LastUpdatedOn = DateTime.UtcNow;
             }
             return await _taskItemRepository.SaveChangesAsync();
         }

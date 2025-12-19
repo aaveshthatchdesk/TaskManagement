@@ -1482,7 +1482,7 @@
         try
         {
 
-            var response = await Http.PostAsJsonAsync("api/NewProject", newProject);
+            var response = await Http.PostAsJsonAsync("api/Project/new", newProject);
             if (response.IsSuccessStatusCode)
             {
                 var createdProject = await response.Content.ReadFromJsonAsync<ProjectDto>();
@@ -1494,7 +1494,7 @@
                 newProject = new ProjectDto();
 
 
-                await FilterProjects(selectedFilter); // refresh project list
+                await FilterProjects(selectedFilter); 
 
             }
             else

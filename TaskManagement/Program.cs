@@ -39,6 +39,9 @@ namespace TaskManagement
             builder.Services.AddScoped<ITaskItemRepository, TaskItemRepository>();
             builder.Services.AddScoped<IAssignMemberService, AssignMemberService>();
             builder.Services.AddScoped<IAssignMemberRepository, AssignMemberRepository>();
+            builder.Services.AddScoped<IFileAndCommentsInTasksRepository, FileAndCommentsInTasksRepository>();
+            builder.Services.AddScoped<IFileAndCommentsInTasksService, FileAndCommentsInTasksService>();
+
 
             builder.Services.AddScoped<IEmailService, EmailService>();
 
@@ -149,6 +152,7 @@ namespace TaskManagement
 
             var app = builder.Build();
 
+
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -159,6 +163,8 @@ namespace TaskManagement
                     c.RoutePrefix = string.Empty;
                 });
             }
+            app.UseStaticFiles();
+
             app.UseCors("AllowBlazorClient");
 
             app.UseHttpsRedirection();

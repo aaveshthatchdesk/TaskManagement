@@ -15,6 +15,8 @@ namespace Task.Domain.Entities
         public string Priority {  get; set; } = string.Empty;   
         public DateTime? DueDate { get; set; }
 
+
+      
         public int BoardId { get; set; }
 
         public Board Board { get; set; } = null!;
@@ -26,11 +28,14 @@ namespace Task.Domain.Entities
         public bool IsCompleted { get; set; } = false;
 
         public DateTime? CompletedDate { get; set; }
-        //public DateTime? CreatedOn { get; set; }
+        public DateTime? CreatedOn { get; set; }
 
-        //public DateTime? LastUpdatedOn { get; set; }
+        public DateTime? LastUpdatedOn { get; set; }
 
-  
+        public ICollection<TaskAttachment> TaskAttachments { get; set; } = new List<TaskAttachment>();
+        public ICollection<TaskComment> TaskComments { get; set; } = new List<TaskComment>();
+
+
         public ICollection<TaskAssignment> TaskAssignments { get; set; } = new List<TaskAssignment>();
     }
 }

@@ -30,7 +30,10 @@ namespace Task.Infrastructure.DbContext
 
         public DbSet<ProjectManager> ProjectManagers { get; set; } 
 
-     
+        public DbSet<TaskAttachment> TaskAttachments { get; set; }
+        public DbSet<TaskComment> TaskComments { get; set; }
+
+
 
 
 
@@ -66,7 +69,31 @@ namespace Task.Infrastructure.DbContext
                 .HasForeignKey(t => t.SprintId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-          
+            modelBuilder.Entity<TaskAttachment>()
+                .HasOne(ta => ta.TaskItem)
+                .WithMany(t => t.TaskAttachments)
+                 .HasForeignKey(ta => ta.TaskItemId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TaskComment>()
+                .HasOne(tc => tc.TaskItem)
+                .WithMany(t => t.TaskComments)
+                .HasForeignKey(tc => tc.TaskItemId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TaskAttachment>()
+                .HasOne(ta => ta.UploadedByUser)
+                .WithMany()
+                .HasForeignKey(ta => ta.UploadedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TaskComment>()
+                .HasOne(tc => tc.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(tc => tc.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
             //      modelBuilder.Entity<Project>()
             //.HasOne(s => s.Sprint)
             //.WithOne(p => p.Project)

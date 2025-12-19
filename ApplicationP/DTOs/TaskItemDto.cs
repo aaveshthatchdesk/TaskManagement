@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Task.Domain.Entities;
 
 
 namespace Task.Application.DTOs
@@ -31,7 +32,8 @@ namespace Task.Application.DTOs
         public int BoardId { get; set; }
 
         //public BoardDto BoardDto { get; set; } = null!;
-        
+        public string BoardName { get; set; } = string.Empty;
+
         public int? SprintId { get; set; }
 
 
@@ -41,6 +43,12 @@ namespace Task.Application.DTOs
         public int Order { get; set; }
         public DateTime? CompletedDate { get; set; }
         public bool IsCompleted { get; set; }
+        public DateTime? CreatedOn { get; set; }
+
+        public DateTime? LastUpdatedOn { get; set; }
+
+        public List<TaskAttachmentDto>? TaskAttachments { get; set; } = new List<TaskAttachmentDto>();
+        public List<TaskCommentDto>? TaskComments { get; set; } = new List<TaskCommentDto>();
 
         public ICollection<TaskAssignmentDto> TaskAssignments { get; set; } = new List<TaskAssignmentDto>();
     }

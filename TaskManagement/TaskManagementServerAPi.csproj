@@ -30,4 +30,8 @@
     <ProjectReference Include="..\InfrastructureP\Task.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\Task-attachment\" />
+  </ItemGroup>
+
 </Project>

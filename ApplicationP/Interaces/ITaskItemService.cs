@@ -11,6 +11,7 @@ namespace Task.Application.Interaces
     {
         Task<bool> UpdateTaskAsync(int taskId,TaskItemDto dto);
 
+        public Task<bool> UpdateTaskDescriptionAsync(int taskId, string description );
         Task<IEnumerable<TaskItemDto>> GetTasksByProjectAsync(int projectID);
         Task<TaskItemDto?> GetTaskByIdAsync(int taskId);
 

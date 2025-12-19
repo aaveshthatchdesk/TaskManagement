@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using Task.Application.DTOs;
 using Task.Application.Interaces;
 using Task.Application.Services;
@@ -28,6 +29,19 @@ namespace TaskManagementServerAPi.Controllers
 
             return Ok("Task updated successfully");
         }
+        [HttpPut("/description/{taskId}")]
+        public async Task<IActionResult> UpdateTaskDescription(int taskId, [FromBody] string description)
+        {
+
+
+            var success = await _taskItemService.UpdateTaskDescriptionAsync(taskId, description);
+
+            if (!success)
+                return NotFound("Task not found");
+
+            return Ok("Description updated successfully");
+        }
+
         [HttpGet("project/{projectId}/tasks")]
         public async Task<IActionResult> GetTasks(int projectId)
         {

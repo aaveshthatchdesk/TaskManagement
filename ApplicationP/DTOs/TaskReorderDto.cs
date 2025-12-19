@@ -11,5 +11,7 @@ namespace Task.Application.DTOs
         public int TaskId { get; set; }
         public int BoardId { get; set; }
         public int Order { get; set; }
+
+        public  bool IsDoneBoard { get; set; } 
     }
 }

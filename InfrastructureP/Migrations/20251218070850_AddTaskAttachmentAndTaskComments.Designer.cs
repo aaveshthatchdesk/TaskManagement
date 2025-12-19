@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Task.Infrastructure.DbContext;
 
@@ -11,9 +12,11 @@ using Task.Infrastructure.DbContext;
 namespace Task.Infrastructure.Migrations
 {
     [DbContext(typeof(TaskDbContext))]
-    partial class TaskDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251218070850_AddTaskAttachmentAndTaskComments")]
+    partial class AddTaskAttachmentAndTaskComments
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -43,7 +46,7 @@ namespace Task.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("appUsers", (string)null);
+                    b.ToTable("appUsers");
                 });
 
             modelBuilder.Entity("Task.Domain.Entities.AppUserAuth", b =>
@@ -60,9 +63,6 @@ namespace Task.Infrastructure.Migrations
                     b.Property<bool>("IsTemporaryPassword")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Password")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<byte[]>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("varbinary(max)");
@@ -75,7 +75,7 @@ namespace Task.Infrastructure.Migrations
 
                     b.HasIndex("AppUserId");
 
-                    b.ToTable("appUserAuths", (string)null);
+                    b.ToTable("appUserAuths");
                 });
 
             modelBuilder.Entity("Task.Domain.Entities.Board", b =>
@@ -97,7 +97,7 @@ namespace Task.Infrastructure.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("boards", (string)null);
+                    b.ToTable("boards");
                 });
 
             modelBuilder.Entity("Task.Domain.Entities.Project", b =>
@@ -135,7 +135,7 @@ namespace Task.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("projects", (string)null);
+                    b.ToTable("projects");
                 });
 
             modelBuilder.Entity("Task.Domain.Entities.ProjectManager", b =>
@@ -150,7 +150,7 @@ namespace Task.Infrastructure.Migrations
 
                     b.HasIndex("AppUserId");
 
-                    b.ToTable("ProjectManagers", (string)null);
+                    b.ToTable("ProjectManagers");
                 });
 
             modelBuilder.Entity("Task.Domain.Entities.ProjectMember", b =>
@@ -165,7 +165,7 @@ namespace Task.Infrastructure.Migrations
 
                     b.HasIndex("AppUserId");
 
-                    b.ToTable("ProjectMembers", (string)null);
+                    b.ToTable("ProjectMembers");
                 });
 
             modelBuilder.Entity("Task.Domain.Entities.Sprint", b =>
@@ -195,7 +195,7 @@ namespace Task.Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("[ProjectId] IS NOT NULL");
 
-                    b.ToTable("sprints", (string)null);
+                    b.ToTable("sprints");
                 });
 
             modelBuilder.Entity("Task.Domain.Entities.TaskAssignment", b =>
@@ -210,7 +210,7 @@ namespace Task.Infrastructure.Migrations
 
                     b.HasIndex("AppUserId");
 
-                    b.ToTable("taskAssignments", (string)null);
+                    b.ToTable("taskAssignments");
                 });
 
             modelBuilder.Entity("Task.Domain.Entities.TaskAttachment", b =>
@@ -244,7 +244,7 @@ namespace Task.Infrastructure.Migrations
 
                     b.HasIndex("UploadedByUserId");
 
-                    b.ToTable("TaskAttachments", (string)null);
+                    b.ToTable("TaskAttachments");
                 });
 
             modelBuilder.Entity("Task.Domain.Entities.TaskComment", b =>
@@ -274,7 +274,7 @@ namespace Task.Infrastructure.Migrations
 
                     b.HasIndex("TaskItemId");
 
-                    b.ToTable("TaskComments", (string)null);
+                    b.ToTable("TaskComments");
                 });
 
             modelBuilder.Entity("Task.Domain.Entities.TaskItem", b =>
@@ -327,7 +327,7 @@ namespace Task.Infrastructure.Migrations
 
                     b.HasIndex("SprintId");
 
-                    b.ToTable("tasks", (string)null);
+                    b.ToTable("tasks");
                 });
 
             modelBuilder.Entity("Task.Domain.Entities.AppUserAuth", b =>

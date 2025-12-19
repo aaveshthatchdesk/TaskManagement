@@ -15,11 +15,13 @@ namespace Task.Application.Services
     {
         private readonly IMemberRepository _memberRepository;
         private readonly IEmailService _emailService;
+        private readonly IConfiguration _configuration;
 
-        public MemberService(IMemberRepository memberRepository,IEmailService emailService)
+        public MemberService(IMemberRepository memberRepository,IEmailService emailService,IConfiguration configuration)
         {
             _memberRepository = memberRepository;
             _emailService = emailService;
+            _configuration = configuration;
         }
         public async Task<IEnumerable<AppUserDto>> GetAppUsersAsync()
         {
@@ -97,12 +99,13 @@ namespace Task.Application.Services
                 await _memberRepository.AddMemberAsync(newUser);
                 await _memberRepository.SaveChangesAsync();
 
-                string tempPassword=Guid.NewGuid().ToString("N")[..8];
+                string tempPassword = _configuration["TemporaryPassword"] ?? throw new Exception("TemporaryPassword not configured");
                CreatePasswordHash(tempPassword,out byte[] hash,out byte[] salt);
 
                 var auth = new AppUserAuth
                 {
                     AppUserId = newUser.Id,
+                    Password = tempPassword,
                     PasswordHash = hash,
                     PasswordSalt = salt,
                     IsTemporaryPassword = true

@@ -74,13 +74,13 @@ namespace Task.Infrastructure.Repository
 
         public async Task<int> GetTotalMembersByManagerAsync(int managerId)
         {
-            return await _taskDbContext.taskAssignments
-                .Where(a =>
-                    a.TaskItem.Board.Project.Managers.Any(pm => pm.AppUserId == managerId)
-                )
-                .Select(a => a.AppUserId)
-                .Distinct()
-                .CountAsync();
+            return await _taskDbContext.projects
+         .Where(p => p.Managers.Any(m => m.AppUserId == managerId))
+         .SelectMany(p => p.ProjectMembers)
+         .Select(pm => pm.AppUserId)
+         .Distinct()
+         .CountAsync();
+
         }
 
     }

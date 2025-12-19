@@ -65,13 +65,14 @@ namespace Task.Infrastructure.Repository
 
         public async Task<bool> SaveChangesAsync()
         {
-            await _taskDbContext.SaveChangesAsync();
-            return true;
+           return await _taskDbContext.SaveChangesAsync()>0;
+           
         }
 
         public async Task<List<TaskItem>> GetByIdsAsync(List<int> ids)
         {
             return await _taskDbContext.tasks
+                
                 .Where(t => ids.Contains(t.Id))
                 .ToListAsync();
         }
