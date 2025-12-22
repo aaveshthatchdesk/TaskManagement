@@ -12,6 +12,8 @@ namespace Task.Domain.Entities
         public int Id { get; set; }
         public string FileName { get; set; } = string.Empty;
         public string FilePath { get; set; } = string.Empty;
+
+        public string ContentType { get; set; } = string.Empty;
         public DateTime UploadedOn { get; set; } = DateTime.UtcNow;
         public int TaskItemId { get; set; }
         public TaskItem TaskItem { get; set; } = null!;

@@ -13,6 +13,7 @@ namespace Task.Application.Interaces
 
         Task<TaskItemDto?> GetTaskDetailByIdAsync(int taskId);
         Task<TaskCommentDto> AddCommentAsync(int taskId,  int userId, TaskCommentDto dto);
+        Task<bool> DeleteAttachmentAsync(int attachmentId, int userId,bool isAdmin);
         Task<TaskAttachmentDto> AddAttachmentAsync(int taskId, int userId,IFormFile file);
     }
 }

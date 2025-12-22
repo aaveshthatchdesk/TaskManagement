@@ -35,6 +35,8 @@ namespace Task.Application.Services
                 Priority = task.Priority,
                 DueDate = task.DueDate,
                 Order = task.Order,
+                CreatedOn = task.CreatedOn,
+                LastUpdatedOn = task.LastUpdatedOn,
                 BoardId = task.BoardId,
                 BoardName = task.Board.Name,
                 TaskAttachments = task.TaskAttachments?.Select(a => new TaskAttachmentDto
@@ -42,20 +44,26 @@ namespace Task.Application.Services
                     Id = a.Id,
                     FileName = a.FileName,
                     FilePath = a.FilePath,
+                    ContentType = a.ContentType,
                     UploadedByUserId = a.UploadedByUserId,
                     UploadedOn = a.UploadedOn,
                     UploadedByUserName = a.UploadedByUser.Name
                 }).ToList(),
-                 TaskComments = task.TaskComments?.Select(c => new TaskCommentDto
+                TaskComments = task.TaskComments?.Select(c => new TaskCommentDto
                 {
                     Id = c.Id,
                     CommentText = c.CommentText,
                     CreatedByUserId = c.CreatedByUserId,
-                     CreatedOn = c.CreatedOn,
+                    CreatedOn = c.CreatedOn,
                     CreatedByUserName = c.CreatedByUser.Name
 
 
-                 }).ToList()
+                }).ToList(),
+                TaskAssignments = task.TaskAssignments?.Select(a => new TaskAssignmentDto
+                {
+                    TaskItemId = a.TaskItemId,
+                    AppUserId = a.AppUserId,
+                }).ToList() ?? new List<TaskAssignmentDto>()
             };
         }
 
@@ -69,6 +77,14 @@ namespace Task.Application.Services
                 CreatedOn = DateTime.UtcNow
             };
             await _tasksRepository.AddCommentToTaskAsync(comment);
+
+            var taskItem = await _tasksRepository.GetTaskByIdAsync(taskId);
+            if (taskItem != null)
+            {
+                taskItem.LastUpdatedOn = DateTime.UtcNow;
+            }
+
+
             await _tasksRepository.SaveChangesAsync();
             return new TaskCommentDto
             {
@@ -94,22 +110,62 @@ namespace Task.Application.Services
             {
                 FileName = file.FileName,
                 FilePath = $"/Task-attachment/{savedName}",
+                ContentType = file.ContentType,
                 UploadedByUserId = userId,
                 TaskItemId = taskId,
                 UploadedOn = DateTime.UtcNow
             };
             await _tasksRepository.AddAttachmentAsync(attachment);
+            var taskItem = await _tasksRepository.GetTaskByIdAsync(taskId);
+            if (taskItem != null)
+            {
+                taskItem.LastUpdatedOn = DateTime.UtcNow;
+            }
+
+
             await _tasksRepository.SaveChangesAsync();
             return new TaskAttachmentDto
             {
                 Id = attachment.Id,
                 FileName = attachment.FileName,
                 FilePath = attachment.FilePath,
+                ContentType = attachment.ContentType,
                 UploadedByUserId=userId,
                 UploadedOn = attachment.UploadedOn,
                 UploadedByUserName=attachment.UploadedByUser?.Name??""
             };
         }
+        public async Task<bool> DeleteAttachmentAsync(int attachmentId, int userId,bool isAdmin)
+        {
+            var attachment = await _tasksRepository.GetAttachmentByIdAsync(attachmentId);
+            if (attachment == null)
+                return false;
+
+            // OPTIONAL: allow only uploader or admin later
+            if (!isAdmin && attachment.UploadedByUserId != userId)
+                throw new UnauthorizedAccessException("You are not allowed to delete this attachment");
+
+            // 1️⃣ Delete physical file
+            var physicalPath = Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "wwwroot",
+                attachment.FilePath.TrimStart('/'));
+
+            if (File.Exists(physicalPath))
+            {
+                File.Delete(physicalPath);
+            }
+
+            // 2️⃣ Delete DB record
+            await _tasksRepository.DeleteAttachmentAsync(attachment);
+         
+
+
+            await _tasksRepository.SaveChangesAsync();
+
+            return true;
+        }
+
 
     }
 }

@@ -12,6 +12,8 @@ namespace Task.Application.Interaces
         Task<TaskItem?>GetTaskByIdAsync(int TaskId);
         Task<string>AddCommentToTaskAsync(TaskComment comment);
         Task<string>AddAttachmentAsync( TaskAttachment attachment);
+        Task<TaskAttachment?> GetAttachmentByIdAsync(int attachmentId);
+        Task<string> DeleteAttachmentAsync(TaskAttachment attachment);
         Task<bool> SaveChangesAsync();
     }
 }

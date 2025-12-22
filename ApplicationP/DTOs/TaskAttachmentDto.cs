@@ -12,6 +12,7 @@ namespace Task.Application.DTOs
         public int Id { get; set; }
         public string FileName { get; set; } = string.Empty;
         public string FilePath { get; set; } = string.Empty;
+        public string ContentType { get; set; }
         public DateTime UploadedOn { get; set; }
         public int UploadedByUserId { get; set; }
         public string UploadedByUserName { get; set; } = string.Empty;

@@ -52,7 +52,16 @@ namespace Task.Infrastructure.Repository
             await _taskDbContext.TaskAttachments.AddAsync(attachment);
             return "Attachment added successfully";
         }
-
+        public async Task<TaskAttachment?> GetAttachmentByIdAsync(int attachmentId)
+        {
+            return await _taskDbContext.TaskAttachments
+                .FirstOrDefaultAsync(a => a.Id == attachmentId);
+        }
+        public async Task<string> DeleteAttachmentAsync(TaskAttachment attachment)
+        {
+            _taskDbContext.TaskAttachments.Remove(attachment);
+            return "Attachment deleted successfully";
+        }
         public async Task<bool> SaveChangesAsync()
         {
             return await _taskDbContext.SaveChangesAsync() > 0;

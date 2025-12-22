@@ -34,6 +34,13 @@ namespace Task.Application.Services
                 AppUserId = userId
             };
             await _assignMemberRepository.AddAsync(assignment);
+            var taskitem = await _taskItemRepository.GetTaskByIdAsync(taskId);
+            if (taskitem != null)
+            {
+                taskitem.LastUpdatedOn = DateTime.UtcNow;
+                await _taskItemRepository.SaveChangesAsync();
+            }
+
             return true;
 
         }
@@ -43,6 +50,13 @@ namespace Task.Application.Services
             if (assignment == null)
                 return false;
             await _assignMemberRepository.RemoveAsync(assignment);
+            var task = await _taskItemRepository.GetTaskByIdAsync(taskId);
+            if (task != null)
+            {
+                task.LastUpdatedOn = DateTime.UtcNow;
+                await _taskItemRepository.SaveChangesAsync();
+            }
+
             return true;
         }
     }

@@ -29,7 +29,8 @@ namespace Task.Application.Services
             task.Description = dto.Description;
             task.Priority = dto.Priority;
             task.DueDate = dto.DueDate;
-           
+            task.LastUpdatedOn = DateTime.UtcNow;
+
             task.Order = dto.Order;
 
 
@@ -76,6 +77,7 @@ namespace Task.Application.Services
                 DueDate = dto.DueDate,
                 BoardId = dto.BoardId,
                 CreatedOn= DateTime.UtcNow,
+                LastUpdatedOn = DateTime.UtcNow,
                 Order = dto.Order,
                 IsCompleted = false,
             };
@@ -89,6 +91,7 @@ namespace Task.Application.Services
                 DueDate = created.DueDate,
                 BoardId = created.BoardId,
                 CreatedOn= created.CreatedOn,
+                LastUpdatedOn = created.LastUpdatedOn,
                 IsCompleted = false,
                 TaskAssignments = new List<TaskAssignmentDto>() 
             };
@@ -141,6 +144,7 @@ namespace Task.Application.Services
                 DueDate = t.DueDate,
                 BoardId = t.BoardId,
                 SprintId = t.SprintId,
+                LastUpdatedOn = DateTime.UtcNow,
                 Order = t.Order,
                 IsCompleted = t.IsCompleted,
                 CompletedDate = t.CompletedDate,

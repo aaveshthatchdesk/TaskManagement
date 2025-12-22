@@ -26,11 +26,19 @@ namespace TaskManagementServerAPi.Controllers
                 return NotFound();
             return Ok(task);
         }
+        [Authorize]
         [HttpPost("{taskId}/comments")]
         public async Task<IActionResult> AddComment(int taskId, [FromBody] TaskCommentDto dto)
-        {    
-           
-            var comment = await _fileAndCommentsInTasks.AddCommentAsync(taskId, dto.CreatedByUserId, dto);
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)
+                 ?? User.FindFirst("UserId");
+
+            if (userIdClaim == null)
+                return Unauthorized("UserId not found in token");
+
+            int CreatedByUserId = int.Parse(userIdClaim.Value);
+
+            var comment = await _fileAndCommentsInTasks.AddCommentAsync(taskId, CreatedByUserId, dto);
             return Ok(comment);
         }
         [Authorize]
@@ -50,6 +58,27 @@ namespace TaskManagementServerAPi.Controllers
             var attachment = await _fileAndCommentsInTasks.AddAttachmentAsync(taskId, userId, dto.File);
             return Ok(attachment);
         }
+
+        [Authorize]
+        [HttpDelete("attachments/{attachmentId}")]
+        public async Task<IActionResult> DeleteAttachment(int attachmentId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)
+                ?? User.FindFirst("UserId");
+
+            if (userIdClaim == null)
+                return Unauthorized();
+
+            int userId = int.Parse(userIdClaim.Value);
+            bool isAdmin = User.IsInRole("Admin");
+
+            var result = await _fileAndCommentsInTasks.DeleteAttachmentAsync(attachmentId, userId,isAdmin);
+
+            if (!result)
+                return Forbid();
+            return Ok("Attachment deleted successfully");
+        }
+
 
     }
 }

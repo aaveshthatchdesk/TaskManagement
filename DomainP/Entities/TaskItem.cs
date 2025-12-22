@@ -31,6 +31,8 @@ namespace Task.Domain.Entities
         public DateTime? CreatedOn { get; set; }
 
         public DateTime? LastUpdatedOn { get; set; }
+        //public int CreatedByUserId { get; set; }
+        //public AppUser CreatedByUser { get; set; } = null!;
 
         public ICollection<TaskAttachment> TaskAttachments { get; set; } = new List<TaskAttachment>();
         public ICollection<TaskComment> TaskComments { get; set; } = new List<TaskComment>();
