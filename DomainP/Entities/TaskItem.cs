@@ -39,5 +39,7 @@ namespace Task.Domain.Entities
 
 
         public ICollection<TaskAssignment> TaskAssignments { get; set; } = new List<TaskAssignment>();
+        public ICollection<TaskCreator> TaskCreators { get; set; } = new List<TaskCreator>();
+
     }
 }

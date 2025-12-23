@@ -26,5 +26,7 @@ namespace Task.Domain.Entities
         public ICollection<ProjectManager>ManagedProjects { get; set; } = new List<ProjectManager>();
 
         public ICollection<ProjectMember> ProjectMembers { get; set; } = new List<ProjectMember>();
+        public ICollection<TaskCreator> CreatedTasks { get; set; } = new List<TaskCreator>();
+
     }
 }

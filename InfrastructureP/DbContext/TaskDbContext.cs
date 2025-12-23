@@ -33,6 +33,8 @@ namespace Task.Infrastructure.DbContext
         public DbSet<TaskAttachment> TaskAttachments { get; set; }
         public DbSet<TaskComment> TaskComments { get; set; }
 
+        public DbSet<TaskCreator> TaskCreators { get; set; }
+
 
 
 
@@ -136,6 +138,19 @@ namespace Task.Infrastructure.DbContext
                 .HasOne(pm => pm.AppUser)
                 .WithMany(u => u.ProjectMembers)
                 .HasForeignKey(pm => pm.AppUserId);
+
+
+            modelBuilder.Entity<TaskCreator>()
+    .HasOne(tc => tc.TaskItem)
+    .WithMany(t => t.TaskCreators)
+    .HasForeignKey(tc => tc.TaskItemId)
+    .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TaskCreator>()
+                .HasOne(tc => tc.AppUser)
+                .WithMany(u => u.CreatedTasks)
+                .HasForeignKey(tc => tc.AppUserId)
+                .OnDelete(DeleteBehavior.Restrict);
 
 
             modelBuilder.Entity<Project>().Ignore(p => p.Progress);

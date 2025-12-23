@@ -1159,6 +1159,9 @@ dropdown-submenu {
                                 @foreach (var c in selectedTaskForDetails.TaskComments)
                                 {
                                     <div class="border rounded-3 p-3 mb-2">
+
+
+                                           
                                         <div class="d-flex justify-content-between ">
                                             <div class="d-flex justify-content-start align-items-center gap-1">
                                             <div class="rounded-circle  text-white fw-bold
@@ -1168,16 +1171,82 @@ dropdown-submenu {
                                             </div>
                                           
                                             <strong>@c.CreatedByUserName</strong>
+
                                             </div>
-                                            <small class="text-muted">
+
+                                           
+                                                @* <button type="button"
+                                                        class="btn btn-sm btn-light"
+                                                        title="Delete"
+                                                        @onclick="() => DeleteCommentAsync(c.Id)"
+                                                        @onclick:stopPropagation
+                                                        @onmousedown:stopPropagation>
+                                                    <i class="bi bi-x-lg text-danger"></i>
+                                                </button> *@
+                                                  <div class="d-flex justify-content-end gap-2 mt-1">
+        <!-- INLINE EDIT ICON -->
+                                        <button type="button" class="btn btn-sm btn-light"
+                                            title="Edit"
+                                               @onclick="() => StartEditComment(c)"
+                                               @onclick:stopPropagation
+                                               @onmousedown:stopPropagation>
+                                             <i class="bi bi-pencil"></i>
+                                           </button>
+
+        <!-- OPTIONAL: keep delete as small X -->
+                                        <button type="button" class="btn btn-sm btn-light"
+                                            title="Delete"
+                                            @onclick="() => DeleteCommentAsync(c.Id)"
+                                            @onclick:stopPropagation
+                                            @onmousedown:stopPropagation>
+                                                <i class="bi bi-x-lg text-danger"></i>
+                                          </button>
+                                          </div>
+                                               
+                                        </div>
+
+                                          @if (editingCommentId == c.Id)
+                                            {
+                                                <textarea class="form-control mt-2"
+                                                          rows="2"
+                                                          @bind="editedCommentText"
+                                                          @onclick:stopPropagation
+                                                          @onmousedown:stopPropagation>
+                                                </textarea>
+
+                                                <div class="d-flex justify-content-end gap-2 mt-2">
+                                                    <button class="btn btn-sm btn-secondary"
+                                                            @onclick="CancelEditComment"
+                                                            @onclick:stopPropagation>
+                                                        Cancel
+                                                    </button>
+
+                                                    <button class="btn btn-sm savebtn"
+                                                            @onclick="() => SaveEditedCommentAsync(c.Id)"
+                                                            @onclick:stopPropagation>
+                                                        Save
+                                                    </button>
+                                                </div>
+                                            }
+                                                else
+                                                {
+                                                  <p class="mb-0 mt-1">
+                                                     @c.CommentText
+                                                       </p>
+
+  
+                                                   }
+
+                                        
+                                            <div class="d-flex justify-content-end ">
+                                               
+
+                                                <small class="text-muted">
                                                 @c.CreatedOn.ToLocalTime()
                                                 
                                             </small>
-                                        </div>
+                                            </div>
 
-                                        <p class="mb-0 mt-1">
-                                            @c.CommentText
-                                        </p>
                                     </div>
                                 }
                             }
@@ -1836,6 +1905,9 @@ dropdown-submenu {
     private IBrowserFile? selectedAttachment;
     private TaskCommentDto newComment = new TaskCommentDto();
     private string newCommentText = string.Empty;
+    private int editingCommentId = 0;
+    private string editedCommentText = string.Empty;
+
 
 private string ApiBaseUrl = "https://localhost:7218"; 
 
@@ -2511,6 +2583,61 @@ private string ApiBaseUrl = "https://localhost:7218";
             await OpenTaskDetailsAsync(selectedTaskForDetails.Id);
         }
     }
+    private void StartEditComment(TaskCommentDto comment)
+    {
+        editingCommentId = comment.Id;
+        editedCommentText = comment.CommentText;
+    }
+
+    private void CancelEditComment()
+    {
+        editingCommentId = 0;
+        editedCommentText = string.Empty;
+    }
+    private async Task SaveEditedCommentAsync(int commentId)
+    {
+        if (string.IsNullOrWhiteSpace(editedCommentText))
+            return;
+
+        var dto = new TaskCommentDto
+        {
+            CommentText = editedCommentText
+        };
+
+        var response = await Http.PutAsJsonAsync(
+            $"api/FileAndCommentInTask/comments/{commentId}",
+            dto
+        );
+
+        if (response.IsSuccessStatusCode)
+        {
+            editingCommentId = 0;
+            editedCommentText = string.Empty;
+
+        
+            await OpenTaskDetailsAsync(selectedTaskForDetails.Id);
+        }
+        else
+        {
+            Console.WriteLine("Failed to update comment");
+        }
+    }
+    private async Task DeleteCommentAsync(int commentId)
+    {
+        var response = await Http.DeleteAsync(
+            $"api/FileAndCommentInTask/comments/{commentId}"
+        );
+
+        if (response.IsSuccessStatusCode)
+        {
+            await OpenTaskDetailsAsync(selectedTaskForDetails.Id);
+        }
+        else
+        {
+            Console.WriteLine("Failed to delete comment");
+        }
+    }
+
 
     private async Task OpenTaskDetailsAsync(int taskId)
     {

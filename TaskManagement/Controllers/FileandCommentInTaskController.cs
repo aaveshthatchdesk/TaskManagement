@@ -41,6 +41,56 @@ namespace TaskManagementServerAPi.Controllers
             var comment = await _fileAndCommentsInTasks.AddCommentAsync(taskId, CreatedByUserId, dto);
             return Ok(comment);
         }
+       
+        [Authorize]
+        [HttpPut("comments/{commentId}")]
+        public async Task<IActionResult> UpdateComment(
+            int commentId,
+            [FromBody] TaskCommentDto dto)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)
+                   ?? User.FindFirst("UserId");
+
+            if (userIdClaim == null)
+                return Unauthorized("UserId not found in token");
+
+            int userId = int.Parse(userIdClaim.Value);
+
+            bool isAdmin = User.IsInRole("Admin");
+
+            var updatedComment = await _fileAndCommentsInTasks
+                .UpdateCommentAsync(commentId, userId, isAdmin, dto.CommentText);
+
+            if (updatedComment == null)
+                return NotFound("Comment not found");
+
+            return Ok(updatedComment);
+        }
+
+      
+        [Authorize]
+        [HttpDelete("comments/{commentId}")]
+        public async Task<IActionResult> DeleteComment(int commentId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)
+                    ?? User.FindFirst("UserId");
+
+            if (userIdClaim == null)
+                return Unauthorized("UserId not found in token");
+
+            int userId = int.Parse(userIdClaim.Value);
+
+            bool isAdmin = User.IsInRole("Admin");
+
+            var result = await _fileAndCommentsInTasks
+                .DeleteCommentAsync(commentId, userId, isAdmin);
+
+            if (!result)
+                return NotFound("Comment not found");
+
+            return Ok("Comment deleted successfully");
+        }
+
         [Authorize]
         [HttpPost("{taskId}/attachments")]
         [Consumes("multipart/form-data")]

@@ -95,6 +95,51 @@ namespace Task.Application.Services
                 CreatedByUserName=comment.CreatedByUser?.Name??""
             };
         }
+        public async Task<TaskCommentDto?> UpdateCommentAsync(int commentId,int userId,bool isAdmin,string updatedText)
+        {
+            var comment=await _tasksRepository.GetCommentByIdAsync(commentId);
+            if (comment == null) 
+                return null;
+            if (!isAdmin && comment.CreatedByUserId != userId)
+                throw new UnauthorizedAccessException("Yor are not allowed to edit this comment");
+
+            comment.CommentText= updatedText;
+
+            var task = await _tasksRepository.GetTaskByIdAsync(comment.TaskItemId);
+            if (task != null)
+                task.LastUpdatedOn = DateTime.UtcNow;
+
+            await _tasksRepository.SaveChangesAsync();
+
+            return new TaskCommentDto
+            {
+                Id = comment.Id,
+                CommentText = comment.CommentText,
+                CreatedByUserId = comment.CreatedByUserId,
+                CreatedOn = comment.CreatedOn,
+                CreatedByUserName = comment.CreatedByUser?.Name ?? ""
+            };
+
+        }
+        public async Task<bool> DeleteCommentAsync(int commentId, int userId, bool isAdmin)
+        {
+            var comment = await _tasksRepository.GetCommentByIdAsync(commentId);
+            if (comment == null)
+                return false;
+
+            if (!isAdmin && comment.CreatedByUserId != userId)
+                throw new UnauthorizedAccessException("You are not allowed to delete this comment");
+
+            await _tasksRepository.DeleteCommentAsync(comment);
+
+            var task = await _tasksRepository.GetTaskByIdAsync(comment.TaskItemId);
+            if (task != null)
+                task.LastUpdatedOn = DateTime.UtcNow;
+
+            await _tasksRepository.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<TaskAttachmentDto> AddAttachmentAsync(int taskId,int userId,IFormFile file)
         {
 

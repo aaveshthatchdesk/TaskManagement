@@ -42,10 +42,21 @@ namespace Task.Infrastructure.Repository
 
 
         }
+        public async Task<TaskComment?> GetCommentByIdAsync(int commentId)
+        {
+            return await _taskDbContext.TaskComments
+                .Include(c=>c.CreatedByUser)
+                .FirstOrDefaultAsync(c=>c.Id == commentId);
+        }
         public async Task<string> AddCommentToTaskAsync(TaskComment comment)
         {
             await _taskDbContext.TaskComments.AddAsync(comment);
             return "Comment added successfully";
+        }
+        public async Task<string> DeleteCommentAsync(TaskComment comment)
+        {
+            _taskDbContext.TaskComments.Remove(comment);
+            return "Comment deleted successfully";
         }
         public async Task<string> AddAttachmentAsync(TaskAttachment attachment)
         {

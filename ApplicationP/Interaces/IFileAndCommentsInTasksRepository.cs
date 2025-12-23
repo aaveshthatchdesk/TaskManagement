@@ -11,7 +11,11 @@ namespace Task.Application.Interaces
     {
         Task<TaskItem?>GetTaskByIdAsync(int TaskId);
         Task<string>AddCommentToTaskAsync(TaskComment comment);
+        Task<TaskComment?> GetCommentByIdAsync(int commnetId);
+
         Task<string>AddAttachmentAsync( TaskAttachment attachment);
+
+        Task<string> DeleteCommentAsync(TaskComment commnet);
         Task<TaskAttachment?> GetAttachmentByIdAsync(int attachmentId);
         Task<string> DeleteAttachmentAsync(TaskAttachment attachment);
         Task<bool> SaveChangesAsync();
