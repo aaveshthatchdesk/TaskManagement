@@ -1,9 +1,11 @@
 ﻿@using Task.Application.DTOs
+@using TaskMangementClientSide.Services
 
 @* @inject HttpClient Http *@
 @inject NavigationManager nav;
 @inject IHttpClientFactory HttpClientFactory
 @inject IJSRuntime JS
+@inject SpinnerService spinner
 
 
 <style>
@@ -615,7 +617,7 @@
                     <div class="border rounded-4 p-3 mb-4  mt-4 bg-light">
                         <h5 class="fw-bolder mb-3 text-center">Project Details</h5>
 
-                        <p class="mb-2"><strong>Project Name:</strong> @newProject.Name></p>
+                        <p class="mb-2"><strong>Project Name:</strong>@newProject.Name</p>
                 <p class="mb-2"><strong>Description:</strong> @newProject.Description</p>
                         <p class="mb-2"><strong>Visibility:</strong> @newProject.Visibility</p>
                         <p class="mb-2"><strong>Created On:</strong> @DateTime.Now.ToString("MMMM dd, yyyy")</p>
@@ -1482,6 +1484,9 @@
         try
         {
 
+            spinner.Show();
+            await Task.Delay(400);
+
             var response = await Http.PostAsJsonAsync("api/Project/new", newProject);
             if (response.IsSuccessStatusCode)
             {
@@ -1506,6 +1511,10 @@
         catch (Exception ex)
         {
             Console.WriteLine($"Error creating project: {ex.Message}");
+        }
+        finally
+        {
+            spinner.Hide();
         }
     }
 
@@ -1645,6 +1654,8 @@
     {
         try
         {
+            spinner.Show();
+            await Task.Delay(400);
             var client = HttpClientFactory.CreateClient("AuthClient");
             var response = await client.DeleteAsync($"api/Project/{projectIdToDelete}");
 
@@ -1674,6 +1685,10 @@
         catch (Exception ex)
         {
             Console.WriteLine($"Error deleting project: {ex.Message}");
+        }
+        finally
+        {
+            spinner.Hide();
         }
     }
 

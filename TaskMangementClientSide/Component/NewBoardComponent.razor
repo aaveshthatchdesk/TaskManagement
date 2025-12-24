@@ -2,9 +2,11 @@
 @using System.Threading.Tasks
 @using Task.Application.DTOs
 @using TaskMangementClientSide.Component.Sprint
+@using TaskMangementClientSide.Services
 @inject NavigationManager nav;
 @inject HttpClient Http
 @inject AuthenticationStateProvider AuthStateProvider;
+@inject SpinnerService spinner
 
 <style>
     
@@ -1890,7 +1892,7 @@ dropdown-submenu {
     private AppUserDto currentUser = new();
     private bool showForm = false;
     private string? serverError;
-     private BoardDto? selectedBoard;
+    private BoardDto? selectedBoard;
     private TaskItemDto newTask = new();
     private bool showAddTaskModal = false;
     private bool showTaskModal= false;
@@ -1905,7 +1907,7 @@ dropdown-submenu {
     private string editedCommentText = string.Empty;
 
 
-private string ApiBaseUrl = "https://localhost:7218"; 
+    private string ApiBaseUrl = "https://localhost:7218"; 
 
 
 
@@ -1953,7 +1955,7 @@ private string ApiBaseUrl = "https://localhost:7218";
                  ?? new List<MemberDto>();
 
     }
-   
+
 
     private async void Back()
     {
@@ -2179,7 +2181,8 @@ private string ApiBaseUrl = "https://localhost:7218";
 
     private async Task SaveManagerSelection()
     {
-        managerError = null; // reset first
+
+        managerError = null; 
 
         // VALIDATION: At least 1 manager must be selected
         if (selectedManagers.Count == 0)
@@ -2188,21 +2191,37 @@ private string ApiBaseUrl = "https://localhost:7218";
             StateHasChanged();   // re-render modal
             return;              // STOP here → do not close modal
         }
-        showManagerModal = false;
-
-        // StateHasChanged();
 
 
-        var managerIds = selectedManagers.Select(m => m.Id).ToList();
 
-        await Http.PostAsJsonAsync(
-        $"api/Manager/{ProjectId}/Manager/Assign",
-        managerIds
-        );
+        try
+        {
+            spinner.Show();
+            StateHasChanged();
 
-        // Refresh project
-        await LoadProject();
-        // StateHasChanged();
+            await Task.Delay(500); // Simulate loading delay
+            var managerIds = selectedManagers.Select(m => m.Id).ToList();
+
+            await Http.PostAsJsonAsync(
+            $"api/Manager/{ProjectId}/Manager/Assign",
+            managerIds
+            );
+
+
+            await LoadProject();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error saving managers: " + ex.Message);
+        }
+        finally
+        {
+            spinner.Hide();
+            showManagerModal = false;
+            StateHasChanged();
+        }
+
+
     }
 
     private void OpenDeleteManagerConfirm(int id)
@@ -2218,22 +2237,37 @@ private string ApiBaseUrl = "https://localhost:7218";
 
     private async Task DeleteManagerConfirmed()
     {
-        showDeleteManagerConfirm = false;
 
-        var response = await Http.DeleteAsync(
-        $"api/Manager/RemoveFromProject?projectId={ProjectId}&managerId={managerToDelete}"
-        );
-
-        if (response.IsSuccessStatusCode)
+        try
         {
-            await LoadProject();
-            StateHasChanged();
+            spinner.Show();
+            await Task.Delay(500);
+
+            var response = await Http.DeleteAsync(
+            $"api/Manager/RemoveFromProject?projectId={ProjectId}&managerId={managerToDelete}"
+            );
+
+            if (response.IsSuccessStatusCode)
+            {
+                await LoadProject();
+                StateHasChanged();
+            }
+            else
+            {
+                Console.WriteLine("Failed to delete manager.");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            Console.WriteLine("Failed to delete manager.");
+            Console.WriteLine("Error deleting manager: " + ex.Message);
+        }
+        finally
+        {
+            spinner.Hide();
+            showDeleteManagerConfirm = false;
         }
     }
+
     private void ShowAddForm()
     {
         currentUser = new AppUserDto
@@ -2259,7 +2293,15 @@ private string ApiBaseUrl = "https://localhost:7218";
             StateHasChanged();
             return; // DO NOT close modal
         }
-        showMemberModel = false;
+
+
+
+        try
+        {
+            spinner.Show();
+            StateHasChanged();
+
+            await Task.Delay(500);
 
 
         // StateHasChanged();
@@ -2271,9 +2313,22 @@ private string ApiBaseUrl = "https://localhost:7218";
             $"api/Project/{ProjectId}/Members/Assign",
             memberIds
         );
+
         await LoadProject();
-        StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error saving members: " + ex.Message);
+        }
+        finally
+        {
+            spinner.Hide();
+            showMemberModel = false;
+            StateHasChanged();
+        }
+       
     }
+    
     async Task showMembermodel()
     {
         await LoadMembers();
@@ -2290,6 +2345,7 @@ private string ApiBaseUrl = "https://localhost:7218";
             memberError = "Please select a member before adding.";
             return;
         }
+
 
         var member = allMembers.FirstOrDefault(m => m.Id == selectedMemberId);
 
@@ -2320,7 +2376,11 @@ private string ApiBaseUrl = "https://localhost:7218";
 
     private async Task DeleteMemberConfirmed()
     {
-        showDeleteMemberConfirm = false;
+       
+        try{
+
+           spinner.Show();
+           await Task.Delay(500);
 
         var response = await Http.DeleteAsync(
             $"api/Member/RemoveFromProject?projectId={ProjectId}&memberId={memberToDelete}"
@@ -2334,6 +2394,16 @@ private string ApiBaseUrl = "https://localhost:7218";
         else
         {
             Console.WriteLine("Failed to delete manager.");
+        }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error deleting member: " + ex.Message);
+        }
+        finally
+        {
+            spinner.Hide();
+            showDeleteMemberConfirm = false;
         }
     }
     private async Task SaveUser()
@@ -2427,6 +2497,8 @@ private string ApiBaseUrl = "https://localhost:7218";
     }
     private async Task DeleteSprintConfirm()
     {
+        spinner.Show();
+        await Task.Delay(500);
         var response = await Http.DeleteAsync($"api/sprint/{sprintToDelete}");
         if (response.IsSuccessStatusCode)
         {
@@ -2434,6 +2506,7 @@ private string ApiBaseUrl = "https://localhost:7218";
         }
         showDeleteSprintConfirm = false;
         sprintToDelete = 0;
+        spinner.Hide();
     }
     private void StartEditDescription()
     {

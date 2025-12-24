@@ -4,6 +4,7 @@
 
 
 
+
 <div class="modal-overlay">
     <div class="modal-content shadow-lg rounded-4 p-4 bg-white">
         <h5 class="fw-bolder mb-3 text-center" style="color:#2c3e50;">Create New Sprint</h5>
@@ -59,6 +60,8 @@
         try
         {
             isSubmitting = true;
+            StateHasChanged();
+            await Task.Delay(500); // Simulate a short delay for better UX
             bool isAdded = await SprintService.AddSprintAsync(ProjectId,newSprint);
             if(isAdded)
             {
@@ -81,7 +84,9 @@
     }
     private async Task Cancel()
     {
+        
         await OnCancel.InvokeAsync();
+       
     }
 
 }

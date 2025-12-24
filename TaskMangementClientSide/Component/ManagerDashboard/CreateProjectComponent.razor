@@ -1,5 +1,7 @@
 ﻿@using Task.Application.DTOs
+@using TaskMangementClientSide.Services
 @inject HttpClient Http
+@inject SpinnerService spinner
 
 <style>
 
@@ -304,7 +306,7 @@
                     <div class="border rounded-4 p-3 mb-4  mt-4 bg-light">
                         <h5 class="fw-bolder mb-3 text-center">Project Details</h5>
 
-                        <p class="mb-2"><strong>Project Name:</strong> @newProject.Name></p>
+                        <p class="mb-2"><strong>Project Name:</strong> @newProject.Name</p>
                 <p class="mb-2"><strong>Description:</strong> @newProject.Description</p>
                         <p class="mb-2"><strong>Visibility:</strong> @newProject.Visibility</p>
                         <p class="mb-2"><strong>Created On:</strong> @DateTime.Now.ToString("MMMM dd, yyyy")</p>
@@ -441,7 +443,8 @@
     {
         try
         {
-
+            spinner.Show();
+            await Task.Delay(400);
             var response = await Http.PostAsJsonAsync("api/NewProject", newProject);
             if (response.IsSuccessStatusCode)
             {
@@ -467,6 +470,10 @@
         {
             Console.WriteLine($"Error creating project: {ex.Message}");
         }
+        finally
+        {
+            spinner.Hide();
+        }   
     }
     private void HandleSubmit(EditContext context)
     {

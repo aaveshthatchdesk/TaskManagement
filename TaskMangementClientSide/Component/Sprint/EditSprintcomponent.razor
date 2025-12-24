@@ -77,6 +77,8 @@
         try
         {
             isSubmitting = true;
+            StateHasChanged();
+            await Task.Delay(500); 
             bool isUpdated = await SprintService.UpdateSprintAsync(editableSprint.Id, editableSprint);
 
             if (isUpdated)
