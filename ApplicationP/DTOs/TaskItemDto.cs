@@ -46,12 +46,12 @@ namespace Task.Application.DTOs
         public DateTime? CreatedOn { get; set; }
 
         public DateTime? LastUpdatedOn { get; set; }
-        public int CreatedByUserId { get; set; }
-        public string?  CreatedByUserName { get; set; } 
+       
 
         public List<TaskAttachmentDto>? TaskAttachments { get; set; } = new List<TaskAttachmentDto>();
         public List<TaskCommentDto>? TaskComments { get; set; } = new List<TaskCommentDto>();
 
         public ICollection<TaskAssignmentDto> TaskAssignments { get; set; } = new List<TaskAssignmentDto>();
+        public ICollection<TaskCreatorDto> TaskCreators { get; set; } = new List<TaskCreatorDto>();
     }
 }

@@ -32,6 +32,8 @@ namespace Task.Infrastructure.Repository
 
             return await _taskDbContext.tasks
                 .Include(t => t.Board)
+            .Include(t=>t.TaskCreators)
+                .ThenInclude(tc=>tc.AppUser)
            .Include(t => t.TaskAttachments)
                .ThenInclude(a => a.UploadedByUser)
            .Include(t => t.TaskComments)

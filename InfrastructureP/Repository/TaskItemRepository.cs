@@ -23,6 +23,8 @@ namespace Task.Infrastructure.Repository
         public async Task<IEnumerable<TaskItem>>GetByProjectIdAsync(int projectId)
         {
             return await _taskDbContext.tasks
+                .Include(t=>t.TaskCreators)
+                  .ThenInclude(c=>c.AppUser)
                 .Include(t => t.TaskAssignments)
                   .ThenInclude(a => a.AppUser)
                 .Include(t => t.Board)
@@ -34,16 +36,25 @@ namespace Task.Infrastructure.Repository
         public async Task<TaskItem?> GetByIdAsync(int id)
         {
             return await _taskDbContext.tasks
+                .Include(t=>t.TaskCreators)
+                  .ThenInclude(c=>c.AppUser)
                 .Include(t => t.TaskAssignments)
                   .ThenInclude(a => a.AppUser)
                  .FirstOrDefaultAsync(t => t.Id == id);
         }
-        public async Task<TaskItem> CreateAsync(TaskItem task)
+        public async Task<TaskItem> CreateAsync(TaskItem task,int createdByUserId)
         {
             _taskDbContext.tasks.Add(task);
                 await _taskDbContext.SaveChangesAsync();
 
-              return task;
+            var creator = new TaskCreator
+            {
+                TaskItemId = task.Id,
+                AppUserId = createdByUserId
+            };
+            _taskDbContext.TaskCreators.Add(creator);
+            await _taskDbContext.SaveChangesAsync();
+            return task;
         }
 
         public async Task<TaskItem> UpdateAsync(TaskItem task)

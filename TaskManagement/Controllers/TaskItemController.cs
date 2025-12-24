@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
+using System.Security.Claims;
 using Task.Application.DTOs;
 using Task.Application.Interaces;
 using Task.Application.Services;
@@ -56,11 +58,19 @@ namespace TaskManagementServerAPi.Controllers
                 return NotFound("Task not found");
             return Ok(task);
         }
+        [Authorize]
         [HttpPost("boards/{boardId}/tasks")]
         public async Task<IActionResult> CreateTask(int boardId, [FromBody] TaskItemDto dto)
         {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)
+                 ?? User.FindFirst("UserId");
+
+            if (userIdClaim == null)
+                return Unauthorized("UserId not found in token");
+
+            int createdByUserId = int.Parse(userIdClaim.Value);
             dto.BoardId = boardId;
-            var createdTask = await _taskItemService.CreateTaskAsync(dto);
+            var createdTask = await _taskItemService.CreateTaskAsync(createdByUserId,dto);
             return CreatedAtAction(nameof(GetTaskById), new { taskId = createdTask.Id }, createdTask);
         }
         [HttpPut("tasks/{taskId}")]

@@ -1405,35 +1405,31 @@ dropdown-submenu {
                                         Created By
                                     </div>
 
-                                    @* @if (selectedTaskForDetails.CreatedByUserId != 0)
+                                    @if (selectedTaskForDetails.TaskCreators!= null&&selectedTaskForDetails.TaskCreators.Any())
                                     {
-                                        var creator = members.FirstOrDefault(m =>
-                                        m.Id == selectedTaskForDetails.CreatedByUserId);
+                                        var creator = selectedTaskForDetails.TaskCreators.First();
 
-                                        if (creator != null)
-                                        {
+
+                                      
                                             <div class="d-flex align-items-center">
-                                                <div class="rounded-circle bg-secondary text-white fw-bold
+                                                <div class="rounded-circle  text-white fw-bold
                                                  d-flex align-items-center justify-content-center"
-                                                     style="width:36px;height:36px;">
-                                                    @GetInitials(creator.Name)
+                                                 style=" background:#2c3e50;width:36px;height:36px;">
+                                                    @GetInitials(creator.CreatedByUserName)
                                                 </div>
 
                                                 <div class="ms-3">
-                                                    <div class="fw-semibold">@creator.Name</div>
-                                                    <small class="text-muted">Task Creator</small>
+                                                    <div class="fw-semibold">@creator.CreatedByUserName</div>
+                                                    
                                                 </div>
                                             </div>
                                         }
-                                        else
-                                        {
-                                            <span class="text-muted small">Unknown creator</span>
-                                        }
-                                    }
+                                      
+                                    
                                     else
                                     {
                                         <span class="text-muted small">Creator not available</span>
-                                    } *@
+                                    }
                                 </div>
                             </div>
                         </div>

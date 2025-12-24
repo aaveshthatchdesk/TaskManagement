@@ -17,7 +17,7 @@ namespace Task.Application.Interaces
         Task<IEnumerable<TaskItem>> GetByProjectIdAsync(int projectId);
         Task<TaskItem?> GetByIdAsync(int id);
 
-        Task<TaskItem> CreateAsync(TaskItem task);
+        Task<TaskItem> CreateAsync(TaskItem task,int createdByUserId);
         Task<TaskItem> UpdateAsync(TaskItem task);
         Task<bool> DeleteAsync(TaskItem task);
         Task<List<TaskItem>> GetByIdsAsync(List<int> ids);

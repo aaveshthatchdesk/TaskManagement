@@ -59,6 +59,12 @@ namespace Task.Application.Services
 
 
                 }).ToList(),
+                TaskCreators = task.TaskCreators?.Select(c => new TaskCreatorDto
+                {
+                    TaskItemId = c.TaskItemId,
+                    CreatedByUserId = c.AppUserId,
+                    CreatedByUserName = c.AppUser.Name
+                }).ToList() ?? new List<TaskCreatorDto>(),
                 TaskAssignments = task.TaskAssignments?.Select(a => new TaskAssignmentDto
                 {
                     TaskItemId = a.TaskItemId,

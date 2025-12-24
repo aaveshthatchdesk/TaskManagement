@@ -67,7 +67,7 @@ namespace Task.Application.Services
                 return null;
             return MapToDto(task);
         }
-        public async Task<TaskItemDto> CreateTaskAsync(TaskItemDto dto)
+        public async Task<TaskItemDto> CreateTaskAsync(int createdByUserId,TaskItemDto dto)
         {
             var task = new TaskItem
             {
@@ -81,7 +81,7 @@ namespace Task.Application.Services
                 Order = dto.Order,
                 IsCompleted = false,
             };
-            var created = await _taskItemRepository.CreateAsync(task);
+            var created = await _taskItemRepository.CreateAsync(task,createdByUserId);
          
 
             return new TaskItemDto
@@ -150,6 +150,13 @@ namespace Task.Application.Services
                 Order = t.Order,
                 IsCompleted = t.IsCompleted,
                 CompletedDate = t.CompletedDate,
+                TaskCreators = t.TaskCreators.Select(c => new TaskCreatorDto
+                {
+                    TaskItemId = c.TaskItemId,
+                    CreatedByUserId = c.AppUserId,
+                    CreatedByUserName = c.AppUser.Name
+                }).ToList(),
+
                 TaskAssignments = t.TaskAssignments.Select(a => new TaskAssignmentDto
                 {
                     TaskItemId = a.TaskItemId,

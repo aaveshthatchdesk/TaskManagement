@@ -17,6 +17,6 @@ namespace Task.Domain.Entities
         public int AppUserId { get; set; }
         public AppUser AppUser { get; set; } = null!;
 
-        public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
+        
     }
 }
