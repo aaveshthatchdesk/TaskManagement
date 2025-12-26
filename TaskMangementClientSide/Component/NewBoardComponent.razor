@@ -2075,7 +2075,9 @@ dropdown-submenu {
 
     private async Task DeleteBoardConfirmed()
     {
-
+        try{
+            spinner.Show();
+            await Task.Delay(500);
 
         var response = await Http.DeleteAsync($"api/Board/{boardToDelete.Id}?projectId={ProjectId}");
         if (response.IsSuccessStatusCode)
@@ -2086,9 +2088,18 @@ dropdown-submenu {
 
 
         }
+        }
+        catch(Exception ex)
+        {
+          Console.WriteLine("Error deleting board: " + ex.Message);
+        }
 
+        
+        finally{
+        spinner.Hide();
         showDeleteBoardConfirm = false;
         boardToDelete = null;
+        }
     }
 
 
@@ -2096,19 +2107,20 @@ dropdown-submenu {
     {
 
 
-        var newBoard = new BoardDto
-        {
-            Name = boardModel.Name,
 
-            // ProjectId = CurrentProject.Id,
-
-        };
-
-        // Boards.Add(newBoard);
-        // CurrentProject.Boards = Boards;
 
         try
         {
+            spinner.Show();
+            StateHasChanged();
+            await Task.Delay(500);
+            var newBoard = new BoardDto
+        {
+            Name = boardModel.Name,
+
+
+
+        };
 
             var response = await Http.PostAsJsonAsync($"api/Board/{ProjectId}", newBoard);
 
@@ -2140,8 +2152,13 @@ dropdown-submenu {
         {
             Console.WriteLine("Error saving board: " + ex.Message);
         }
-        showAddBoard = false;
+        finally
+        {
+
+            spinner.Hide();
+            showAddBoard = false;
         boardModel = new BoardDto();
+        }
     }
     private async Task ShowMangerModal()
     {
@@ -2523,7 +2540,7 @@ dropdown-submenu {
         if (selectedTaskForDetails == null)
             return;
 
-    
+
 
         var response = await Http.PutAsJsonAsync(
             $"description/{selectedTaskForDetails.Id}",
@@ -2584,14 +2601,14 @@ dropdown-submenu {
 
         content.Add(streamContent, "File", selectedAttachment.Name);
 
-        
+
 
         var response = await Http.PostAsync(
             $"api/FileAndCommentInTask/{selectedTaskForDetails.Id}/attachments",
             content
         );
 
-        
+
 
         if (response.IsSuccessStatusCode)
         {
@@ -2636,7 +2653,7 @@ dropdown-submenu {
         var dto = new TaskCommentDto
         {
             CommentText = newCommentText,
-            
+
         };
 
         var response = await Http.PostAsJsonAsync(
@@ -2683,7 +2700,7 @@ dropdown-submenu {
             editingCommentId = 0;
             editedCommentText = string.Empty;
 
-        
+
             await OpenTaskDetailsAsync(selectedTaskForDetails.Id);
         }
         else
@@ -2716,13 +2733,13 @@ dropdown-submenu {
             if(response.IsSuccessStatusCode)
             {
                 selectedTaskForDetails = await response.Content.ReadFromJsonAsync<TaskItemDto>();
-            
 
 
-            if (selectedTaskForDetails != null)
-            {
-                showTaskDetailsModal = true;
-            }
+
+                if (selectedTaskForDetails != null)
+                {
+                    showTaskDetailsModal = true;
+                }
             }
             else
             {
@@ -2767,6 +2784,9 @@ dropdown-submenu {
         }
         try
         {
+            spinner.Show();
+            StateHasChanged();
+            await Task.Delay(500);
             var response = await Http.DeleteAsync($"api/TaskItem/tasks/{taskToDelete.Id}");
             if(response.IsSuccessStatusCode)
             {
@@ -2784,9 +2804,13 @@ dropdown-submenu {
         {
             Console.WriteLine(ex.Message);
         }
-        showTaskDeleteConfirm = false;
+        finally
+        {
+            spinner.Hide();
+            showTaskDeleteConfirm = false;
         taskToDelete = null;
         boardOfTaskToDelete = null;
+        }
 
     }
     private void OnTaskDragStart(DragEventArgs e, BoardDto fromBoard, TaskItemDto task)
@@ -2949,10 +2973,10 @@ dropdown-submenu {
             task.TaskAssignments = new List<TaskAssignmentDto>();
 
         try
-        
-        
-        
-        
+
+
+
+
         {
             if (isChecked)
             {
@@ -2990,7 +3014,7 @@ dropdown-submenu {
     }
     // private async Task SaveMultiMemberAssignment(TaskItemDto task)
     // {
-        
+
     //     foreach (var board in Boards)
     //     {
     //         var t = board.TaskItems.FirstOrDefault(x => x.Id == task.Id);
@@ -3001,7 +3025,7 @@ dropdown-submenu {
     //         }
     //     }
 
-        
+
     // }
 
     private void OpenUpdateTaskModal(BoardDto board, TaskItemDto task)
@@ -3049,9 +3073,12 @@ dropdown-submenu {
         if (selectedBoard == null || string.IsNullOrWhiteSpace(newTask.Title))
             return;
 
-             newTask.Order = selectedBoard.TaskItems.Count + 1;
+        newTask.Order = selectedBoard.TaskItems.Count + 1;
         try
         {
+            spinner.Show();
+            StateHasChanged();
+            await Task.Delay(500);
             var response = await Http.PostAsJsonAsync($"api/TaskItem/boards/{selectedBoard.Id}/tasks", newTask); 
             if (response.IsSuccessStatusCode)
             {
@@ -3065,19 +3092,25 @@ dropdown-submenu {
                 newTask= new TaskItemDto();
                 selectedBoard = null;
 
-                StateHasChanged();
+              
             }
             else
             {
                 Console.WriteLine("Failed to create task.");
-             
+
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine("Error creating task: " + ex.Message);
         }
-   
+        finally
+        {
+              spinner.Hide();
+       
+                 StateHasChanged();
+        }
+
        
     }
       
@@ -3085,6 +3118,13 @@ dropdown-submenu {
     {
         if (editTaskBoard == null) return;
 
+        try
+        {
+
+            spinner.Show();
+          StateHasChanged();
+
+        await Task.Delay(400);
         var response = await Http.PutAsJsonAsync($"api/TaskItem/{editTask.Id}", editTask);
 
         if (response.IsSuccessStatusCode)
@@ -3104,13 +3144,25 @@ dropdown-submenu {
 
             showUpdateTaskModal = false;
 
-            @* await SaveProject();  *@
-            StateHasChanged();
+          
         }
         else
         {
             Console.WriteLine("Task update failed!");
         }
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine("Error updating task: " + ex.Message);
+        }
+        finally
+          
+    {
+        spinner.Hide();
+       
+        StateHasChanged();
+    }
+        
     }
 
     private void CloseUpdateTaskModal()
