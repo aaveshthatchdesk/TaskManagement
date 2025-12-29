@@ -48,5 +48,19 @@ namespace Task.Application.Services
                 ActiveTasks = activeTasks
             };
         }
-}
+        public async Task<DashboardSummaryDto> GetSummaryForMemberAsync(int memberId)
+        {
+            var activeProjects = await _dashboardRepository.GetActiveProjectByMembersAsync(memberId);
+            var overdueTasks= await _dashboardRepository.GetOverdueTasksByMemberAsync(memberId);
+            var completedTasks = await _dashboardRepository.GetCompletedTasksByMemberAsync(memberId);
+            var activeTasks = await _dashboardRepository.GetActiveTasksByMemberAsync(memberId);
+            return new DashboardSummaryDto
+            {
+                ActiveProjects = activeProjects,
+                OverdueTasks = overdueTasks,
+                CompletedTasks = completedTasks,
+                ActiveTasks = activeTasks
+            };
+        }
+    }
 }

@@ -81,6 +81,39 @@ namespace Task.Application.Services
             };
         }
 
+        public async Task<IEnumerable<BoardDto>> GetBoardsByUserAsync(int userId)
+        {
+            var boards = await _boardRepository.GetBoardsByUserAsync(userId);
+            return boards.Select(b => new BoardDto
+            {
+                Id = b.Id,
+                Name = b.Name,
+                TaskItems=b.TaskItems
+                    .Where(t=>t.TaskAssignments.Any(a=>a.AppUserId==userId))
+                    .Select(t=>new TaskItemDto
+                    {
+                        Id = t.Id,
+                        Title = t.Title,
+                        Description = t.Description,
+                        BoardId = t.BoardId,
+                        SprintId = t.SprintId,
+                        DueDate= t.DueDate,
+                        Priority = t.Priority,
+                        CompletedDate=t.CompletedDate,
+                        Order = t.Order,
+                        IsCompleted = t.IsCompleted,
+                        TaskAssignments = t.TaskAssignments.Select(a => new TaskAssignmentDto
+                        {
+                            TaskItemId = a.TaskItemId,
+                            AppUserId = a.AppUserId,
+                            AppUserName = a.AppUser.Name
+                        }).ToList()
+                    }).ToList(),
+            
+            });
+        }
+
+
         public async Task<BoardDto> CreateBoardAsync(BoardDto dto)
         {
             //var projectExists = await _boardRepository.projects.AnyAsync(p => p.Id == dto.ProjectId);

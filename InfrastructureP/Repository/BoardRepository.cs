@@ -33,6 +33,15 @@ namespace Task.Infrastructure.Repository
                 .ThenInclude(a => a.AppUser)
                 .ToListAsync();
         }
+        public async Task<IEnumerable<Board>> GetBoardsByUserAsync(int userId)
+        {
+            return await _taskDbContext.boards
+                .Include(b => b.TaskItems)
+                   .ThenInclude(t => t.TaskAssignments)
+                .ThenInclude(a => a.AppUser)
+                .Where(b => b.TaskItems.Any(t => t.TaskAssignments.Any(a => a.AppUserId == userId)))
+                .ToListAsync();
+        }
         public async Task<Board?> GetBoardByIdAsync(int boardId)
         {
             return await _taskDbContext.boards

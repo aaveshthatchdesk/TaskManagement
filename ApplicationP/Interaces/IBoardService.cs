@@ -12,6 +12,7 @@ namespace Task.Application.Interaces
         //Task<bool> RenameBoardAsync(int boardId,string Name);
         Task<IEnumerable<BoardDto>> GetBoardsByProjectAsync(int projectId);
         Task<BoardDto?> GetBoardByIdAsync(int projectId, int boardId);
+        Task<IEnumerable<BoardDto>> GetBoardsByUserAsync(int userId);
         Task<BoardDto> CreateBoardAsync(BoardDto dto);
         Task<BoardDto> UpdateBoardAsync(int projectId, int boardId, BoardDto dto);
         Task<bool> DeleteBoardAsync(int projectId, int boardId);

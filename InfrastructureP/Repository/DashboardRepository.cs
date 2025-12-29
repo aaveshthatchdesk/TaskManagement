@@ -83,5 +83,47 @@ namespace Task.Infrastructure.Repository
 
         }
 
+        public async Task<int> GetActiveProjectByMembersAsync(int memberId)
+        {
+            return await _taskDbContext.projects
+                .Where(p => p.ProjectMembers.Any(m => m.AppUserId == memberId))
+                .CountAsync();
+        }
+
+        public async Task<int> GetCompletedTasksByMemberAsync(int memberId)
+        {
+            return await _taskDbContext.tasks
+                .Where(t =>
+                    t.IsCompleted &&
+                    t.TaskAssignments.Any(pm => pm.AppUserId == memberId)
+                )
+                .CountAsync();
+        }
+
+        public async Task<int> GetActiveTasksByMemberAsync(int memberId)
+        {
+            return await _taskDbContext.tasks
+                .Where(t =>
+                     t.CompletedDate == null &&
+                    t.DueDate.HasValue &&
+                    t.DueDate >= DateTime.UtcNow &&
+                    t.TaskAssignments.Any(pm => pm.AppUserId == memberId)
+                )
+                .CountAsync();
+        }
+
+        public async Task<int> GetOverdueTasksByMemberAsync(int memberId)
+        {
+            return await _taskDbContext.tasks
+                .Where(t =>
+                    t.CompletedDate==null &&
+                    t.DueDate.HasValue &&
+                    t.DueDate < DateTime.UtcNow &&
+                    t.TaskAssignments.Any(pm => pm.AppUserId == memberId)
+                )
+                .CountAsync();
+        }   
+
+
     }
 }

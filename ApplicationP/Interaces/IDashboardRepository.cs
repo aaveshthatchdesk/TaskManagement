@@ -17,5 +17,9 @@ namespace Task.Application.Interaces
         Task<int> GetActiveTasksByManagerAsync(int managerId);
         Task<int> GetTotalMembersByManagerAsync(int managerId);
         Task<int> GetCompletedTasksByManagerAsync(int managerId);
+        Task<int> GetActiveProjectByMembersAsync(int memberId);
+        Task<int> GetActiveTasksByMemberAsync(int memberId);
+        Task<int> GetOverdueTasksByMemberAsync(int memberId);
+        Task<int> GetCompletedTasksByMemberAsync(int memberId);
     }
 }

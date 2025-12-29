@@ -1,0 +1,608 @@
+﻿@using Task.Application.DTOs
+@inject HttpClient Http
+@inject NavigationManager nav
+
+<style>
+    .priority-low-border {
+        border-left: 5px solid #27ae60 !important;
+    }
+
+    .priority-medium-border {
+        border-left: 5px solid #f1c40f !important;
+    }
+
+    .priority-high-border {
+        border-left: 5px solid #e67e22 !important;
+    }
+
+    .kanban-tasks:empty {
+        min-height: 10px;
+    }
+    .card {
+       
+        border-radius: 12px !important;
+        overflow: hidden; 
+        box-shadow: none !important;
+    }
+  
+    .task-card {
+        /* min-height: 240px; */
+        max-height:400px;/* consistent height */
+        display: flex;
+        flex-direction: column;
+        justify-content: start;
+        gap:6px;
+        overflow:visible;
+    }
+      .add-btn {
+        height: 35px;
+        width: 35px; 
+        border: none;
+        border-radius: 4px; 
+        background-color: #2c3e50;
+        color: white;
+         font-size:20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        
+    padding: 0;  
+        
+    }
+     .kanban-column {
+        position: relative;
+        overflow: visible !important;
+    }
+
+   
+
+
+
+    .kanban-tasks {
+        max-height: 60vh; /* sets a cap but allows natural shrinking */
+        overflow-y: auto;
+        padding-right: 6px;
+    }
+
+
+    
+
+    .modal-backdrop-custom {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        z-index: 1040;
+    }
+
+   
+    .custom-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        width: 420px;
+        border-radius: 12px;
+        overflow:hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        z-index: 1050;
+        padding: 0;
+    }
+
+  
+    .custom-modal-header {
+        padding: 15px 20px;
+        background: #ffffff;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top-left-radius: 12px; /
+        border-top-right-radius: 12px;
+    }
+ 
+    .custom-modal-body {
+        padding: 20px;
+    }
+
+   
+    .custom-modal-footer {
+        padding: 12px 20px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        border-top: 1px solid #eee;
+    }
+
+
+     .task-avatar-stack {
+        display: flex;
+        align-items: center;
+    }
+
+    .task-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #546476;
+        color: white;
+        font-size: 12px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        margin-left: -8px; /* 👈 overlap effect */
+        border: 2px solid white; /* clean ring */
+    }
+
+        .task-avatar:first-child {
+            margin-left: 0;
+        }
+
+
+        .desc-toggle-btn {
+        font-size: 12px;
+        border: none;
+        background: #d5dfe6;
+        color: black;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+    }
+
+        .desc-toggle-btn:hover {
+            text-decoration: underline;
+        }
+
+    .description-expanded {
+        white-space: pre-line;
+    }
+    .task-no-desc-gap {
+    margin-top: 12px;   
+    display: block;
+}
+
+.task-actions {
+    margin-top: auto;   
+    padding-top: 8px;   
+}
+   
+</style>
+
+<div class="container mt-4">
+    <div class="row g-4">
+
+        <div class="col-md-3 col-sm-6">
+            <div class="card border-0 shadow-sm text-center py-4 " style="background-color:#ecf0f1">
+                <div class="text-primary fs-3 mb-2">
+                    <i class="bi bi-diagram-3"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">@stats.ActiveProjects</h4>
+                <p class="text-muted mb-0">Active Projects</p>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+            <div class="card border-0 shadow-sm text-center py-4" style="background-color:#ecf0f1">
+                <div class="text-primary fs-3 mb-2">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">@stats.OverdueTasks</h4>
+                <p class="text-muted mb-0">OverDue Tasks</p>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+            <div class="card border-0 shadow-sm text-center py-4" style="background-color:#ecf0f1">
+                <div class="text-primary fs-3 mb-2">
+                    <i class="bi bi-list-check"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">@stats.ActiveTasks</h4>
+                <p class="text-muted mb-0">Active Tasks</p>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+            <div class="card border-0 shadow-sm text-center py-4" style="background-color:#ecf0f1">
+                <div class="text-primary fs-3 mb-2">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">@stats.CompletedTasks</h4>
+                <p class="text-muted mb-0">Completed Tasks</p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+ <div class="container mt-5  ">
+    <div class=" p-4 rounded-4" style="background-color:#ecf0f1">
+       
+        <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+
+            <h4 class="fw-bold mb-0 text-dark">My Tasks</h4>
+
+         
+
+        </div>
+
+          @if (Boards.Count == 0)
+    {
+        <div class="text-center text-muted mt-auto">
+            <i class="bi bi-kanban fs-1 mb-3 d-block"></i>
+            <h5>No boards yet</h5>
+            @* <p class="small">Click <strong>"New Board"</strong> to create your first board.</p> *@
+        </div>
+    }
+    else
+    {
+       
+        <div class="d-flex flex-nowrap gap-3 overflow-auto">
+            @foreach (var board in Boards)
+            {
+              
+                <div class="kanban-column bg-white rounded-4 shadow-sm p-3 flex-shrink-0" style="width: 270px;">
+                   
+                     
+                     
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+
+                        <h5>@board.Name</h5>
+                      
+                        <span class="badge bg-secondary">@board.TaskItems.Count task@(board.TaskItems.Count > 1 ? "s" : "")</span>
+                        </div>
+                 
+                    <hr class="border border-dark">
+                    <div class="kanban-dropzone"
+                         @ondragover="OnTaskDragOver"
+                         @ondragover:preventDefault
+                         @ondrop="@(e => OnTaskDropToEmpty(e, board))" @ondrop:stopPropagation
+                         >
+                    <div class="kanban-tasks">
+                        @foreach (var task in board.TaskItems.OrderBy(t=>t.Order))
+                        {
+                                    <div class="task-card bg-light rounded-3 p-3 mb-3 shadow-sm @GetPriorityBorder(task.Priority)"
+                                    role="button"
+                                    tabindex="0"
+                                 draggable="true"
+                                
+                                
+                                  @ondragstart="(e) => OnTaskDragStart(e, board, task)"
+                               
+                                 @ondrop="(e) => OnTaskDrop(e, board, task)" @ondrop:preventDefault
+                                     @ondrop:stopPropagation>
+                               <div class="d-flex justify-content-between ">
+                                    
+                                        <h6 class="fw-semibold mb-1 task-title">@task.Title</h6>
+
+                                 
+                                </div>
+                                <div class="d-flex justify-content-between ">
+                                    
+                                        <h6 class="fw-semibold mb-1">@board.ProjectId</h6>
+
+                                 
+                                </div>
+
+                             
+                           
+
+                                       @if (task.TaskAssignments != null && task.TaskAssignments.Any())
+                                                 {
+                                           <div class="task-avatar-stack mt-2">
+                                               @foreach (var mem in task.TaskAssignments.Take(3))
+                                                 {
+                                                      <div class="task-avatar" title="@mem.AppUserName">
+                                                            @GetInitials(mem.AppUserName)
+                                                                </div>
+                                                        }
+
+                                               @if (task.TaskAssignments.Count > 3)
+                                                 {
+                                                 <div class="task-avatar">
+                                                 +@(task.TaskAssignments.Count - 3)
+                                                    </div>
+                                                     }
+                                               </div>
+                                              }
+                                        else
+                                        {
+                                            <div class="fw-normal">0 members </div>
+                                        }
+
+
+                                       
+
+
+                             
+                                        @if (task.IsCompleted)
+                                        {
+                                            <small class="text-success fw-semibold">
+                                                Completed: @task.CompletedDate?.ToString("MMM dd")
+                                            </small>
+                                        }
+                                        else
+                                        {
+                                            if (task.DueDate.HasValue && task.DueDate.Value.Date < DateTime.Today)
+                                            {
+                                                <small class="text-danger fw-bold">
+                                                    Overdue: @task.DueDate?.ToString("MMM dd")
+                                                </small>
+                                            }
+                                            else
+                                            {
+                                                <small class="text-warning fw-semibold">
+                                                    Due: @task.DueDate?.ToString("MMM dd")
+                                                </small>
+                                            }
+                                       }
+                                    </div>
+                          }      
+                          
+
+                        </div>
+                        </div>
+
+
+                    
+
+                
+
+
+            
+        </div>
+    }
+    </div>
+  }    
+        </div>
+
+        </div>
+          
+
+@code {
+    private DashboardSummaryDto stats = new();
+    private int memberId;
+    private string search = "";
+    private List<BoardDto> Boards = new();
+    private TaskItemDto draggedTask;
+    private BoardDto draggedFromBoard;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLoggedInUserId();
+        await LoadDashboardStats();
+        await LoadBoardsByUserAsync();
+        // await LoadProjec();
+
+
+    }
+    //   private async Task LoadBoards()
+    // {
+    //     CurrentProject = await Http.GetFromJsonAsync<ProjectDto>($"api/Project/{ProjectId}");
+    //     Boards = CurrentProject.Boards?.ToList() ?? new();
+    // }
+    private async Task LoadLoggedInUserId()
+    {
+        try
+        {
+            var result = await Http.GetFromJsonAsync<UserInfoResponse>("api/Auth/me");
+
+            memberId = result?.UserId ?? 0;
+        }
+        catch
+        {
+            memberId = 0;
+        }
+    }
+    private async Task LoadDashboardStats()
+    {
+        if (memberId <= 0)
+            return;
+
+        var response = await Http.GetAsync($"api/Dashboard/SummaryForMember/{memberId}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            stats = await response.Content.ReadFromJsonAsync<DashboardSummaryDto>();
+        }
+
+
+
+    }
+    private async Task LoadBoardsByUserAsync()
+    {
+        if (memberId <= 0)
+            return;
+        var response = await Http.GetAsync($"api/Board/boards/user/{memberId}");
+        if (response.IsSuccessStatusCode)
+    {
+            Boards = await response.Content.ReadFromJsonAsync<List<BoardDto>>() ?? new();
+        }
+    }
+    string GetPriorityBorder(string? priority)
+    {
+        if (string.IsNullOrWhiteSpace(priority))
+            return "priority-low";
+
+        switch (priority.Trim().ToLowerInvariant())
+        {
+            case "low":
+                return "priority-low-border";
+            case "medium":
+                return "priority-medium-border";
+            case "high":
+                return "priority-high-border";
+            default:
+                return "priority-low-border";
+        }
+    }
+
+
+    private void OnTaskDragStart(DragEventArgs e, BoardDto fromBoard, TaskItemDto task)
+    {
+
+        draggedTask = task;
+        draggedFromBoard = fromBoard;
+    }
+
+    private string GetInitials(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return string.Empty;
+
+        return string.Join("", name.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Select(n => n[0]))
+        .ToUpper();
+    }
+    private void OnTaskDragOver(DragEventArgs e)
+    {
+
+    }
+
+    private async Task OnTaskDrop(DragEventArgs e, BoardDto toBoard, TaskItemDto targetTask)
+    {
+        try
+        {
+
+            if (draggedTask == null || draggedFromBoard == null)
+            {
+
+                return;
+            }
+
+            var fromBoard = draggedFromBoard;
+
+
+            var removeItem = fromBoard.TaskItems.FirstOrDefault(t => t.Id == draggedTask.Id);
+            if (removeItem != null)
+                fromBoard.TaskItems.Remove(removeItem);
+
+
+            var list = toBoard.TaskItems
+                .OrderBy(t => t.Order)
+                .ToList();
+
+
+            int targetIndex = list.FindIndex(t => t.Id == targetTask.Id);
+            if (targetIndex < 0) targetIndex = list.Count;
+
+            list.Insert(targetIndex, draggedTask);
+
+
+            toBoard.TaskItems.Clear();
+            foreach (var t in list)
+                toBoard.TaskItems.Add(t);
+            draggedTask.BoardId = toBoard.Id;
+
+            if (toBoard.Name.Equals("Done", StringComparison.OrdinalIgnoreCase))
+            {
+                draggedTask.IsCompleted = true;
+                draggedTask.CompletedDate = DateTime.Today;   // ⭐ Set completed date
+            }
+            else
+            {
+                draggedTask.IsCompleted = false;
+                draggedTask.CompletedDate = null; // optional
+            }
+
+            NormalizeOrder(fromBoard);
+
+            NormalizeOrder(toBoard);
+
+            await PersistBoardOrders(fromBoard);
+            await PersistBoardOrders(toBoard);
+
+            draggedTask = null;
+            draggedFromBoard = null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+
+
+    }
+    private void NormalizeOrder(BoardDto board)
+    {
+        int order = 1;
+        foreach (var t in board.TaskItems.OrderBy(t => t.Order))
+        {
+            t.Order = order++;
+        }
+
+    }
+
+
+    private async Task OnTaskDropToEmpty(DragEventArgs e, BoardDto toBoard)
+    {
+
+
+        if (draggedTask == null)
+        {
+
+            return;
+        }
+
+        var fromBoard = draggedFromBoard;
+        if (fromBoard == null) return;
+
+
+        var removeItem = fromBoard.TaskItems.FirstOrDefault(t => t.Id == draggedTask.Id);
+        if (removeItem != null)
+            fromBoard.TaskItems.Remove(removeItem);
+
+
+
+
+
+
+        toBoard.TaskItems.Add(draggedTask);
+        draggedTask.BoardId = toBoard.Id;
+
+        if (toBoard.Name.Equals("Done", StringComparison.OrdinalIgnoreCase))
+        {
+            draggedTask.IsCompleted = true;
+            draggedTask.CompletedDate = DateTime.Today;
+        }
+        else
+        {
+            draggedTask.IsCompleted = false;
+            draggedTask.CompletedDate = null; // or keep old value
+        }
+
+
+
+        NormalizeOrder(fromBoard);
+        NormalizeOrder(toBoard);
+
+        await PersistBoardOrders(fromBoard);
+        await PersistBoardOrders(toBoard);
+
+        draggedTask = null;
+        draggedFromBoard = null;
+
+    }
+    private async Task PersistBoardOrders(BoardDto board)
+    {
+        bool isDoneBoard =
+           board.Name.Equals("Done", StringComparison.OrdinalIgnoreCase);
+        var payload = board.TaskItems.Select(t => new TaskReorderDto
+        {
+            TaskId = t.Id,
+            BoardId = board.Id,
+            Order = t.Order,
+            IsDoneBoard = isDoneBoard
+        }).ToList();
+
+        await Http.PutAsJsonAsync("api/TaskItem/tasks/reorder", payload);
+    }
+
+    private class UserInfoResponse
+    {
+        public int UserId { get; set; }
+    }
+
+}

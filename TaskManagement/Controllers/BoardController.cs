@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Task.Application.DTOs;
 using Task.Application.Interaces;
+using Task.Application.Services;
 
 namespace TaskManagementServerAPi.Controllers
 {
@@ -40,6 +41,13 @@ namespace TaskManagementServerAPi.Controllers
                 return NotFound();
             return Ok(board);
         }
+        [HttpGet("boards/user/{userId}")]
+        public async Task<IActionResult> GetBoardsByUser(int userId)
+        {
+            var result = await boardService.GetBoardsByUserAsync(userId);
+            return Ok(result);
+        }
+
         [HttpPost("{projectId}")]
         public async Task<IActionResult> CreateBoard(int projectId,[FromBody] Task.Application.DTOs.BoardDto dto)
         {

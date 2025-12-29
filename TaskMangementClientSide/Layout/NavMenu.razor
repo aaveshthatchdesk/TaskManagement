@@ -22,7 +22,7 @@
             </NavLink>
         </div>
 
-        <!-- Projects -->
+        
         <div class="nav-item px-3">
             <NavLink class="nav-link d-flex align-items-center gap-3" href="@sprintUrl" >
                 <i class="bi bi-kanban-fill fs-5 text-success" style="min-width: 24px;"></i>
@@ -32,12 +32,15 @@
         
        
         <!-- Members -->
-        <div class="nav-item px-3">
-            <NavLink class="nav-link d-flex align-items-center gap-3" href="members">
-                <i class="bi bi-people-fill fs-5 text-info" style="min-width: 24px;"></i>
-                <span class="flex-grow-1">Members</span>
-            </NavLink>
-        </div>
+        @if (isManager || isAdmin)
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link d-flex align-items-center gap-3" href="members">
+                    <i class="bi bi-people-fill fs-5 text-info" style="min-width: 24px;"></i>
+                    <span class="flex-grow-1">Members</span>
+                </NavLink>
+            </div>
+        }
         @if (isAdmin)
         {
             <div class="nav-item px-3">
@@ -77,9 +80,10 @@
             dashboardUrl = "/managerdashboard";
             sprintUrl = "/managersprints";
         }
-       else{
-            dashboardUrl = "/Memberdashboard";
-            sprintUrl = "/Membersprints";
+       else
+       {
+            dashboardUrl = "/memberDashboard";
+            sprintUrl = "/membersprints";
         }
     
 

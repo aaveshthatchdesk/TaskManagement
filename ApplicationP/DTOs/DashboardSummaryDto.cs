@@ -13,5 +13,7 @@ namespace Task.Application.DTOs
         public int TotalMembers { get; set; }
         public int CompletedTasks { get; set; }
         public int ActiveTasks { get; set; }
+
+        public int OverdueTasks { get; set; }
     }
 }

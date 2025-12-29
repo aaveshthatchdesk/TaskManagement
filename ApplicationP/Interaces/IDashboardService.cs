@@ -12,5 +12,7 @@ namespace Task.Application.Interaces
         Task<DashboardSummaryDto> GetSummaryAsync();
          
         Task<DashboardSummaryDto> GetSummaryForManagerAsync(int managerId);
+        Task<DashboardSummaryDto> GetSummaryForMemberAsync(int memberId);
+
     }
 }

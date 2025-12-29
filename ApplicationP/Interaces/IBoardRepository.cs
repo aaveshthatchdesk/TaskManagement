@@ -12,6 +12,7 @@ namespace Task.Application.Interaces
         
 
         Task<IEnumerable<Board>> GetBoardsByProjectIdAsync(int projectId);
+        Task<IEnumerable<Board>> GetBoardsByUserAsync(int userId);
         Task<Board?> GetBoardByIdAsync(int id);
         Task<Board> CreateBoardAsync(Board board);
         Task<Board> UpdateBoardAsync(Board board);

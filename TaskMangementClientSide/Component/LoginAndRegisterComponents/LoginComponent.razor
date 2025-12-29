@@ -127,7 +127,7 @@
                         nav.NavigateTo($"/change-password/{loginResponse.UserId}");
                         return;
                     }
-                    nav.NavigateTo("/dashboard");
+                    nav.NavigateTo("/memberDashboard");
 
                     message = "Login successful!";
                     await OnLoginResult.InvokeAsync(true);
