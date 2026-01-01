@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Task.Application.Interaces;
 using Task.Domain.Entities;
 using Task.Infrastructure.DbContext;
+using static Microsoft.AspNetCore.Hosting.Internal.HostingApplication;
 
 namespace Task.Infrastructure.Repository
 {
@@ -35,11 +36,20 @@ namespace Task.Infrastructure.Repository
         }
         public async Task<IEnumerable<Board>> GetBoardsByUserAsync(int userId)
         {
+           
+            var projectIds = await _taskDbContext.tasks
+       .Where(t => t.TaskAssignments.Any(a => a.AppUserId == userId))
+       .Select(t => t.Board.ProjectId)
+       .Distinct()
+       .ToListAsync();
+
+            
             return await _taskDbContext.boards
+                .Where(b => projectIds.Contains(b.ProjectId))
+                .Include(b => b.Project)
                 .Include(b => b.TaskItems)
-                   .ThenInclude(t => t.TaskAssignments)
-                .ThenInclude(a => a.AppUser)
-                .Where(b => b.TaskItems.Any(t => t.TaskAssignments.Any(a => a.AppUserId == userId)))
+                    .ThenInclude(t => t.TaskAssignments)
+                        .ThenInclude(a => a.AppUser)
                 .ToListAsync();
         }
         public async Task<Board?> GetBoardByIdAsync(int boardId)
@@ -76,6 +86,17 @@ namespace Task.Infrastructure.Repository
             return rows > 0;
         }
 
-     
+        public async Task<Board?> GetBoardByProjectAndNameAsync(
+    int projectId,
+    string boardName)
+        {
+            return await _taskDbContext.boards.FirstOrDefaultAsync(b =>
+                b.ProjectId == projectId &&
+                b.Name.ToLower() == boardName.ToLower()
+            );
+        }
+
+
+
     }
 }

@@ -42,7 +42,19 @@ namespace Task.Infrastructure.Repository
                   .ThenInclude(a => a.AppUser)
                  .FirstOrDefaultAsync(t => t.Id == id);
         }
-   
+       
+
+        public async Task<List<TaskItem>>GetTasksForMemberAsync(int memberId)
+        {
+            return await _taskDbContext.tasks
+                .Include(t => t.Board)
+                  .ThenInclude(b => b.Project)
+                .Include(t=> t.TaskAssignments)
+                    .ThenInclude(a=>a.AppUser)
+                  .Where(t => t.TaskAssignments.Any(a => a.AppUserId == memberId))
+               
+               .ToListAsync();
+        }
         public async Task<TaskItem> CreateAsync(TaskItem task,int createdByUserId)
         {
             _taskDbContext.tasks.Add(task);
@@ -89,6 +101,16 @@ namespace Task.Infrastructure.Repository
                 .Where(t => ids.Contains(t.Id))
                 .ToListAsync();
         }
+        public async Task<List<TaskItem>> GetByIdsWithBoardAndProjectAsync(List<int> ids)
+        {
+            return await _taskDbContext.tasks
+                .Include(t => t.Board)
+                    .ThenInclude(b => b.Project)
+                .Where(t => ids.Contains(t.Id))
+                .ToListAsync();
+        }
+
+
 
     }
 }

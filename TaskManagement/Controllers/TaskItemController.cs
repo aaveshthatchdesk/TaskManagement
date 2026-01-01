@@ -58,6 +58,12 @@ namespace TaskManagementServerAPi.Controllers
                 return NotFound("Task not found");
             return Ok(task);
         }
+        [HttpGet("member/{memberId}/grouped")]
+        public async Task<IActionResult> GetMemberGroupedBoards(int memberId)
+        {
+            var result = await _taskItemService.GetMemberBoardsAsync(memberId);
+            return Ok(result);
+        }
         [Authorize]
         [HttpPost("boards/{boardId}/tasks")]
         public async Task<IActionResult> CreateTask(int boardId, [FromBody] TaskItemDto dto)
@@ -91,6 +97,15 @@ namespace TaskManagementServerAPi.Controllers
         public async Task<IActionResult> ReorderTasks([FromBody] List<TaskReorderDto> tasks)
         {
             var success = await _taskItemService.ReorderTasksAsync(tasks);
+            if (!success)
+                return BadRequest("Failed to reorder tasks");
+            return Ok("Tasks reordered successfully");
+
+        }
+        [HttpPut("tasksformembers/reorder")]
+        public async Task<IActionResult> ReorderTasksForMembers([FromBody] List<TaskReorderForMembersDto> tasks)
+        {
+            var success = await _taskItemService.ReorderTaskForMembersAsync(tasks);
             if (!success)
                 return BadRequest("Failed to reorder tasks");
             return Ok("Tasks reordered successfully");

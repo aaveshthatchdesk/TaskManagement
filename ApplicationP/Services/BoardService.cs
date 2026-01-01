@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.IdentityModel.Tokens.Experimental;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -84,33 +85,48 @@ namespace Task.Application.Services
         public async Task<IEnumerable<BoardDto>> GetBoardsByUserAsync(int userId)
         {
             var boards = await _boardRepository.GetBoardsByUserAsync(userId);
-            return boards.Select(b => new BoardDto
-            {
-                Id = b.Id,
-                Name = b.Name,
-                TaskItems=b.TaskItems
-                    .Where(t=>t.TaskAssignments.Any(a=>a.AppUserId==userId))
-                    .Select(t=>new TaskItemDto
-                    {
-                        Id = t.Id,
-                        Title = t.Title,
-                        Description = t.Description,
-                        BoardId = t.BoardId,
-                        SprintId = t.SprintId,
-                        DueDate= t.DueDate,
-                        Priority = t.Priority,
-                        CompletedDate=t.CompletedDate,
-                        Order = t.Order,
-                        IsCompleted = t.IsCompleted,
-                        TaskAssignments = t.TaskAssignments.Select(a => new TaskAssignmentDto
-                        {
-                            TaskItemId = a.TaskItemId,
-                            AppUserId = a.AppUserId,
-                            AppUserName = a.AppUser.Name
-                        }).ToList()
-                    }).ToList(),
-            
-            });
+            var result= boards
+                        .GroupBy(b=>b.Name.Trim().ToLower())
+                         .Select(b =>
+                         {
+                             var allTasks = b
+                                 .SelectMany(b => b.TaskItems ?? Enumerable.Empty<TaskItem>())
+                                 .Where(t => t.TaskAssignments.Any(a => a.AppUserId == userId))
+                                 .OrderBy(t => t.Order)
+                                 .ToList();
+                             return new BoardDto
+                             {
+                                 
+                                 Name = b.First().Name,
+                                 TaskItems = allTasks
+
+                                     .Select(t => new TaskItemDto
+                                     {
+                                         Id = t.Id,
+                                         Title = t.Title,
+                                         Description = t.Description,
+                                         BoardId = t.BoardId,
+                                         ProjectId = t.Board.ProjectId,
+                                         ProjectName = t.Board.Project.Name,
+                                         SprintId = t.SprintId,
+                                         DueDate = t.DueDate,
+                                         Priority = t.Priority,
+                                         CompletedDate = t.CompletedDate,
+                                         Order = t.Order,
+                                         IsCompleted = t.IsCompleted,
+                                         TaskAssignments = t.TaskAssignments.Select(a => new TaskAssignmentDto
+                                         {
+                                             TaskItemId = a.TaskItemId,
+                                             AppUserId = a.AppUserId,
+                                             AppUserName = a.AppUser.Name
+                                         }).ToList()
+                                     }).ToList()
+                             };
+                    }).ToList();
+
+            return result;
+
+      
         }
 
 

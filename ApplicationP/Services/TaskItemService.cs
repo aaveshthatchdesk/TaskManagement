@@ -12,10 +12,12 @@ namespace Task.Application.Services
     public class TaskItemService:ITaskItemService
     {
         private readonly ITaskItemRepository _taskItemRepository;
+        private readonly IBoardRepository boardRepository;
 
-        public TaskItemService(ITaskItemRepository taskItemRepository)
+        public TaskItemService(ITaskItemRepository taskItemRepository,IBoardRepository boardRepository)
         {
             _taskItemRepository = taskItemRepository;
+            this.boardRepository = boardRepository;
         }
 
         public async Task<bool> UpdateTaskAsync(int taskId,TaskItemDto dto)
@@ -66,6 +68,44 @@ namespace Task.Application.Services
             if (task == null)
                 return null;
             return MapToDto(task);
+        }
+
+        public async Task<List<MemberBoardDto>> GetMemberBoardsAsync(int memberId)
+        {
+            var tasks = await _taskItemRepository.GetTasksForMemberAsync(memberId);
+            var result = tasks
+                .GroupBy(t => t.Board.Name.Trim().ToLower())
+                .Select(g => new MemberBoardDto
+                {
+                    BoardName = g.First().Board.Name,
+                    Tasks = g.OrderBy(t => t.Order)
+                             .Select(t=> new TaskItemDto
+                             {
+                                 Id = t.Id,
+                                    Title = t.Title,
+                                 
+                                    Priority = t.Priority,
+                                    DueDate = t.DueDate,
+                                    BoardId = t.BoardId,
+                                    ProjectId = t.Board.ProjectId,
+                                    ProjectName= t.Board.Project.Name,
+
+                                 CreatedOn = t.CreatedOn,
+                                    LastUpdatedOn = t.LastUpdatedOn,
+                                    IsCompleted = t.IsCompleted,
+                                    Order = t.Order,
+                                    TaskAssignments = t.TaskAssignments.Select(a => new TaskAssignmentDto
+                                    {
+                                        TaskItemId = a.TaskItemId,
+                                        AppUserId = a.AppUserId,
+                                        AppUserName = a.AppUser.Name
+                                    }).ToList()
+                                     })
+                                .ToList()
+                                })
+                                    .OrderBy(t => t.BoardName)
+                                    .ToList();
+            return result;
         }
       
         public async Task<TaskItemDto> CreateTaskAsync(int createdByUserId,TaskItemDto dto)
@@ -194,5 +234,46 @@ namespace Task.Application.Services
             }
             return await _taskItemRepository.SaveChangesAsync();
         }
+
+        public async Task<bool> ReorderTaskForMembersAsync(List<TaskReorderForMembersDto> tasks)
+        {
+            var taskIds=tasks.Select(t=>t.TaskId).ToList();
+            var taskItems = await _taskItemRepository
+       .GetByIdsWithBoardAndProjectAsync(taskIds);
+
+            foreach (var task in taskItems)
+            {
+                var dto = tasks.First(t => t.TaskId == task.Id);
+
+                // 🔑 Resolve correct board INSIDE API
+                var targetBoard = await boardRepository.GetBoardByProjectAndNameAsync(
+                    task.Board.ProjectId,
+                    dto.TargetBoardName
+                );
+
+                if (targetBoard == null)
+                    continue;
+
+                task.BoardId = targetBoard.Id;
+                task.Order = dto.Order;
+
+                // Completion logic
+                if (dto.TargetBoardName.Equals("Done", StringComparison.OrdinalIgnoreCase))
+                {
+                    task.IsCompleted = true;
+                    task.CompletedDate ??= DateTime.UtcNow;
+                }
+                else
+                {
+                    task.IsCompleted = false;
+                    task.CompletedDate = null;
+                }
+
+                task.LastUpdatedOn = DateTime.UtcNow;
+            }
+
+            return await _taskItemRepository.SaveChangesAsync();
+        }
     }
 }
+

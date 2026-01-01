@@ -17,6 +17,8 @@ namespace Task.Application.DTOs
 
         public int ProjectId { get; set; }
 
+        public string? ProjectName { get; set; }
+
         //public ProjectDto ProjectDto { get; set; } = null!;
         public ICollection<TaskItemDto> TaskItems { get; set; } = new List<TaskItemDto>();
     }

@@ -34,6 +34,9 @@ namespace Task.Application.DTOs
         //public BoardDto BoardDto { get; set; } = null!;
         public string BoardName { get; set; } = string.Empty;
 
+        public int ProjectId { get; set; }
+        public string? ProjectName { get; set; }
+
         public int? SprintId { get; set; }
 
 

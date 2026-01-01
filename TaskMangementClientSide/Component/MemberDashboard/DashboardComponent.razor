@@ -228,7 +228,7 @@
 
         </div>
 
-          @if (Boards.Count == 0)
+          @if (GroupedBoards.Count == 0)
     {
         <div class="text-center text-muted mt-auto">
             <i class="bi bi-kanban fs-1 mb-3 d-block"></i>
@@ -239,8 +239,8 @@
     else
     {
        
-        <div class="d-flex flex-nowrap gap-3 overflow-auto">
-            @foreach (var board in Boards)
+        <div class="d-flex flex-nowrap gap-3 overflow-auto mt-4">
+            @foreach (var board in GroupedBoards)
             {
               
                 <div class="kanban-column bg-white rounded-4 shadow-sm p-3 flex-shrink-0" style="width: 270px;">
@@ -279,12 +279,10 @@
 
                                  
                                 </div>
-                                <div class="d-flex justify-content-between ">
-                                    
-                                        <h6 class="fw-semibold mb-1">@board.ProjectId</h6>
+                                <div class="text-muted small">
+                                   <i class="bi bi-folder"></i> @task.ProjectName
+                                        </div>
 
-                                 
-                                </div>
 
                              
                            
@@ -365,9 +363,10 @@
     private DashboardSummaryDto stats = new();
     private int memberId;
     private string search = "";
-    private List<BoardDto> Boards = new();
+    private List<BoardDto> GroupedBoards = new();
     private TaskItemDto draggedTask;
-    private BoardDto draggedFromBoard;
+    // private BoardDto draggedFromBoard;
+    private string draggedFromBoardName = string.Empty;
 
 
     protected override async Task OnInitializedAsync()
@@ -419,7 +418,7 @@
         var response = await Http.GetAsync($"api/Board/boards/user/{memberId}");
         if (response.IsSuccessStatusCode)
     {
-            Boards = await response.Content.ReadFromJsonAsync<List<BoardDto>>() ?? new();
+            GroupedBoards = await response.Content.ReadFromJsonAsync<List<BoardDto>>() ?? new();
         }
     }
     string GetPriorityBorder(string? priority)
@@ -445,7 +444,7 @@
     {
 
         draggedTask = task;
-        draggedFromBoard = fromBoard;
+        draggedFromBoardName = fromBoard.Name;
     }
 
     private string GetInitials(string name)
@@ -462,69 +461,125 @@
 
     }
 
-    private async Task OnTaskDrop(DragEventArgs e, BoardDto toBoard, TaskItemDto targetTask)
+    // private async Task OnTaskDrop(DragEventArgs e, BoardDto toBoard, TaskItemDto targetTask)
+    // {
+    //     try
+    //     {
+
+    //         if (draggedTask == null || draggedFromBoard == null)
+    //         {
+
+    //             return;
+    //         }
+
+    //         if(draggedTask.ProjectId!=toBoard.ProjectId)
+    //         {
+    //             Console.WriteLine("cross-project drag blocked");
+    //             draggedTask = null;
+    //             draggedFromBoard = null;
+    //             return;
+    //         }
+    //         var fromBoard = draggedFromBoard;
+
+
+    //         var removeItem = fromBoard.TaskItems.FirstOrDefault(t => t.Id == draggedTask.Id);
+    //         if (removeItem != null)
+    //             fromBoard.TaskItems.Remove(removeItem);
+
+
+    //         var list = toBoard.TaskItems
+    //             .OrderBy(t => t.Order)
+    //             .ToList();
+
+
+    //         int targetIndex = list.FindIndex(t => t.Id == targetTask.Id);
+    //         if (targetIndex < 0) targetIndex = list.Count;
+
+    //         list.Insert(targetIndex, draggedTask);
+
+
+    //         toBoard.TaskItems.Clear();
+    //         foreach (var t in list)
+    //             toBoard.TaskItems.Add(t);
+    //         draggedTask.BoardId = toBoard.Id;
+
+    //         if (toBoard.Name.Equals("Done", StringComparison.OrdinalIgnoreCase))
+    //         {
+    //             draggedTask.IsCompleted = true;
+    //             draggedTask.CompletedDate = DateTime.Today;   
+    //         }
+    //         else
+    //         {
+    //             draggedTask.IsCompleted = false;
+    //             draggedTask.CompletedDate = null; 
+    //         }
+
+    //         NormalizeOrder(fromBoard);
+
+    //         NormalizeOrder(toBoard);
+
+    //         await PersistBoardOrders(fromBoard);
+    //         await PersistBoardOrders(toBoard);
+
+    //         draggedTask = null;
+    //         draggedFromBoard = null;
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Console.WriteLine(ex.Message);
+    //     }
+
+
+    // }
+
+    private async Task OnTaskDrop(
+    DragEventArgs e,
+    BoardDto visualBoard,
+    TaskItemDto targetTask)
     {
-        try
+        if (draggedTask == null)
+            return;
+
+        // 1️⃣ Remove from old VISUAL board
+        var fromBoard = GroupedBoards
+            .First(b => b.Name == draggedFromBoardName);
+
+        fromBoard.TaskItems.Remove(draggedTask);
+
+        // 2️⃣ Insert at correct position
+        var ordered = visualBoard.TaskItems.ToList();
+
+        int targetIndex = ordered.FindIndex(t => t.Id == targetTask.Id);
+
+        if (targetIndex < 0)
+            ordered.Add(draggedTask);
+        else
+            ordered.Insert(targetIndex, draggedTask);
+
+        visualBoard.TaskItems.Clear();
+        foreach (var t in ordered)
+            visualBoard.TaskItems.Add(t);
+
+        if (visualBoard.Name.Equals("Done", StringComparison.OrdinalIgnoreCase))
         {
-
-            if (draggedTask == null || draggedFromBoard == null)
-            {
-
-                return;
-            }
-
-            var fromBoard = draggedFromBoard;
-
-
-            var removeItem = fromBoard.TaskItems.FirstOrDefault(t => t.Id == draggedTask.Id);
-            if (removeItem != null)
-                fromBoard.TaskItems.Remove(removeItem);
-
-
-            var list = toBoard.TaskItems
-                .OrderBy(t => t.Order)
-                .ToList();
-
-
-            int targetIndex = list.FindIndex(t => t.Id == targetTask.Id);
-            if (targetIndex < 0) targetIndex = list.Count;
-
-            list.Insert(targetIndex, draggedTask);
-
-
-            toBoard.TaskItems.Clear();
-            foreach (var t in list)
-                toBoard.TaskItems.Add(t);
-            draggedTask.BoardId = toBoard.Id;
-
-            if (toBoard.Name.Equals("Done", StringComparison.OrdinalIgnoreCase))
-            {
-                draggedTask.IsCompleted = true;
-                draggedTask.CompletedDate = DateTime.Today;   // ⭐ Set completed date
-            }
-            else
-            {
-                draggedTask.IsCompleted = false;
-                draggedTask.CompletedDate = null; // optional
-            }
-
-            NormalizeOrder(fromBoard);
-
-            NormalizeOrder(toBoard);
-
-            await PersistBoardOrders(fromBoard);
-            await PersistBoardOrders(toBoard);
-
-            draggedTask = null;
-            draggedFromBoard = null;
+            draggedTask.IsCompleted = true;
+            draggedTask.CompletedDate ??= DateTime.UtcNow;
         }
-        catch (Exception ex)
+        else
         {
-            Console.WriteLine(ex.Message);
+            draggedTask.IsCompleted = false;
+            draggedTask.CompletedDate = null;
         }
 
+        NormalizeOrder(visualBoard);
 
+        // 3️⃣ Persist (API resolves real board)
+        await PersistBoardOrders(visualBoard);
+
+        draggedTask = null;
     }
+
+
     private void NormalizeOrder(BoardDto board)
     {
         int order = 1;
@@ -536,70 +591,112 @@
     }
 
 
-    private async Task OnTaskDropToEmpty(DragEventArgs e, BoardDto toBoard)
+    // private async Task OnTaskDropToEmpty(DragEventArgs e, BoardDto toBoard)
+    // {
+
+
+    //     if (draggedTask == null)
+    //     {
+
+    //         return;
+    //     }
+    //     if(draggedTask.ProjectId!=toBoard.ProjectId)
+    //     {
+    //         Console.WriteLine("cross-project drag blocked");
+    //         draggedTask = null;
+    //         draggedFromBoard = null;
+    //         return;
+    //     }   
+
+    //     var fromBoard = draggedFromBoard;
+    //     if (fromBoard == null) return;
+
+
+    //     var removeItem = fromBoard.TaskItems.FirstOrDefault(t => t.Id == draggedTask.Id);
+    //     if (removeItem != null)
+    //         fromBoard.TaskItems.Remove(removeItem);
+
+
+
+
+
+
+    //     toBoard.TaskItems.Add(draggedTask);
+    //     draggedTask.BoardId = toBoard.Id;
+
+    //     if (toBoard.Name.Equals("Done", StringComparison.OrdinalIgnoreCase))
+    //     {
+    //         draggedTask.IsCompleted = true;
+    //         draggedTask.CompletedDate = DateTime.Today;
+    //     }
+    //     else
+    //     {
+    //         draggedTask.IsCompleted = false;
+    //         draggedTask.CompletedDate = null; 
+    //     }
+
+
+
+    //     NormalizeOrder(fromBoard);
+    //     NormalizeOrder(toBoard);
+
+    //     await PersistBoardOrders(fromBoard);
+    //     await PersistBoardOrders(toBoard);
+
+    //     draggedTask = null;
+    //     draggedFromBoard = null;
+
+    // }
+
+    private async Task OnTaskDropToEmpty(
+    DragEventArgs e,
+    BoardDto visualBoard)
     {
-
-
         if (draggedTask == null)
-        {
-
             return;
-        }
 
-        var fromBoard = draggedFromBoard;
-        if (fromBoard == null) return;
+        var fromBoard = GroupedBoards
+            .First(b => b.Name == draggedFromBoardName);
 
-
-        var removeItem = fromBoard.TaskItems.FirstOrDefault(t => t.Id == draggedTask.Id);
-        if (removeItem != null)
-            fromBoard.TaskItems.Remove(removeItem);
+        fromBoard.TaskItems.Remove(draggedTask);
+        visualBoard.TaskItems.Add(draggedTask);
 
 
-
-
-
-
-        toBoard.TaskItems.Add(draggedTask);
-        draggedTask.BoardId = toBoard.Id;
-
-        if (toBoard.Name.Equals("Done", StringComparison.OrdinalIgnoreCase))
+        if (visualBoard.Name.Equals("Done", StringComparison.OrdinalIgnoreCase))
         {
             draggedTask.IsCompleted = true;
-            draggedTask.CompletedDate = DateTime.Today;
+            draggedTask.CompletedDate ??= DateTime.UtcNow;
         }
         else
         {
             draggedTask.IsCompleted = false;
-            draggedTask.CompletedDate = null; // or keep old value
+            draggedTask.CompletedDate = null;
         }
 
+        NormalizeOrder(visualBoard);
 
-
-        NormalizeOrder(fromBoard);
-        NormalizeOrder(toBoard);
-
-        await PersistBoardOrders(fromBoard);
-        await PersistBoardOrders(toBoard);
+        await PersistBoardOrders(visualBoard);
 
         draggedTask = null;
-        draggedFromBoard = null;
-
     }
+
     private async Task PersistBoardOrders(BoardDto board)
     {
         bool isDoneBoard =
            board.Name.Equals("Done", StringComparison.OrdinalIgnoreCase);
-        var payload = board.TaskItems.Select(t => new TaskReorderDto
+        var payload = board.TaskItems.Select(t => new TaskReorderForMembersDto
         {
             TaskId = t.Id,
-            BoardId = board.Id,
+            TargetBoardName = board.Name,
             Order = t.Order,
-            IsDoneBoard = isDoneBoard
+         
         }).ToList();
 
-        await Http.PutAsJsonAsync("api/TaskItem/tasks/reorder", payload);
+        await Http.PutAsJsonAsync("api/TaskItem/tasksformembers/reorder", payload);
+        await LoadDashboardStats();
+        
     }
-
+  
     private class UserInfoResponse
     {
         public int UserId { get; set; }

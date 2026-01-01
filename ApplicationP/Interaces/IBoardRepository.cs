@@ -17,5 +17,6 @@ namespace Task.Application.Interaces
         Task<Board> CreateBoardAsync(Board board);
         Task<Board> UpdateBoardAsync(Board board);
         Task<bool> DeleteBoardAsync(Board board);
+        Task<Board?> GetBoardByProjectAndNameAsync(int projectId, string boardName);
     }
 }
