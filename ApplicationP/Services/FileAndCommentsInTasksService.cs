@@ -69,6 +69,7 @@ namespace Task.Application.Services
                 {
                     TaskItemId = a.TaskItemId,
                     AppUserId = a.AppUserId,
+                    AppUserName = a.AppUser.Name
                 }).ToList() ?? new List<TaskAssignmentDto>()
             };
         }
