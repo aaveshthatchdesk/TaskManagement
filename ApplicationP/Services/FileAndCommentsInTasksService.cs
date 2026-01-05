@@ -15,63 +15,70 @@ namespace Task.Application.Services
     public  class FileAndCommentsInTasksService:IFileAndCommentsInTasksService
     {
         private readonly IFileAndCommentsInTasksRepository _tasksRepository;
+        private readonly IActivityLogService _activityLogService;
+
         //private readonly IWebHostEnvironment _env;
 
-        public FileAndCommentsInTasksService(IFileAndCommentsInTasksRepository tasksRepository)
+        public FileAndCommentsInTasksService(IFileAndCommentsInTasksRepository tasksRepository,IActivityLogService activityLogService )
         {
             _tasksRepository = tasksRepository;
+            _activityLogService = activityLogService;
             //_env = env;
         }
         public async Task<TaskItemDto?> GetTaskDetailByIdAsync(int taskId)
         {
             var task = await _tasksRepository.GetTaskByIdAsync(taskId);
-            if (task == null)
-                return null;
-            return new TaskItemDto
+            switch (task)
             {
-                Id = task.Id,
-                Title = task.Title,
-                Description = task.Description,
-                Priority = task.Priority,
-                DueDate = task.DueDate,
-                Order = task.Order,
-                CreatedOn = task.CreatedOn,
-                LastUpdatedOn = task.LastUpdatedOn,
-                BoardId = task.BoardId,
-                BoardName = task.Board.Name,
-                TaskAttachments = task.TaskAttachments?.Select(a => new TaskAttachmentDto
-                {
-                    Id = a.Id,
-                    FileName = a.FileName,
-                    FilePath = a.FilePath,
-                    ContentType = a.ContentType,
-                    UploadedByUserId = a.UploadedByUserId,
-                    UploadedOn = a.UploadedOn,
-                    UploadedByUserName = a.UploadedByUser.Name
-                }).ToList(),
-                TaskComments = task.TaskComments?.Select(c => new TaskCommentDto
-                {
-                    Id = c.Id,
-                    CommentText = c.CommentText,
-                    CreatedByUserId = c.CreatedByUserId,
-                    CreatedOn = c.CreatedOn,
-                    CreatedByUserName = c.CreatedByUser.Name
+                case null:
+                    return null;
+                default:
+                    return new TaskItemDto
+                    {
+                        Id = task.Id,
+                        Title = task.Title,
+                        Description = task.Description,
+                        Priority = task.Priority,
+                        DueDate = task.DueDate,
+                        Order = task.Order,
+                        CreatedOn = task.CreatedOn,
+                        LastUpdatedOn = task.LastUpdatedOn,
+                        BoardId = task.BoardId,
+                        BoardName = task.Board.Name,
+                        TaskAttachments = task.TaskAttachments?.Select(a => new TaskAttachmentDto
+                        {
+                            Id = a.Id,
+                            FileName = a.FileName,
+                            FilePath = a.FilePath,
+                            ContentType = a.ContentType,
+                            UploadedByUserId = a.UploadedByUserId,
+                            UploadedOn = a.UploadedOn,
+                            UploadedByUserName = a.UploadedByUser.Name
+                        }).ToList(),
+                        TaskComments = task.TaskComments?.Select(c => new TaskCommentDto
+                        {
+                            Id = c.Id,
+                            CommentText = c.CommentText,
+                            CreatedByUserId = c.CreatedByUserId,
+                            CreatedOn = c.CreatedOn,
+                            CreatedByUserName = c.CreatedByUser.Name
 
 
-                }).ToList(),
-                TaskCreators = task.TaskCreators?.Select(c => new TaskCreatorDto
-                {
-                    TaskItemId = c.TaskItemId,
-                    CreatedByUserId = c.AppUserId,
-                    CreatedByUserName = c.AppUser.Name
-                }).ToList() ?? new List<TaskCreatorDto>(),
-                TaskAssignments = task.TaskAssignments?.Select(a => new TaskAssignmentDto
-                {
-                    TaskItemId = a.TaskItemId,
-                    AppUserId = a.AppUserId,
-                    AppUserName = a.AppUser.Name
-                }).ToList() ?? new List<TaskAssignmentDto>()
-            };
+                        }).ToList(),
+                        TaskCreators = task.TaskCreators?.Select(c => new TaskCreatorDto
+                        {
+                            TaskItemId = c.TaskItemId,
+                            CreatedByUserId = c.AppUserId,
+                            CreatedByUserName = c.AppUser.Name
+                        }).ToList() ?? new List<TaskCreatorDto>(),
+                        TaskAssignments = task.TaskAssignments?.Select(a => new TaskAssignmentDto
+                        {
+                            TaskItemId = a.TaskItemId,
+                            AppUserId = a.AppUserId,
+                            AppUserName = a.AppUser.Name
+                        }).ToList() ?? new List<TaskAssignmentDto>()
+                    };
+            }
         }
 
         public  async Task<TaskCommentDto> AddCommentAsync(int taskId,int userId,TaskCommentDto commentDto)
@@ -89,6 +96,14 @@ namespace Task.Application.Services
             if (taskItem != null)
             {
                 taskItem.LastUpdatedOn = DateTime.UtcNow;
+                await _activityLogService.LogAsync(
+           projectId: taskItem.Board.ProjectId,
+           userId: userId,
+           actionType: "CommentAdded",
+           description: $"commented on '{taskItem.Title}'",
+           taskId: taskItem.Id,
+           boardId: taskItem.BoardId
+       );
             }
 
 
@@ -114,7 +129,17 @@ namespace Task.Application.Services
 
             var task = await _tasksRepository.GetTaskByIdAsync(comment.TaskItemId);
             if (task != null)
+            {
                 task.LastUpdatedOn = DateTime.UtcNow;
+                await _activityLogService.LogAsync(
+        projectId: task.Board.ProjectId,
+        userId: userId,
+        actionType: "CommentUpdated",
+        description: $"updated a comment on '{task.Title}'",
+        taskId: task.Id,
+        boardId: task.BoardId
+    );
+            }
 
             await _tasksRepository.SaveChangesAsync();
 
@@ -141,7 +166,17 @@ namespace Task.Application.Services
 
             var task = await _tasksRepository.GetTaskByIdAsync(comment.TaskItemId);
             if (task != null)
+            {
                 task.LastUpdatedOn = DateTime.UtcNow;
+                await _activityLogService.LogAsync(
+         projectId: task.Board.ProjectId,
+         userId: userId,
+         actionType: "CommentDeleted",
+         description: $"deleted a comment on '{task.Title}'",
+         taskId: task.Id,
+         boardId: task.BoardId
+     );
+            }
 
             await _tasksRepository.SaveChangesAsync();
             return true;
@@ -172,6 +207,14 @@ namespace Task.Application.Services
             if (taskItem != null)
             {
                 taskItem.LastUpdatedOn = DateTime.UtcNow;
+                await _activityLogService.LogAsync(
+        projectId: taskItem.Board.ProjectId,
+        userId: userId,
+        actionType: "AttachmentAdded",
+        description: $"added attachment '{file.FileName}' to  '{taskItem.Title}'",
+        taskId: taskItem.Id,
+        boardId: taskItem.BoardId
+    );
             }
 
 
@@ -196,7 +239,7 @@ namespace Task.Application.Services
             // OPTIONAL: allow only uploader or admin later
             if (!isAdmin && attachment.UploadedByUserId != userId)
                 throw new UnauthorizedAccessException("You are not allowed to delete this attachment");
-
+            var task = await _tasksRepository.GetTaskByIdAsync(attachment.TaskItemId);
             // 1️⃣ Delete physical file
             var physicalPath = Path.Combine(
                 Directory.GetCurrentDirectory(),
@@ -210,8 +253,21 @@ namespace Task.Application.Services
 
             // 2️⃣ Delete DB record
             await _tasksRepository.DeleteAttachmentAsync(attachment);
-         
 
+            if (task != null)
+            {
+                task.LastUpdatedOn = DateTime.UtcNow;
+
+                // 🔥 LOG ATTACHMENT DELETED
+                await _activityLogService.LogAsync(
+                    projectId: task.Board.ProjectId,
+                    userId: userId,
+                    actionType: "AttachmentDeleted",
+                    description: $"deleted attachment '{attachment.FileName}' from  '{task.Title}'",
+                    taskId: task.Id,
+                    boardId: task.BoardId
+                );
+            }
 
             await _tasksRepository.SaveChangesAsync();
 

@@ -36,6 +36,7 @@ namespace Task.Infrastructure.Repository
         public async Task<TaskItem?> GetByIdAsync(int id)
         {
             return await _taskDbContext.tasks
+                .Include(t=>t.Board)
                 .Include(t=>t.TaskCreators)
                   .ThenInclude(c=>c.AppUser)
                 .Include(t => t.TaskAssignments)
@@ -84,6 +85,7 @@ namespace Task.Infrastructure.Repository
         public async Task<TaskItem?> GetTaskByIdAsync(int id)
         {
             return await _taskDbContext.tasks
+                .Include(t=>t.Board)
                 .Include(t => t.TaskAssignments)
                 .FirstOrDefaultAsync(t => t.Id == id);
         }

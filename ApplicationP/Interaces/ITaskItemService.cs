@@ -9,7 +9,7 @@ namespace Task.Application.Interaces
 {
     public interface ITaskItemService
     {
-        Task<bool> UpdateTaskAsync(int taskId,TaskItemDto dto);
+        Task<bool> UpdateTaskAsync(int taskId,TaskItemDto dto,int updateByUserId);
 
         public Task<bool> UpdateTaskDescriptionAsync(int taskId, string description );
         Task<IEnumerable<TaskItemDto>> GetTasksByProjectAsync(int projectID);
@@ -19,8 +19,8 @@ namespace Task.Application.Interaces
 
         Task<TaskItemDto> CreateTaskAsync(int createdByUserId,TaskItemDto dto);
         Task<TaskItemDto> UpdateTasksAsync(int taskId, TaskItemDto dto);
-        Task<bool> DeleteTaskAsync(int taskId);
-        Task<bool> ReorderTasksAsync(List<TaskReorderDto> tasks);
-        Task<bool> ReorderTaskForMembersAsync(List<TaskReorderForMembersDto> tasks);
+        Task<bool> DeleteTaskAsync(int taskId,int userId);
+        Task<bool> ReorderTasksAsync(List<TaskReorderDto> tasks,int userId);
+        Task<bool> ReorderTaskForMembersAsync(List<TaskReorderForMembersDto> tasks,int UserId);
     }
 }

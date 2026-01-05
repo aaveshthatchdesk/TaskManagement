@@ -19,12 +19,19 @@ namespace TaskManagementServerAPi.Controllers
         {
             _taskItemService = taskItemService;
         }
+        [Authorize]
         [HttpPut("{taskId}")]
         public async Task<IActionResult> UpdateTask(int taskId, [FromBody] TaskItemDto dto)
         {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)
+                ?? User.FindFirst("UserId");
 
+            if (userIdClaim == null)
+                return Unauthorized("UserId not found in token");
 
-            var success = await _taskItemService.UpdateTaskAsync(taskId, dto);
+            int updatedByUserId = int.Parse(userIdClaim.Value);
+
+            var success = await _taskItemService.UpdateTaskAsync(taskId, dto,updatedByUserId);
 
             if (!success)
                 return NotFound("Task not found");
@@ -79,33 +86,58 @@ namespace TaskManagementServerAPi.Controllers
             var createdTask = await _taskItemService.CreateTaskAsync(createdByUserId,dto);
             return CreatedAtAction(nameof(GetTaskById), new { taskId = createdTask.Id }, createdTask);
         }
+        [Authorize]
         [HttpPut("tasks/{taskId}")]
         public async Task<IActionResult> UpdateTaskItem(int taskId, [FromBody] TaskItemDto dto)
         {
+          
             var updatedTask = await _taskItemService.UpdateTasksAsync(taskId, dto);
             return Ok(updatedTask);
         }
         [HttpDelete("tasks/{taskId}")]
         public async Task<IActionResult> DeleteTask(int taskId)
         {
-            var success = await _taskItemService.DeleteTaskAsync(taskId);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)
+                ?? User.FindFirst("UserId");
+
+            if (userIdClaim == null)
+                return Unauthorized("UserId not found in token");
+
+            int userId = int.Parse(userIdClaim.Value);
+            var success = await _taskItemService.DeleteTaskAsync(taskId,userId);
             if (!success)
                 return NotFound("Task not found");
             return Ok("Task deleted successfully");
         }
+        [Authorize]
         [HttpPut("tasks/reorder")]
         public async Task<IActionResult> ReorderTasks([FromBody] List<TaskReorderDto> tasks)
         {
-            var success = await _taskItemService.ReorderTasksAsync(tasks);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)
+               ?? User.FindFirst("UserId");
+
+            if (userIdClaim == null)
+                return Unauthorized("UserId not found in token");
+
+            int userId = int.Parse(userIdClaim.Value);
+            var success = await _taskItemService.ReorderTasksAsync(tasks,userId);
             if (!success)
                 return BadRequest("Failed to reorder tasks");
             return Ok("Tasks reordered successfully");
 
         }
+        [Authorize]
         [HttpPut("tasksformembers/reorder")]
         public async Task<IActionResult> ReorderTasksForMembers([FromBody] List<TaskReorderForMembersDto> tasks)
         {
-            var success = await _taskItemService.ReorderTaskForMembersAsync(tasks);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)
+                 ?? User.FindFirst("UserId");
+
+            if (userIdClaim == null)
+                return Unauthorized("UserId not found in token");
+
+            int UserId = int.Parse(userIdClaim.Value);
+            var success = await _taskItemService.ReorderTaskForMembersAsync(tasks,UserId);
             if (!success)
                 return BadRequest("Failed to reorder tasks");
             return Ok("Tasks reordered successfully");

@@ -8,7 +8,7 @@ namespace Task.Application.Interaces
 {
     public interface IAssignMemberService
     {
-        Task<bool> AssignedMemberAsync(int taskId, int userId);
-        Task<bool> RemoveMemberAsync(int taskId, int userId);
+        Task<bool> AssignedMemberAsync(int taskId, int userId, int createdUserId );
+        Task<bool> RemoveMemberAsync(int taskId, int userId, int createdUserId);
     }
 }

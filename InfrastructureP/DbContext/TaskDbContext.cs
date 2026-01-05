@@ -35,6 +35,8 @@ namespace Task.Infrastructure.DbContext
 
         public DbSet<TaskCreator> TaskCreators { get; set; }
 
+        public DbSet<ActivityLog> ActivityLogs { get; set; }
+
 
 
 
@@ -155,6 +157,10 @@ namespace Task.Infrastructure.DbContext
 
             modelBuilder.Entity<Project>().Ignore(p => p.Progress);
             modelBuilder.Entity<Project>().Ignore(p => p.TeamMembers);
+
+           
+
+
         }
     }
 }

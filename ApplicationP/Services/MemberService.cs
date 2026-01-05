@@ -65,6 +65,8 @@ namespace Task.Application.Services
                 Role = member.Role,
             };
         }
+     
+
         public async Task<AppUserDto?> GetByEmailAsync(string email)
         {
             var member = await _memberRepository.GetByEmailAsync(email);

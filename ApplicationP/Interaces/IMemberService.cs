@@ -15,7 +15,8 @@ namespace Task.Application.Interaces
       
         public Task<IEnumerable<AppUserDto>> GetByRoleAsync(string role);
         public Task<AppUserDto?> GetByIdAsync(int id);
-         public  Task<AppUserDto?> GetByEmailAsync(string email);
+       
+        public  Task<AppUserDto?> GetByEmailAsync(string email);
 
         public Task<AppUserDto> AddMemberAsync(AppUserDto appUser);
 

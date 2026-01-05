@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Task.Infrastructure.DbContext;
 
@@ -11,9 +12,11 @@ using Task.Infrastructure.DbContext;
 namespace Task.Infrastructure.Migrations
 {
     [DbContext(typeof(TaskDbContext))]
-    partial class TaskDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260102053019_AddActivityLOgTable")]
+    partial class AddActivityLOgTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -50,9 +53,6 @@ namespace Task.Infrastructure.Migrations
                     b.Property<int>("ProjectId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TargetUserId")
-                        .HasColumnType("int");
-
                     b.Property<int?>("TaskItemId")
                         .HasColumnType("int");
 
@@ -61,10 +61,6 @@ namespace Task.Infrastructure.Migrations
                     b.HasIndex("PerformedByUserId");
 
                     b.HasIndex("ProjectId");
-
-                    b.HasIndex("TargetUserId");
-
-                    b.HasIndex("TaskItemId");
 
                     b.ToTable("ActivityLogs");
                 });
@@ -418,21 +414,9 @@ namespace Task.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Task.Domain.Entities.AppUser", "TargetUser")
-                        .WithMany()
-                        .HasForeignKey("TargetUserId");
-
-                    b.HasOne("Task.Domain.Entities.TaskItem", "TaskItem")
-                        .WithMany()
-                        .HasForeignKey("TaskItemId");
-
                     b.Navigation("PerformedByUser");
 
                     b.Navigation("Project");
-
-                    b.Navigation("TargetUser");
-
-                    b.Navigation("TaskItem");
                 });
 
             modelBuilder.Entity("Task.Domain.Entities.AppUserAuth", b =>

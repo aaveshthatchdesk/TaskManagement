@@ -41,6 +41,8 @@ namespace TaskManagement
             builder.Services.AddScoped<IAssignMemberRepository, AssignMemberRepository>();
             builder.Services.AddScoped<IFileAndCommentsInTasksRepository, FileAndCommentsInTasksRepository>();
             builder.Services.AddScoped<IFileAndCommentsInTasksService, FileAndCommentsInTasksService>();
+            builder.Services.AddScoped<IActivityLogRepository, ActivityLogRepository>();
+            builder.Services.AddScoped<IActivityLogService, ActivityLogService>();
 
 
             builder.Services.AddScoped<IEmailService, EmailService>();

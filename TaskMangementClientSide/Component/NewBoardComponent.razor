@@ -2996,7 +2996,7 @@ dropdown-submenu {
             }
             else
             {
-                var response = await Http.DeleteAsync($"api/AssignMember/{task.Id}/remove?memberId={memberId}");
+                var response = await Http.DeleteAsync($"api/AssignMember/{task.Id}/remove/{memberId}");
                 if (response.IsSuccessStatusCode)
                 {
 

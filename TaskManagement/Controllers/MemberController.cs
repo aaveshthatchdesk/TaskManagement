@@ -59,7 +59,7 @@ namespace TaskManagementServerAPi.Controllers
             var result = await _memberService.GetByIdAsync(id);
             return Ok(result);
         }
-
+      
 
         [HttpPost]
         [Authorize(Roles = "Admin,Manager")]
