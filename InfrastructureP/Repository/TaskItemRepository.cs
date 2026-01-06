@@ -112,7 +112,26 @@ namespace Task.Infrastructure.Repository
                 .ToListAsync();
         }
 
+        public async Task<List<TaskItem>> GetUpcomingDeadlineTasksForMemberAsync(int memberId,int take)
+        {
+            var today = DateTime.UtcNow.Date;
 
+            return await _taskDbContext.tasks
+                .Include(t=>t.Board)
+                  .ThenInclude(b=>b.Project)
+                  .Include(t=>t.TaskAssignments)
+                  .Where(t=>
+                 !t.IsCompleted&&
+                 t.DueDate!=null &&
+                 t.DueDate>=today&&
+                 t.TaskAssignments.Any(a=>a.AppUserId==memberId)
+
+                )
+                  .OrderBy(t=>t.DueDate)
+                  .Take(take)
+                  .ToListAsync();
+
+        }
 
     }
 }

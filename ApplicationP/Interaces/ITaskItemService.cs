@@ -22,5 +22,6 @@ namespace Task.Application.Interaces
         Task<bool> DeleteTaskAsync(int taskId,int userId);
         Task<bool> ReorderTasksAsync(List<TaskReorderDto> tasks,int userId);
         Task<bool> ReorderTaskForMembersAsync(List<TaskReorderForMembersDto> tasks,int UserId);
+        Task<List<UpcomingDeadlinesDto>> GetUpcomingDeadlinesAsync(int memberId, int take = 5);
     }
 }

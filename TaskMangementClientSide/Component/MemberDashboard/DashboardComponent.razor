@@ -541,9 +541,14 @@
 
                                     <!-- LEFT -->
                                     <div class="small">
-                                        <div class="fw-semibold text-dark">
-                                            @t.Title
-                                        </div>
+                                            <div class="fw-semibold text-dark d-flex align-items-center gap-2">
+                                                @if (IsDeadlineDanger(t.DueDate))
+                                                {
+                                                    <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+                                                }
+
+                                                <span>@t.Title</span>
+                                            </div>
 
                                         <div class="text-muted">
                                             <i class="bi bi-folder me-1"></i>
@@ -552,9 +557,9 @@
                                     </div>
 
                                     <!-- RIGHT : DATE BADGE -->
-                                    @* <span class="badge rounded-pill px-3 py-2 @GetDeadlineBadge(t.DueDate)">
+                                        <span class="px-3 py-2 small text-end @GetDeadlineTextClass(t.DueDate)" style="white-space: pre-line;">
                                         @FormatDeadline(t.DueDate)
-                                    </span> *@
+                                    </span>
 
                                 </div>
                             </li>
@@ -1029,7 +1034,7 @@
     private List<MemberDto> allMembers = new();
     private List<ActivityLogDto> activityLogs = new();
     private int selectedProjectId;
-    private List<TaskItemDto> UpcomingTasks = new();
+    private List<UpcomingDeadlinesDto> UpcomingTasks = new();
 
     private string ApiBaseUrl = "https://localhost:7218";
 
@@ -1046,6 +1051,7 @@
        .FirstOrDefault();
 
         await LoadMemberActivitiesAsync();
+        await LoadUpcomingDeadlinesAsync();
 
     }
     //   private async Task LoadBoards()
@@ -1081,7 +1087,7 @@
 
 
     }
-   
+
     private string GetFileUrl(string filePath)
     {
         if (string.IsNullOrWhiteSpace(filePath))
@@ -1100,7 +1106,7 @@
             return;
         var response = await Http.GetAsync($"api/Board/boards/user/{memberId}");
         if (response.IsSuccessStatusCode)
-    {
+        {
             GroupedBoards = await response.Content.ReadFromJsonAsync<List<BoardDto>>() ?? new();
         }
     }
@@ -1121,6 +1127,25 @@
             activityLogs = new();
         }
     }
+
+    private async Task LoadUpcomingDeadlinesAsync()
+    {
+        if (memberId <= 0)
+            return;
+
+        try
+        {
+            UpcomingTasks = await Http.GetFromJsonAsync<List<UpcomingDeadlinesDto>>(
+                $"api/taskItem/upcoming-deadlines?memberId={memberId}&take=4"
+            ) ?? new();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Failed to load upcoming deadlines: " + ex.Message);
+            UpcomingTasks = new();
+        }
+    }
+
 
     string GetPriorityBorder(string? priority)
     {
@@ -1193,8 +1218,72 @@
             _ =>
                 $"{actor} {a.Description}"
         };
-   
+
     }
+    // private string GetDeadlineBadge(DateTime dueDate)
+    // {
+    //     if (dueDate.Date < DateTime.Today)
+    //         return "bg-danger text-white";
+
+    //     if (dueDate.Date == DateTime.Today)
+    //         return "bg-warning text-dark";
+
+    //     return "bg-success text-white";
+    // }
+  
+
+    // private string FormatDeadline(DateTime dueDate)
+    // {
+    //     if (dueDate.Date == DateTime.Today)
+    //         return "Today";
+
+    //     return dueDate.ToString("MMM dd");
+    // }
+    private bool IsDeadlineDanger(DateTime? dueDate)
+    {
+        if (!dueDate.HasValue)
+            return false;
+
+        var days = (dueDate.Value.Date - DateTime.Today).Days;
+
+        return days < 0 || days <= 2;
+    }
+
+    private string GetDeadlineTextClass(DateTime? dueDate)
+    {
+        if (!dueDate.HasValue)
+            return "text-muted";
+
+        var days = (dueDate.Value.Date - DateTime.Today).Days;
+
+        // Red text rules
+        if (days < 0 || days <= 2)
+            return "text-danger fw-semibold";
+
+        return "text-muted";
+    }
+
+    private string FormatDeadline(DateTime? dueDate)
+    {
+        if (!dueDate.HasValue)
+            return "—";
+
+        var days = (dueDate.Value.Date - DateTime.Today).Days;
+        var dateText = dueDate.Value.ToString("MMM dd");
+
+        if (days < 0)
+            return $"{dateText}\n Overdue";
+
+        if (days == 0)
+            return $"{dateText}\n Today";
+
+        if (days == 1)
+            return $"{dateText} \nTomorrow";
+
+        return $"{dateText} \n {days} days left";
+    }
+
+
 
 
     private void OnTaskDragStart(DragEventArgs e, BoardDto fromBoard, TaskItemDto task)
@@ -1332,7 +1421,7 @@
 
         // 3️⃣ Persist (API resolves real board)
         await PersistBoardOrders(visualBoard);
-     
+
 
         draggedTask = null;
     }
@@ -1447,13 +1536,14 @@
             TaskId = t.Id,
             TargetBoardName = board.Name,
             Order = t.Order,
-         
+
         }).ToList();
 
         await Http.PutAsJsonAsync("api/TaskItem/tasksformembers/reorder", payload);
         await LoadDashboardStats();
         await LoadMemberActivitiesAsync();
-        
+        await LoadUpcomingDeadlinesAsync();
+
     }
    
    

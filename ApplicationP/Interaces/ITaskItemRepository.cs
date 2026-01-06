@@ -25,6 +25,8 @@ namespace Task.Application.Interaces
         Task<List<TaskItem>> GetByIdsAsync(List<int> ids);
         Task<List<TaskItem>> GetByIdsWithBoardAndProjectAsync(List<int> ids);
 
+        Task<List<TaskItem>> GetUpcomingDeadlineTasksForMemberAsync(int memberId, int take);
+
 
     }
 }

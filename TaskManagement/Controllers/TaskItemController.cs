@@ -143,6 +143,14 @@ namespace TaskManagementServerAPi.Controllers
             return Ok("Tasks reordered successfully");
 
         }
+        [HttpGet("upcoming-deadlines")]
+        public async Task<IActionResult> GetUpcomingDeadlines( [FromQuery] int memberId, [FromQuery] int take = 5)
+        {
+            var result = await _taskItemService
+                .GetUpcomingDeadlinesAsync(memberId, take);
+
+            return Ok(result);
+        }
     }
 }
 

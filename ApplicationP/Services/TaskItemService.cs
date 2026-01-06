@@ -430,6 +430,24 @@ namespace Task.Application.Services
             return await _taskItemRepository.SaveChangesAsync();
 
         }
+        public async Task<List<UpcomingDeadlinesDto>> GetUpcomingDeadlinesAsync(int memberId,int take=5)
+        {
+            var tasks = await _taskItemRepository .GetUpcomingDeadlineTasksForMemberAsync(memberId, take);
+
+            return tasks.Select(t => new UpcomingDeadlinesDto
+            {
+                TaskId = t.Id,
+                Title = t.Title,
+                DueDate = t.DueDate!.Value,
+                Priority = t.Priority,
+
+                ProjectId = t.Board.ProjectId,
+                ProjectName = t.Board.Project.Name,
+
+                BoardName = t.Board.Name
+            })
+            .ToList();
+        }
     }
 }
 
