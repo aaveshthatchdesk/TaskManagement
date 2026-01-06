@@ -408,9 +408,25 @@
             var response = await Http.PostAsJsonAsync("api/Member", currentUser);
             if (response.IsSuccessStatusCode)
             {
-                showForm = false;
+                var createdUser = await response.Content.ReadFromJsonAsync<AppUserDto>();
+                var member = new MemberDto
+                {
+                    Id = createdUser.Id,      // ✅ REAL ID
+                    Name = createdUser.Name   // ✅ REAL NAME
+                };
 
-                await LoadMembers();
+                members.Add(member);
+                if (Show)
+                {
+                    if (!newProject.MemberIds.Contains(member.Id))
+                        newProject.MemberIds.Add(member.Id);
+                   
+                    formContext.NotifyFieldChanged(
+       new FieldIdentifier(newProject, nameof(newProject.MemberIds)));
+                }
+                
+                showForm = false;
+                StateHasChanged();
             }
             else
             {
@@ -424,6 +440,7 @@
         // showForm = false;
 
     }
+
     private void ShowAddForm()
     {
         currentUser = new AppUserDto

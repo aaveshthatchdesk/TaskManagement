@@ -97,7 +97,10 @@ namespace Task.Application.Services
                 Visibility = created.Visibility,
                 CreatedDate = created.CreatedDate,
                 MemberIds = created.ProjectMembers.Select(pm => pm.AppUserId).ToList(),
-                ManagerIds = created.Managers.Select(pm => pm.AppUserId).ToList()
+                ManagerIds = created.Managers.Select(pm => pm.AppUserId).ToList(),
+               
+
+
             };
         }
 

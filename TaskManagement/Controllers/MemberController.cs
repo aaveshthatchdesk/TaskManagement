@@ -107,7 +107,8 @@ namespace TaskManagementServerAPi.Controllers
                     );
                 }
                     
-                return Ok(new { message = $"User '{dto.Email}' assigned as {dto.Role} successfully." });
+                //return Ok(new { message = $"User '{dto.Email}' assigned as {dto.Role} successfully." });
+                return Ok(result);
             }
             catch(InvalidOperationException ex)
             {

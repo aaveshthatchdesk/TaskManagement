@@ -2079,26 +2079,26 @@ dropdown-submenu {
             spinner.Show();
             await Task.Delay(500);
 
-        var response = await Http.DeleteAsync($"api/Board/{boardToDelete.Id}?projectId={ProjectId}");
-        if (response.IsSuccessStatusCode)
-        {
-            Boards.Remove(boardToDelete);
-            // CurrentProject.Boards = Boards;
+            var response = await Http.DeleteAsync($"api/Board/{boardToDelete.Id}?projectId={ProjectId}");
+            if (response.IsSuccessStatusCode)
+            {
+                Boards.Remove(boardToDelete);
+                // CurrentProject.Boards = Boards;
 
 
 
-        }
+            }
         }
         catch(Exception ex)
         {
-          Console.WriteLine("Error deleting board: " + ex.Message);
+            Console.WriteLine("Error deleting board: " + ex.Message);
         }
 
-        
+
         finally{
-        spinner.Hide();
-        showDeleteBoardConfirm = false;
-        boardToDelete = null;
+            spinner.Hide();
+            showDeleteBoardConfirm = false;
+            boardToDelete = null;
         }
     }
 
@@ -2157,7 +2157,7 @@ dropdown-submenu {
 
             spinner.Hide();
             showAddBoard = false;
-        boardModel = new BoardDto();
+            boardModel = new BoardDto();
         }
     }
     private async Task ShowMangerModal()
@@ -2321,17 +2321,17 @@ dropdown-submenu {
             await Task.Delay(500);
 
 
-        // StateHasChanged();
+            // StateHasChanged();
 
-        // 4. Send to backend (optional but required for saving)
-        var memberIds = selectedMembers.Select(m => m.Id).ToList();
+            // 4. Send to backend (optional but required for saving)
+            var memberIds = selectedMembers.Select(m => m.Id).ToList();
 
-        await Http.PostAsJsonAsync(
-            $"api/Project/{ProjectId}/Members/Assign",
-            memberIds
-        );
+            await Http.PostAsJsonAsync(
+                $"api/Project/{ProjectId}/Members/Assign",
+                memberIds
+            );
 
-        await LoadProject();
+            await LoadProject();
         }
         catch (Exception ex)
         {
@@ -2343,9 +2343,9 @@ dropdown-submenu {
             showMemberModel = false;
             StateHasChanged();
         }
-       
+
     }
-    
+
     async Task showMembermodel()
     {
         await LoadMembers();
@@ -2393,25 +2393,25 @@ dropdown-submenu {
 
     private async Task DeleteMemberConfirmed()
     {
-       
+
         try{
 
-           spinner.Show();
-           await Task.Delay(500);
+            spinner.Show();
+            await Task.Delay(500);
 
-        var response = await Http.DeleteAsync(
-            $"api/Member/RemoveFromProject?projectId={ProjectId}&memberId={memberToDelete}"
-        );
+            var response = await Http.DeleteAsync(
+                $"api/Member/RemoveFromProject?projectId={ProjectId}&memberId={memberToDelete}"
+            );
 
-        if (response.IsSuccessStatusCode)
-        {
-            await LoadProject();
-            StateHasChanged();
-        }
-        else
-        {
-            Console.WriteLine("Failed to delete manager.");
-        }
+            if (response.IsSuccessStatusCode)
+            {
+                await LoadProject();
+                StateHasChanged();
+            }
+            else
+            {
+                Console.WriteLine("Failed to delete manager.");
+            }
         }
         catch (Exception ex)
         {
@@ -2435,9 +2435,27 @@ dropdown-submenu {
             var response = await Http.PostAsJsonAsync("api/Member", currentUser);
             if (response.IsSuccessStatusCode)
             {
+                var createdUser = await response.Content.ReadFromJsonAsync<AppUserDto>();
                 showForm = false;
 
                 await LoadMembers();
+                if (createdUser != null)
+                {
+                    // ✅ FIND CREATED MEMBER IN allMembers
+                    var newMember = allMembers
+                        .FirstOrDefault(m => m.Id == createdUser.Id);
+
+                    if (newMember != null)
+                    {
+                        // ✅ AUTO-SELECT IT
+                        if (!selectedMembers.Any(m => m.Id == newMember.Id))
+                            selectedMembers.Add(newMember);
+
+                        selectedMemberId = newMember.Id;
+                    }
+                }
+
+                StateHasChanged();
             }
             else
             {

@@ -25,5 +25,7 @@ namespace Task.Application.DTOs
         public List<int> MemberIds { get; set; } = new();
         public List<int> ManagerIds { get; set; } = new();
 
+
+
     }
 }

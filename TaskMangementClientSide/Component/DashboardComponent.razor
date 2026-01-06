@@ -1053,6 +1053,8 @@
 
             <!-- Form -->
             <EditForm Model="@currentUser" OnValidSubmit="SaveUser">
+
+
                 <DataAnnotationsValidator />
 
                 <div class="mb-3">
@@ -1217,13 +1219,22 @@
 
     private  async void ShowAddForm()
     {
-        await LoadManagers();
+
         currentUser = new AppUserDto
         {
             Role = "Manager"
         };
         showForm = true;
     }
+    private void SyncManagerNames(ProjectDto project)
+    {
+        project.ManagerNames = string.Join(", ",
+            managers
+                .Where(m => project.ManagerIds.Contains(m.Id))
+                .Select(m => m.Name)
+        );
+    }
+
     private async Task SaveUser()
     {
         serverError = "";
@@ -1236,9 +1247,34 @@
             var response = await client.PostAsJsonAsync("api/Member", currentUser);
             if (response.IsSuccessStatusCode)
             {
-                showForm = false;
 
-                await LoadManagers();
+                var createdUser = await response.Content.ReadFromJsonAsync<AppUserDto>();
+                var manager = new ManagerDto
+                {
+                    Id = createdUser.Id,      // ✅ REAL ID
+                    Name = createdUser.Name   // ✅ REAL NAME
+                };
+
+                managers.Add(manager);
+                if(showCreateForm)
+                {
+                    if (!newProject.ManagerIds.Contains(manager.Id))
+                        newProject.ManagerIds.Add(manager.Id);
+                    SyncManagerNames(newProject);
+                    formContext.NotifyFieldChanged(
+       new FieldIdentifier(newProject, nameof(newProject.ManagerIds)));
+                }
+                else if(showEditForm)
+                {
+                    if (!editProject.ManagerIds.Contains(manager.Id))
+                        editProject.ManagerIds.Add(manager.Id);
+                         SyncManagerNames(editProject);  
+
+                }
+                showForm = false;
+                StateHasChanged();
+
+                // await LoadManagers();
             }
             else
             {
@@ -1405,6 +1441,8 @@
         if (!newProject.ManagerIds.Contains(id))
             newProject.ManagerIds.Add(id);
 
+        SyncManagerNames(newProject);
+
         showManagerDropdown = false;
 
         if (submitted)
@@ -1432,6 +1470,7 @@
         if (!editProject.ManagerIds.Contains(id))
             editProject.ManagerIds.Add(id);
 
+        SyncManagerNames(editProject);
         showManagerDropdown = false;
 
         StateHasChanged();
