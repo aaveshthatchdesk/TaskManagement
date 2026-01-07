@@ -79,7 +79,9 @@
         <!-- Message -->
         @if (!string.IsNullOrEmpty(message))
         {
-            <div class="alert alert-info mt-3 text-center">@message</div>
+            <div class="alert @(isError ? "alert-danger" : "alert-success") mt-3 text-center">
+                @message
+            </div>
         }
 
        
@@ -90,6 +92,7 @@
     [Parameter] public LoginDto loginModel { get; set; } = new();
     [Parameter] public EventCallback<bool> OnLoginResult { get; set; }
     private string? message;
+    private bool isError=false;
     private async Task HandleLogin()
     {
         try
@@ -119,6 +122,7 @@
                     nav.NavigateTo("/dashboard",replace:true);
 
                     message = "Login successful!";
+                    isError = false;
                     await OnLoginResult.InvokeAsync(true);
                     return;
 
@@ -127,12 +131,14 @@
             else
             {
                 message = "Invalid username or password.";
+                isError = true;
                 await OnLoginResult.InvokeAsync(false);
             }
         }
         catch (Exception ex)
         {
             message = $"Error: {ex.Message}";
+            isError = true;
             await OnLoginResult.InvokeAsync(false);
         }
         finally

@@ -17,7 +17,7 @@ namespace Task.Application.DTOs
 
 
         [Required(ErrorMessage = "New password is required.")]
-        [MinLength(8, ErrorMessage = "New password must be at least 8 characters.")]
+        [MinLength(3, ErrorMessage = "New password must be at least 3 characters.")]
         public string NewPassword { get; set; }= string.Empty;
 
 
