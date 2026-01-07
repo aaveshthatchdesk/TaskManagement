@@ -1,4 +1,6 @@
 ﻿@page "/memberDashboard"
+@attribute [Authorize(Roles = "Member")]
+@using Microsoft.AspNetCore.Authorization
 @using TaskMangementClientSide.Component.MemberDashboard
 
 <DashboardComponent />

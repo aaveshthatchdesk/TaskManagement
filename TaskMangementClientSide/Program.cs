@@ -24,6 +24,7 @@ namespace TaskMangementClientSide
             builder.Services.AddSingleton<SpinnerService>();
             builder.Services.AddAuthorizationCore();
             builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
+            builder.Services.AddScoped<CustomAuthStateProvider>();
 
 
             //builder.Services.AddAuthorizationCore();
@@ -33,7 +34,7 @@ namespace TaskMangementClientSide
 
 
 
-            builder.Services.AddTransient<AuthHttpClientHandler>();
+            builder.Services.AddScoped<AuthHttpClientHandler>();
 
             builder.Services.AddHttpClient("AuthClient", client =>
             {

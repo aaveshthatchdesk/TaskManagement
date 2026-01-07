@@ -1,4 +1,6 @@
 ﻿@page "/manager/{ManagerId:int}/{ManagerName}"
+@attribute [Authorize(Roles="Admin")]
+@using Microsoft.AspNetCore.Authorization
 @using TaskMangementClientSide.Component
 
 @inject NavigationManager Nav

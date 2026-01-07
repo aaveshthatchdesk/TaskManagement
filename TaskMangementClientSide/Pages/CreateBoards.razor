@@ -1,5 +1,7 @@
 ﻿@page "/project/{ProjectId:int}/boards"
+@attribute [Authorize(Roles ="Admin,Manager")]
 
+@using Microsoft.AspNetCore.Authorization
 @using TaskMangementClientSide.Component
 
 <NewBoardComponent ProjectId="@ProjectId"/>

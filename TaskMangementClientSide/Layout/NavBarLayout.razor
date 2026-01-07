@@ -1,8 +1,11 @@
 ﻿@inherits LayoutComponentBase
 @inject NavigationManager nav
 @inject IHttpClientFactory HttpClientFactory
-@inject IJSRuntime JS
+@inject CustomAuthStateProvider AuthStateProvider;
+@inject ILocalStorageService localStorage;
+@using Blazored.LocalStorage
 @using Task.Application.DTOs
+@using TaskMangementClientSide.Services
 
 <style>
     .dropdown-item:hover
@@ -74,20 +77,41 @@
     private AppUserDto? currentUser;
     private HttpClient Http => HttpClientFactory.CreateClient("AuthClient");
 
-    protected override async Task OnInitializedAsync()
+    protected override void  OnInitialized()
+    {
+        AuthStateProvider.AuthenticationStateChanged += async _ =>
     {
         await LoadUserInfo();
+        await InvokeAsync(StateHasChanged);
+    };
+
     }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadUserInfo();
+            StateHasChanged();
+        }
+    }
+
 
     private async Task LoadUserInfo()
     {
+        var token = await localStorage.GetItemAsStringAsync("authToken");
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            currentUser = null;
+            return;
+        }
         try
         {
             currentUser = await Http.GetFromJsonAsync<AppUserDto>("api/Account/me");
         }
-        catch (Exception ex)
+        catch(Exception ex)
         {
-            Console.WriteLine($"Error loading user info: {ex.Message}");
+            Console.WriteLine(ex.Message);
+            currentUser = null;
         }
     }
 
@@ -108,7 +132,7 @@
     {
         try
         {
-            var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+            var token = await localStorage.GetItemAsStringAsync("authToken");
 
             if (!string.IsNullOrEmpty(token))
             {
@@ -119,8 +143,16 @@
                 await client.SendAsync(request);
             }
 
-            await JS.InvokeVoidAsync("localStorage.removeItem", "authToken");
-            await JS.InvokeVoidAsync("eval", "window.location.href = '/'");
+            await localStorage.RemoveItemAsync("authToken");
+
+        
+           
+
+            currentUser = null;
+            AuthStateProvider.NotifyUserLogout();
+
+            
+            nav.NavigateTo("/", replace: true);
         }
         catch (Exception ex)
         {

@@ -1,12 +1,16 @@
 ﻿@page "/dashboard"
+
+@attribute [Authorize(Roles ="Admin")]
+
+
+
+
 @using Microsoft.AspNetCore.Authorization
-@attribute [Authorize]
-
-
-
-
+@using Task.Application.DTOs
 @using TaskMangementClientSide.Component
 <DashboardComponent />
 <PageTitle>Home</PageTitle>
+
+
 
 

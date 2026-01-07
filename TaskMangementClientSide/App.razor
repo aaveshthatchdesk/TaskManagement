@@ -1,19 +1,17 @@
-﻿<CascadingAuthenticationState>
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using TaskMangementClientSide.Shared
+<CascadingAuthenticationState>
 <Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" >
-          @* <NotAuthorized>
-                    <LayoutView Layout="@typeof(MainLayout)">
-                        <p class="text-danger">You are not authorized to view this page.</p>
-                        <a href="/login">Go to Login</a>
-                    </LayoutView>
-                </NotAuthorized>
-                <Authorizing>
-                    <LayoutView Layout="@typeof(MainLayout)">
-                        <p>Authorizing...</p>
-                    </LayoutView>
-                </Authorizing> *@
-            </RouteView>
+        <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" >
+         
+            <NotAuthorized>
+                <RedirectToLogin/>
+            </NotAuthorized>
+            <Authorizing>
+                <p>Checking authorization...</p>
+            </Authorizing>
+            </AuthorizeRouteView>
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
     <NotFound>

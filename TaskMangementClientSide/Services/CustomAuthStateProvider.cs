@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace TaskMangementClientSide.Services
 {
@@ -16,16 +17,19 @@ namespace TaskMangementClientSide.Services
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
-            var token = await _localStorage.GetItemAsStringAsync("authToken");
-
-            if (string.IsNullOrWhiteSpace(token))
-            {
-                // No token → user anonymous
-                return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
-            }
+            
 
             try
             {
+                var token = await _localStorage.GetItemAsStringAsync("authToken");
+                Console.WriteLine($"[AuthState] Token read: {(string.IsNullOrEmpty(token) ? "NULL" : "FOUND")}");
+
+                if (string.IsNullOrWhiteSpace(token))
+                {
+                    
+                    return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+                }
+
                 var handler = new JwtSecurityTokenHandler();
                 var jwt = handler.ReadJwtToken(token);
 
@@ -37,30 +41,44 @@ namespace TaskMangementClientSide.Services
 
                 var identity = new ClaimsIdentity(claims, "jwtAuthType");
                 var user = new ClaimsPrincipal(identity);
-
+                Console.WriteLine($"[AuthState] User authenticated: {user.Identity?.IsAuthenticated}");
                 return new AuthenticationState(user);
             }
-            catch
+            catch(Exception ex)
             {
-                // Token invalid → remove it
+                Console.WriteLine(ex.Message);
                 await _localStorage.RemoveItemAsync("authToken");
                 return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
             }
         }
 
-        public void NotifyUserAuthentication(string token)
+        public void RefreshAuthState()
         {
-            var handler = new JwtSecurityTokenHandler();
-            var jwt = handler.ReadJwtToken(token);
 
-            var claims = jwt.Claims.ToList();
-            claims = FixRoleClaims(claims);
-
-            var identity = new ClaimsIdentity(claims, "jwtAuthType");
-            var user = new ClaimsPrincipal(identity);
-
-            NotifyAuthenticationStateChanged(System.Threading.Tasks.Task.FromResult(new AuthenticationState(user)));
+            NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
+
+
+        //public void NotifyUserAuthentication(string token)
+        //{
+        //    var handler = new JwtSecurityTokenHandler();
+        //    var jwt = handler.ReadJwtToken(token);
+
+        //    var claims = jwt.Claims.ToList();
+        //    claims = FixRoleClaims(claims);
+
+        //    var identity = new ClaimsIdentity(claims, "jwtAuthType");
+        //    var user = new ClaimsPrincipal(identity);
+
+        //    NotifyAuthenticationStateChanged(System.Threading.Tasks.Task.FromResult(new AuthenticationState(user)));
+        //}
+        public async System.Threading.Tasks.Task NotifyUserAuthenticationAsync()
+        {
+            await System.Threading.Tasks.Task.Delay(150);
+
+            NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+        }
+
 
         public void NotifyUserLogout()
         {

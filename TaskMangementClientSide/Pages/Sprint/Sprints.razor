@@ -1,6 +1,8 @@
 ﻿@page "/adminsprints"
+@attribute [Authorize(Roles="Admin")]
 
 
+@using Microsoft.AspNetCore.Authorization
 @using TaskMangementClientSide.Component.Sprint
 
 <SprintsComponent />

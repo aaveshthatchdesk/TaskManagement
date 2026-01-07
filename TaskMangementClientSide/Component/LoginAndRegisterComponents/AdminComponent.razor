@@ -1,7 +1,11 @@
-﻿@using Task.Application.DTOs
+﻿@using Blazored.LocalStorage
+@using Task.Application.DTOs
 @using TaskMangementClientSide.Services
-@inject HttpClient Http
-@inject IJSRuntime JS
+@inject IHttpClientFactory HttpClientFactory
+
+
+@inject CustomAuthStateProvider AuthStateProvider;
+@inject ILocalStorageService localStorage;
 @inject NavigationManager nav;
 @inject SpinnerService spinner
 <style>
@@ -95,18 +99,24 @@
             spinner.Show();
             await Task.Delay(400);
             loginModel.LoginAs = "Admin";
-            var response = await Http.PostAsJsonAsync("api/Auth/login", loginModel);
+            var client = HttpClientFactory.CreateClient("AuthClient");
+            var response = await client.PostAsJsonAsync("api/Auth/login", loginModel);
             if (response.IsSuccessStatusCode)
             {
-               
+
                 var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
                 if (loginResponse != null)
                 {
-                    await JS.InvokeVoidAsync("localStorage.setItem", "authToken", loginResponse.Token);
-                    await Task.Delay(300); 
+                    await localStorage.SetItemAsStringAsync("authToken", loginResponse.Token);
+                    // AuthStateProvider.NotifyUserAuthentication(loginResponse.Token);
+                    // await Task.Delay(50);
 
+                    // 🔥 Force auth re-evaluation
+                    // AuthStateProvider.RefreshAuthState();
+                    await AuthStateProvider.NotifyUserAuthenticationAsync();
+                    await Task.Delay(200);
                     spinner.Hide();
-                    nav.NavigateTo("/dashboard");
+                    nav.NavigateTo("/dashboard",replace:true);
 
                     message = "Login successful!";
                     await OnLoginResult.InvokeAsync(true);

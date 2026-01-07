@@ -1,4 +1,6 @@
 ﻿@page "/managerslist"
+@attribute [Authorize(Roles = "Admin")]
+@using Microsoft.AspNetCore.Authorization
 @using TaskMangementClientSide.Component
 
 <ManagerComponent/>
