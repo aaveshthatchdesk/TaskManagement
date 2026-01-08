@@ -116,10 +116,11 @@
 
                     // 🔥 Force auth re-evaluation
                     // AuthStateProvider.RefreshAuthState();
-                    await AuthStateProvider.NotifyUserAuthenticationAsync();
-                    await Task.Delay(200);
+                    // await AuthStateProvider.NotifyUserAuthenticationAsync();
+                    AuthStateProvider.NotifyUserAuthentication();
                     spinner.Hide();
-                    nav.NavigateTo("/dashboard",replace:true);
+              
+                    nav.NavigateTo("/dashboard",forceLoad:true);
 
                     message = "Login successful!";
                     isError = false;

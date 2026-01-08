@@ -110,7 +110,7 @@
                         nav.NavigateTo($"/change-password/{loginResponse.UserId}");
                         return;
                     }
-                    nav.NavigateTo("/managerdashboard");
+                    nav.NavigateTo("/managerdashboard",forceLoad:true);
 
                     message = "Login successful!";
                     isError = false;

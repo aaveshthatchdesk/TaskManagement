@@ -4,8 +4,11 @@
 @inject CustomAuthStateProvider AuthStateProvider;
 @inject ILocalStorageService localStorage;
 @using Blazored.LocalStorage
+@using Microsoft.AspNetCore.Components.Authorization
 @using Task.Application.DTOs
 @using TaskMangementClientSide.Services
+@inject AuthenticationStateProvider AuthProvider
+
 
 <style>
     .dropdown-item:hover
@@ -77,43 +80,57 @@
     private AppUserDto? currentUser;
     private HttpClient Http => HttpClientFactory.CreateClient("AuthClient");
 
-    protected override void  OnInitialized()
-    {
-        AuthStateProvider.AuthenticationStateChanged += async _ =>
-    {
-        await LoadUserInfo();
-        await InvokeAsync(StateHasChanged);
-    };
+    // protected override void  OnInitialized()
+    // {
+    //     AuthStateProvider.AuthenticationStateChanged += async _ =>
+    // {
+    //     await LoadUserInfo();
+    //     await InvokeAsync(StateHasChanged);
+    // };
 
-    }
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    // }
+    protected override async Task OnInitializedAsync()
     {
-        if (firstRender)
-        {
-            await LoadUserInfo();
-            StateHasChanged();
-        }
-    }
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
 
-
-    private async Task LoadUserInfo()
-    {
-        var token = await localStorage.GetItemAsStringAsync("authToken");
-        if (string.IsNullOrWhiteSpace(token))
+        if (user.Identity?.IsAuthenticated == true)
         {
-            currentUser = null;
-            return;
-        }
-        try
-        {
-            currentUser = await Http.GetFromJsonAsync<AppUserDto>("api/Account/me");
-        }
-        catch(Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-            currentUser = null;
+            currentUser = new AppUserDto
+            {
+                Name = user.Identity.Name
+            };
         }
     }
+
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     if (firstRender)
+    //     {
+    //         await LoadUserInfo();
+    //         StateHasChanged();
+    //     }
+    // }
+
+
+    // private async Task LoadUserInfo()
+    // {
+    //     var token = await localStorage.GetItemAsStringAsync("authToken");
+    //     if (string.IsNullOrWhiteSpace(token))
+    //     {
+    //         currentUser = null;
+    //         return;
+    //     }
+    //     try
+    //     {
+    //         currentUser = await Http.GetFromJsonAsync<AppUserDto>("api/Account/me");
+    //     }
+    //     catch(Exception ex)
+    //     {
+    //         Console.WriteLine(ex.Message);
+    //         currentUser = null;
+    //     }
+    // }
 
     private string GetInitials(string? name)
     {
@@ -132,16 +149,16 @@
     {
         try
         {
-            var token = await localStorage.GetItemAsStringAsync("authToken");
+            // var token = await localStorage.GetItemAsStringAsync("authToken");
 
-            if (!string.IsNullOrEmpty(token))
-            {
-                var request = new HttpRequestMessage(HttpMethod.Post, "api/Auth/logout");
-                request.Headers.Add("token", token);
+            // if (!string.IsNullOrEmpty(token))
+            // {
+            //     var request = new HttpRequestMessage(HttpMethod.Post, "api/Auth/logout");
+            //     request.Headers.Add("token", token);
 
-                var client = HttpClientFactory.CreateClient("AuthClient");
-                await client.SendAsync(request);
-            }
+            //     var client = HttpClientFactory.CreateClient("AuthClient");
+            //     await client.SendAsync(request);
+            // }
 
             await localStorage.RemoveItemAsync("authToken");
 
@@ -149,10 +166,10 @@
            
 
             currentUser = null;
-            AuthStateProvider.NotifyUserLogout();
+              AuthStateProvider.NotifyUserLogout();
 
-            
-            nav.NavigateTo("/", replace: true);
+           
+            nav.NavigateTo("/", true);
         }
         catch (Exception ex)
         {

@@ -15,40 +15,92 @@ namespace TaskMangementClientSide.Services
             _localStorage = localStorage;
         }
 
+        //public override async Task<AuthenticationState> GetAuthenticationStateAsync()
+        //{
+
+
+        //    try
+        //    {
+        //        var token = await _localStorage.GetItemAsStringAsync("authToken");
+
+
+        //        if (string.IsNullOrWhiteSpace(token))
+        //        {
+
+        //            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+        //        }
+
+        //        var handler = new JwtSecurityTokenHandler();
+        //        var jwt = handler.ReadJwtToken(token);
+
+
+        //        var claims = jwt.Claims.ToList();
+
+        //        claims = FixRoleClaims(claims);
+
+        //        var identity = new ClaimsIdentity(claims, "jwtAuthType");
+        //        var user = new ClaimsPrincipal(identity);
+
+        //        return new AuthenticationState(user);
+        //    }
+        //    catch(Exception ex)
+        //    {
+        //        Console.WriteLine(ex.Message);
+        //        await _localStorage.RemoveItemAsync("authToken");
+        //        return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+        //    }
+        //}
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
-            
+            var token = await _localStorage.GetItemAsStringAsync("authToken");
+
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return Anonymous();
+            }
 
             try
             {
-                var token = await _localStorage.GetItemAsStringAsync("authToken");
-                Console.WriteLine($"[AuthState] Token read: {(string.IsNullOrEmpty(token) ? "NULL" : "FOUND")}");
-
-                if (string.IsNullOrWhiteSpace(token))
-                {
-                    
-                    return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
-                }
-
                 var handler = new JwtSecurityTokenHandler();
                 var jwt = handler.ReadJwtToken(token);
 
-                // Extract all claims (including Role)
-                var claims = jwt.Claims.ToList();
+                var claims = new List<Claim>();
 
-                // IMPORTANT: Convert "role" claim to ClaimTypes.Role (needed by IsInRole)
-                claims = FixRoleClaims(claims);
+                foreach (var claim in jwt.Claims)
+                {
+                    if (claim.Type == "role" ||
+                        claim.Type == ClaimTypes.Role ||
+                        claim.Type.EndsWith("/role"))
+                    {
+                        claims.Add(new Claim(ClaimTypes.Role, claim.Value));
+                    }
+                    else if (claim.Type == "name" || claim.Type == ClaimTypes.Name)
+                    {
+                        claims.Add(new Claim(ClaimTypes.Name, claim.Value));
+                    }
+                    else
+                    {
+                        claims.Add(claim);
+                    }
+                }
 
-                var identity = new ClaimsIdentity(claims, "jwtAuthType");
+                // 🔥 ENSURE Name exists
+                if (!claims.Any(c => c.Type == ClaimTypes.Name))
+                {
+                    var email = claims.FirstOrDefault(c => c.Type.Contains("email"))?.Value;
+                    if (email != null)
+                        claims.Add(new Claim(ClaimTypes.Name, email));
+                }
+
+                var identity = new ClaimsIdentity(claims, "jwt");
                 var user = new ClaimsPrincipal(identity);
-                Console.WriteLine($"[AuthState] User authenticated: {user.Identity?.IsAuthenticated}");
+
                 return new AuthenticationState(user);
             }
-            catch(Exception ex)
+            catch
             {
-                Console.WriteLine(ex.Message);
                 await _localStorage.RemoveItemAsync("authToken");
-                return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+                return Anonymous();
             }
         }
 
@@ -72,20 +124,25 @@ namespace TaskMangementClientSide.Services
 
         //    NotifyAuthenticationStateChanged(System.Threading.Tasks.Task.FromResult(new AuthenticationState(user)));
         //}
-        public async System.Threading.Tasks.Task NotifyUserAuthenticationAsync()
-        {
-            await System.Threading.Tasks.Task.Delay(150);
+        //public async System.Threading.Tasks.Task NotifyUserAuthenticationAsync()
+        //{
 
+
+        //    NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+        //}
+        public void NotifyUserAuthentication()
+        {
             NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
 
-
         public void NotifyUserLogout()
         {
-            var anonymous = new ClaimsPrincipal(new ClaimsIdentity());
-            NotifyAuthenticationStateChanged(System.Threading.Tasks.Task.FromResult(new AuthenticationState(anonymous)));
+            //var anonymous = new ClaimsPrincipal(new ClaimsIdentity());
+            //NotifyAuthenticationStateChanged(System.Threading.Tasks.Task.FromResult(new AuthenticationState(anonymous)));
+            NotifyAuthenticationStateChanged(System.Threading .Tasks.Task.FromResult(Anonymous()));
         }
-
+        private AuthenticationState Anonymous()
+       => new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
         private List<Claim> FixRoleClaims(List<Claim> claims)
         {
             var fixedClaims = new List<Claim>();

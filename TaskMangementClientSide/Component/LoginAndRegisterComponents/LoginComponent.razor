@@ -131,7 +131,8 @@
                         nav.NavigateTo($"/change-password/{loginResponse.UserId}");
                         return;
                     }
-                    nav.NavigateTo("/memberDashboard");
+                   
+                    nav.NavigateTo("/memberDashboard",forceLoad:true);
 
                     message = "Login successful!";
                     isError = false;
