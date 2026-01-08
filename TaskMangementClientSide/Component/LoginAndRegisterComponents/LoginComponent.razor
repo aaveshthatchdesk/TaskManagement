@@ -128,7 +128,7 @@
                     await JS.InvokeVoidAsync("localStorage.setItem", "authToken", loginResponse.Token);
                     if (loginResponse.IsTemporaryPassword)
                     {
-                        nav.NavigateTo($"/change-password/{loginResponse.UserId}");
+                        nav.NavigateTo($"/change-password/{loginResponse.UserId}",forceLoad:true);
                         return;
                     }
                    
