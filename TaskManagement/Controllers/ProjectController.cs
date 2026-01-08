@@ -165,6 +165,23 @@ namespace TaskManagementServerAPi.Controllers
 
             return NoContent();
         }
+        [HttpGet("projects")]
+        public async Task<IActionResult> GetAllProjects()
+        {
+            var projects = await _taskService.GetAllProjectsAsync();
+            return Ok(projects);
+        }
+
+        // POST: api/ProjectAssignment/assign-projects
+        [Authorize(Policy = "RequireAdminRole")]
+        [HttpPost("assign-projects")]
+        public async Task<IActionResult> AssignProjectsToManager(List<int> ProjectIds,int managerId)
+        {
+           
+
+            await _taskService.AssignProjectsToManagerAsync(managerId, ProjectIds);
+            return Ok(new { message = "Projects assigned successfully" });
+        }
 
     }
 }

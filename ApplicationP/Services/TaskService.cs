@@ -460,9 +460,27 @@ namespace Task.Application.Services
 
             return await taskRepository.DeleteProjectAsync(id);
         }
-
-
-
+        public async Task<List<ProjectDto>> GetAllProjectsAsync()
+        {
+            var projects= await taskRepository.GetAllProjects();
+            return projects.Select(p => new ProjectDto
+            {
+                Id = p.Id,
+                Name = p.Name
+            }).ToList();
         }
+
+     
+
+        public async Task<bool> AssignProjectsToManagerAsync(int managerId, List<int> projectIds)
+        {
+            if (projectIds == null || !projectIds.Any())
+                throw new ArgumentException("No projects selected");
+
+            return await taskRepository.AssignProjectsToManagerAsync(managerId, projectIds);
+        }
+
+
+    }
 }
 

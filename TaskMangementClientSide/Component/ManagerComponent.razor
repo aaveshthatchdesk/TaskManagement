@@ -7,8 +7,9 @@
 @inject SpinnerService Spinner
 
 
+
 <style>
-    .text-btn {
+    /* .text-btn {
         background: none;
         border: none;
         color: #2c3e50; 
@@ -22,6 +23,28 @@
         .text-btn:hover {
             color: #1a242f; 
             text-decoration: underline;
+        } */
+        .card
+        {
+            min-height:20px;
+        }
+    .btn-add {
+        background-color: #6c7f91 !important;
+        color: white !important;
+    }
+
+        .btn-add:hover {
+            background-color: #2c3e50 !important;
+            color: white !important;
+        }
+    .savebtn {
+        background-color: #2c3e50;
+        color: white;
+    }
+
+        .savebtn:hover {
+            background-color: #22303A;
+            color: white;
         }
 
     .toast-container {
@@ -87,7 +110,7 @@
     </div>
 
             <button class="btn btn-secondary fw-semibold  px-2" @onclick="ShowAddForm">
-             Add manager
+          +Add manager
         </button>
         </div>
         </div>
@@ -118,8 +141,8 @@
                          style="background: linear-gradient(135deg, #2c3e50);">
                          <div class="d-flex align-items-center">
                         <div class="rounded-circle bg-white bg-opacity-25 me-3 d-flex align-items-center justify-content-center"
-                             style="width:55px; height:55px;">
-                            <span class="fw-bold fs-5">@GetInitials(manager.Name)</span>
+                             style="width:30px; height:30px;">
+                            <span class="fw-bold fs-6">@GetInitials(manager.Name)</span>
                         </div>
                         <div>
                             <h6 class="fw-bold mb-0">@manager.Name</h6>
@@ -127,13 +150,13 @@
                         </div>
                                 </div>
                                 <div @onclick:stopPropagation="true" @onclick="() => EditUserAsync(manager.Id)">
-                                    <i class="bi bi-pencil-square fs-4" style="cursor:pointer;"></i>
+                                    <i class="bi bi-pencil-square fs-6" style="cursor:pointer;"></i>
                                 </div>
 
 
                     </div>
 
-                    <div class="card-body bg-white text-center py-3">
+                    <div class="card-body bg-white text-center py-4">
                         <div class="d-flex justify-content-around">
                             <div>
                                 <h6 class="fw-bold text-primary mb-0">@manager.ProjectCount</h6>
@@ -146,18 +169,104 @@
                            
                         </div>
                     </div>
-                            <div class="card-footer text-end">
-                                <button class="text-btn"
+                            <div class="card-footer d-flex justify-content-between  flex-wrap gap-3">
+                                <button class="btn btn-sm  btn-outline-secondary flex-grow-1"
                                         @onclick="() => ViewManagerProjects(manager.Id, manager.Name)"
                                         type="button">
-                                    View Projects →
+                                    View Projects
                                 </button>
+                                <button class="btn btn-sm btn-add flex-grow-1"
+                                        type="button" @onclick:stopPropagation="true" @onclick="() => ShowProjectModal(manager.Id)">
+                                    <i class="bi bi-plus-circle me-1 " ></i> Add Project
+                                </button>
+                           
                             </div>
 
                 </div>
             </div>
         }
         }
+            @if (showProjectModal)
+            {
+
+
+
+                <div class="modal-overlay d-flex justify-content-center align-items-center">
+                    <div class="modal-content shadow-lg rounded-4 p-4"
+                         style="width: 500px; background-color:#ecf0f1;">
+
+                        <h5 class="fw-bold mb-3 text-center" style="color:#2c3e50;">
+                            Select Projects
+                        </h5>
+
+                        <!-- Manager Select Form -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" style="color:#2c3e50;">
+                                Choose Projects
+                            </label>
+
+                            <select class="form-select" @bind="selectedProjectId" @key="selectedProjectId">
+                                <option value="0" disabled selected hidden>Select projects</option>
+
+
+                                @foreach (var m in allProjects)
+                                {
+                                    <option value="@m.Id">@m.Name</option>
+                                }
+                            </select>
+                            @if (projectError != null)
+                            {
+                                <div class="text-danger mb-2">@projectError</div>
+                            }
+                        </div>
+
+                        <button class="btn btn-primary mb-3"
+                                style="background-color:#2c3e50;"
+                                @onclick="AddProjectToSelection">
+                            Add Project
+                        </button>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" style="color:#2c3e50;">
+                                Selected Projects:
+                            </label>
+
+                            @if (selectedProjects.Count == 0)
+                            {
+                                <div class="text-muted">No project selected</div>
+                            }
+                            else
+                            {
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach (var m in selectedProjects)
+                                    {
+                                        <span class="tag-item">
+                                            @m.Name
+                                            <button type="button" class="remove-tag"
+                                                    @onclick="() => RemoveProject(m.Id)">
+                                                ×
+                                            </button>
+                                        </span>
+                                    }
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Footer Buttons -->
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button class="btn btn-secondary" @onclick="() => showProjectModal = false">
+                                Cancel
+                            </button>
+
+                            <button class="btn savebtn"
+                                    @onclick="SaveProjectSelection">
+                                Save Selection
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            }
 
 
             <div class="d-flex justify-content-between align-items-center mt-4">
@@ -278,6 +387,16 @@
     private int totalCount = 0;
     private string searchTerm = "";
     private string serverError = "";
+    private bool showProjectModal = false;
+    private List<ProjectDto> allProjects = new();
+    private List<ProjectDto> projects = new();
+
+
+    private List<ProjectDto> selectedProjects = new();
+    private int selectedProjectId;
+    public string? projectError;
+    private int selectedManagerIdForProjects;
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -364,7 +483,7 @@
             else
             {
                 serverError = await response.Content.ReadAsStringAsync();
-                
+
             }
         }
         else
@@ -380,7 +499,7 @@
             else
             {
                 serverError = await response.Content.ReadAsStringAsync();
-                
+
 
             }
 
@@ -388,7 +507,78 @@
         Spinner.Hide();
 
         // showForm = false;
-       
+
+    }
+    private async Task ShowProjectModal( int managerId)
+    {
+        selectedManagerIdForProjects = managerId;
+        var client = HttpClientFactory.CreateClient("AuthClient");
+        var response = await client.GetAsync("api/Project/projects");
+        // allProjects = await client.GetFromJsonAsync<List<ProjectDto>>("api/Project/projects")
+        //               ?? new List<ProjectDto>();
+        if(response.IsSuccessStatusCode)
+        {
+            allProjects = await response.Content.ReadFromJsonAsync<List<ProjectDto>>()??new List<ProjectDto>();
+        }
+        selectedProjects.Clear();
+        selectedProjectId = 0;
+        showProjectModal = true;
+    }
+
+    private void AddProjectToSelection()
+    {
+        projectError = null;
+
+        if (selectedProjectId == 0)
+        {
+            projectError = "Please select a project.";
+            return;
+        }
+
+        var project = allProjects.FirstOrDefault(p => p.Id == selectedProjectId);
+
+        if (project != null && !selectedProjects.Any(p => p.Id == project.Id))
+            selectedProjects.Add(project);
+
+        selectedProjectId = 0;
+    }
+
+    private void RemoveProject(int projectId)
+    {
+        var p = selectedProjects.FirstOrDefault(x => x.Id == projectId);
+        if (p != null)
+            selectedProjects.Remove(p);
+    }
+
+    private async Task SaveProjectSelection()
+    {
+        projectError = null;
+
+        if (selectedProjects.Count == 0)
+        {
+            projectError = "Select at least one project.";
+            return;
+        }
+
+        try
+        {
+            Spinner.Show();
+
+            var projectIds = selectedProjects.Select(p => p.Id).ToList();
+            var client = HttpClientFactory.CreateClient("AuthClient");
+            await client.PostAsJsonAsync(
+                $"api/Project/assign-projects?managerId={selectedManagerIdForProjects}",
+                projectIds
+            );
+
+            // await LoadProject();
+            await LoadManagerAsync();
+        }
+        finally
+        {
+            Spinner.Hide();
+            showProjectModal = false;
+        }
     }
     private async Task OnManagerClick(int managerId)
     {

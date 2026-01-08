@@ -600,8 +600,43 @@ namespace Task.Infrastructure.Repository
         {
             return await _taskDbContext.appUsers
                 .Where(u => ids.Contains(u.Id))
+                .AsNoTracking()
                 .ToListAsync();
         }
+
+        public async Task<List<Project>> GetAllProjects()
+        {
+            return await _taskDbContext.projects
+                .Select(p => new Project { Id = p.Id, Name = p.Name })
+                .ToListAsync();
+        }
+        public async Task<bool> AssignProjectsToManagerAsync(int managerId, List<int> projectIds)
+        {
+            var managerExists = await _taskDbContext.appUsers
+                .AnyAsync(u => u.Id == managerId);
+
+            if (!managerExists)
+                throw new Exception("Manager not found");
+
+            var existingLinks = await _taskDbContext.ProjectManagers
+                .Where(pm => pm.AppUserId == managerId && projectIds.Contains(pm.ProjectId))
+                .Select(pm => pm.ProjectId)
+                .ToListAsync();
+
+            var newLinks = projectIds
+                .Except(existingLinks)
+                .Select(pid => new ProjectManager
+                {
+                    AppUserId = managerId,
+                    ProjectId = pid
+                });
+
+            await _taskDbContext.ProjectManagers.AddRangeAsync(newLinks);
+            await _taskDbContext.SaveChangesAsync();
+
+            return true;
+        }
+
 
     }
 }
