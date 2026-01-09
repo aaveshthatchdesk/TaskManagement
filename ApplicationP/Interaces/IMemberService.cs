@@ -11,9 +11,11 @@ namespace Task.Application.Interaces
 {
    public interface IMemberService
     {
-        public Task<IEnumerable<AppUserDto>> GetAppUsersAsync();
-      
+        //public Task<IEnumerable<AppUserDto>> GetAppUsersAsync();
+        public Task<PagedResult<AppUserDto>> GetAppUsersAsync(int pageNumber, int pageSize, string? search);
         public Task<IEnumerable<AppUserDto>> GetByRoleAsync(string role);
+
+        public  Task<PagedResult<AppUserDto>> GetMembersForManagerAsync(int pageNumber, int pageSize, string? search);
         public Task<AppUserDto?> GetByIdAsync(int id);
        
         public  Task<AppUserDto?> GetByEmailAsync(string email);

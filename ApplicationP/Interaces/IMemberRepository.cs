@@ -11,10 +11,11 @@ namespace Task.Application.Interaces
 {
     public interface IMemberRepository
     {
-        public Task<IEnumerable<AppUser>> GetAppUsersAsync();
+        //public Task<IEnumerable<AppUser>> GetAppUsersAsync();
 
-      
+        public Task<(List<AppUser>Users, int TotalCount)> GetAppUsersAsync(int pageNumber, int pageSize, string? search);
         public Task<IEnumerable<AppUser>> GetByRoleAsync(string role);
+        public Task<(List<AppUser> Users, int TotalCount)> GetMembersForManagerAsync(int pageNumber, int pageSize, string? search);
         public Task<AppUser?> GetByIdAsync(int id);
        public  Task<AppUser?> GetByEmailAsync(string email);
 

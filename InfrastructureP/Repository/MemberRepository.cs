@@ -20,14 +20,52 @@ namespace Task.Infrastructure.Repository
             _taskDbContext = taskDbContext;
         }
 
-        public async Task<IEnumerable<AppUser>>GetAppUsersAsync()
+        public async Task<(List<AppUser>Users,int TotalCount)>GetAppUsersAsync(int pageNumber,int pageSize,string? search)
         {
-            return await _taskDbContext.appUsers.ToListAsync();
+           var query=_taskDbContext.appUsers.AsQueryable();
+            if(!string.IsNullOrWhiteSpace(search))
+            {
+                query=query.Where(u=>
+                   u.Name.Contains(search)||
+                   u.Email.Contains(search)||
+                   u.Role.Contains(search));
+            }
+               var totalCount = await query.CountAsync();
+            var users=await query
+                  .OrderBy(u=>u.Id)
+                  .Skip((pageNumber-1)*pageSize)
+                  .Take(pageSize)
+                     .ToListAsync();
+
+            return (users, totalCount);
         }
        
         public async Task<IEnumerable<AppUser>>GetByRoleAsync(string role)
         {
             return await _taskDbContext.appUsers.Where(a=>a.Role==role).ToListAsync();
+        }
+        public async Task<(List<AppUser> Users, int TotalCount)> GetMembersForManagerAsync(int pageNumber=1, int pageSize=5, string? search=null)
+        {
+            var query = _taskDbContext.appUsers
+       .Where(u => u.Role == "Member").AsQueryable(); // ONLY members
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(u =>
+                    u.Name.Contains(search) ||
+                    u.Email.Contains(search));
+
+            }
+            var totalCount = await query.CountAsync();
+            var users = await query
+                  .OrderBy(u => u.Id)
+                  .Skip((pageNumber - 1) * pageSize)
+                  .Take(pageSize)
+                     .ToListAsync();
+
+            return (users, totalCount);
+
+
         }
         public async Task<AppUser?>GetByIdAsync(int id)
         {

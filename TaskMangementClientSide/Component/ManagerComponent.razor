@@ -65,6 +65,14 @@
         animation: fadeOut 0.5s ease 2.5s forwards;
     }
 
+    .pagination .page-link:focus {
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .pagination .page-link {
+        outline: none;
+    }
 
     @@keyframes slideIn {
         from {
@@ -286,12 +294,19 @@
                         </li>
 
                         <!-- Page numbers -->
-                        @for (int i = 1; i <= TotalPages; i++)
+                        @* @for (int i = 1; i <= TotalPages; i++)
                         {
                             <li class="page-item @(currentPage == i ? "active" : "")">
                                 <button class="page-link" @onclick="(() => GoToPage(i))">@i</button>
                             </li>
+                        } *@
+                        @foreach (var i in GetVisiblePages())
+                        {
+                            <li class="page-item @(currentPage == i ? "active" : "")">
+                                <button class="page-link" @onclick="() => GoToPage(i)">@i</button>
+                            </li>
                         }
+
 
                         <!-- Next button -->
                         <li class="page-item @(currentPage == TotalPages ? "disabled" : "")">
@@ -648,6 +663,14 @@
             currentPage--;
             await LoadManagerAsync();
         }
+    }
+    List<int> GetVisiblePages()
+    {
+        int maxPagesToShow = 5;
+        int start = Math.Max(1, currentPage - 2);
+        int end = Math.Min(TotalPages, start + maxPagesToShow - 1);
+
+        return Enumerable.Range(start, end - start + 1).ToList();
     }
 
     private async Task SearchManagers(ChangeEventArgs e)

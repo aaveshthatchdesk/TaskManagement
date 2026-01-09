@@ -87,6 +87,15 @@
             margin-left: 0;
         }
 
+    .pagination .page-link:focus {
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .pagination .page-link {
+        outline: none;
+    }
+
 </style>
 
 <div class="container-fluid mt-4">
@@ -498,9 +507,15 @@
                                 <button class="page-link" @onclick="PreviousPage">Previous</button>
                             </li>
 
-                            <li class="page-item active">
+                            @* <li class="page-item active">
                                 <span class="page-link">@currentPage</span>
+                            </li> *@
+                        @foreach (var i in GetVisiblePages())
+                        {
+                            <li class="page-item @(currentPage == i ? "active" : "")">
+                                <button class="page-link" @onclick="() => GoToPage(i)">@i</button>
                             </li>
+                        }
 
                             <li class="page-item @(currentPage* pageSize >= pagedResult.TotalCount? "disabled" : "")">
                                 <button class="page-link" @onclick="NextPage">Next</button>
@@ -527,6 +542,7 @@
     private int sprintIdToDelete;
     private int currentPage = 1;
     private int pageSize = 3;
+    private int totalCount = 0;
     private PagedResult<SprintDto> pagedResult = new();
     private TaskAssignmentDto? TaskAssignments;
 
@@ -536,20 +552,20 @@
     private SprintDto? modalSprint;
     private bool isModalLoading;
 
-   
-   
+
+
 
 
     protected override async Task OnInitializedAsync()
     {
         isLoading = true;
-            stats = await Http.GetFromJsonAsync<SprintStatsDto>("api/sprint/stats") ?? new();
-            // sprints = await Http.GetFromJsonAsync<List<SprintDto>>("api/sprint") ?? new();
-            // FilterSprints();
-            await LoadSprints();
+        stats = await Http.GetFromJsonAsync<SprintStatsDto>("api/sprint/stats") ?? new();
+        // sprints = await Http.GetFromJsonAsync<List<SprintDto>>("api/sprint") ?? new();
+        // FilterSprints();
+        await LoadSprints();
         isLoading = false;
-        
-     
+
+
     }
     private async Task LoadSprints()
     {
@@ -590,6 +606,13 @@
         currentPage = 1;
         await LoadSprints();
     }
+    private async Task GoToPage(int page)
+    {
+        currentPage = page;
+        await LoadSprints();
+    }
+
+    private int TotalPages => (int)Math.Ceiling((double)pagedResult.TotalCount / pageSize);
     private async Task NextPage()
     {
         if (currentPage * pageSize < pagedResult.TotalCount)
@@ -606,6 +629,14 @@
             currentPage--;
             await LoadSprints();
         }
+    }
+    List<int> GetVisiblePages()
+    {
+        int maxPagesToShow = 5;
+        int start = Math.Max(1, currentPage - 2);
+        int end = Math.Min(TotalPages, start + maxPagesToShow - 1);
+
+        return Enumerable.Range(start, end - start + 1).ToList();
     }
     private int GetRemainingDays(SprintDto sprint)
     {

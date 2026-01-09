@@ -1,7 +1,7 @@
 ﻿@using Task.Application.DTOs
 @using TaskMangementClientSide.Services
-@inject HttpClient Http
 @inject IJSRuntime JS
+
 @inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager nav;
 @inject SpinnerService spinner;
@@ -74,7 +74,14 @@
         animation: fadeOut 0.5s ease 2.5s forwards;
     }
 
+    .pagination .page-link:focus {
+        box-shadow: none !important;
+        outline: none !important;
+    }
 
+    .pagination .page-link {
+        outline: none;
+    }
     @@keyframes slideIn {
         from {
             transform: translateX(120%);
@@ -143,6 +150,9 @@
                 <input type="text"
                        class="form-control ps-4 pe-5 py-2 shadow-sm"
                        placeholder="Search..."
+                       @bind="searchTerm"
+                       @bind:event="oninput"
+                       @bind:after="() =>{currentPage = 1; LoadappUsers();}"
                        style="
                    background-color: #f1f3f4;
                    border-radius: 12px;
@@ -258,13 +268,13 @@
                         </td>
                     </tr>
                 }
-                else if (!PagedUsers.Any())
+                else if (appUsers == null || !appUsers.Any())
                 {
                     <tr><td colspan="5" class="text-center text-muted py-3">No members found.</td></tr>
                 }
                 else
                 {
-                    @foreach (var (member, index) in PagedUsers.Select((m, i) => (m,(currentPage-1)*pageSize + i + 1)))
+                    @foreach (var (member, index) in appUsers.Select((m, i) => (m,(currentPage-1)*pageSize + i + 1)))
                     {
                         <tr>
                             <td>@index</td>
@@ -308,46 +318,47 @@
         <small class="text-muted">
             Showing @(((currentPage - 1) * pageSize) + 1)
             -
-            @(Math.Min(currentPage * pageSize, appUsers?.Count ?? 0))
-            of @(appUsers?.Count ?? 0) Members
+            @(Math.Min(currentPage * pageSize, totalUsers))
+            of @totalUsers Members
         </small>
+            
+      
+      
+        <div class="d-flex align-items-center gap-3">
+            <div class="d-flex  align-items-center gap-2 ">
+                <label class="text-muted small">Entries per page:</label>
 
-        @* <nav>
-            <ul class="pagination pagination-sm mb-0">
+                <select class="form-select form-select-sm"
+                        style="width: 80px;"
+                        @bind="pageSize"
+                        @bind:after="()=>{currentPage=1; LoadappUsers();}">
+                    <option value="6">6</option>
+                    <option value="12">12</option>
+                    <option value="18">18</option>
+                    <option value="24">24</option>
+                </select>
+            </div>
+        <nav>
+            <ul class="pagination pagination-sm mb-0 shadow-sm">
                 <li class="page-item @(currentPage == 1 ? "disabled" : "")">
                     <button class="page-link" @onclick="PreviousPage">Previous</button>
                 </li>
-                <li class="page-item active">
-                    <span class="page-link">@currentPage</span>
-                </li>
+
+                @foreach (var i in GetVisiblePages())
+                {
+                    <li class="page-item @(currentPage == i ? "active" : "")">
+                        <button class="page-link" @onclick="() => GoToPage(i)">
+                            @i
+                        </button>
+                    </li>
+                }
+
                 <li class="page-item @(currentPage == TotalPages ? "disabled" : "")">
                     <button class="page-link" @onclick="NextPage">Next</button>
                 </li>
             </ul>
-        </nav> *@
-        <nav class="d-flex justify-content-end align-items-center mt-3">
-            <ul class="pagination pagination-sm mb-0 shadow-sm" style="border-radius: 8px; overflow: hidden;">
-                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                    <button class="page-link border-0"
-                            style="border-radius: 8px 0 0 8px; transition: background-color 0.2s;"
-                            @onclick="PreviousPage">
-                        Previous
-                    </button>
-                </li>
-
-                <li class="page-item active">
-                    <span class="page-link border-0 bg-primary text-white">@currentPage</span>
-                </li>
-
-                <li class="page-item @(currentPage == TotalPages ? "disabled" : "")">
-                    <button class="page-link border-0"
-                            style="border-radius: 0 8px 8px 0; transition: background-color 0.2s;"
-                            @onclick="NextPage">
-                        Next
-                    </button>
-                </li>
-            </ul>
         </nav>
+        </div>
 
     </div>
 
@@ -373,43 +384,95 @@
     private int currentPage=1;
     private bool showDeleteConfirm = false;
     private int userIdToDelete;
-    private int pageSize = 4;
+    private int pageSize = 5;
+
     private bool showToast = false;
     private string toastMessage = "";
-    private IEnumerable<AppUserDto> PagedUsers => GetPagedUsers();
 
-    private int TotalPages=> CalculateTotalPages();
+    private int totalUsers = 0;
+    private string searchTerm = "";
+
+
+    // private IEnumerable<AppUserDto> PagedUsers => GetPagedUsers();
+
+    // private int TotalPages=> CalculateTotalPages();
 
     protected override Task OnInitializedAsync()
     {
         return  LoadappUsers();
     }
+    // private async Task LoadappUsers()
+    // {
+    //     isLoading = true;
+    //     try
+    //     {
+    //         var appUser = await Http.GetAsync("api/Member");
+
+
+    //         var json = await appUser.Content.ReadAsStringAsync();
+    //         Console.WriteLine("API Response: " + json);
+
+    //         if (appUser.IsSuccessStatusCode)
+    //             appUsers = await appUser.Content.ReadFromJsonAsync<List<AppUserDto>>();
+    //         else
+    //             message = $"Error: {appUser.StatusCode}";
+    //     }
+    //     catch
+    //     {
+    //         message = "Error loading members.";
+    //     }
+
+    //     isLoading = false;
+    //     StateHasChanged();
+
+
+    // }
     private async Task LoadappUsers()
     {
         isLoading = true;
+        StateHasChanged();
         try
         {
-            var appUser = await Http.GetAsync("api/Member");
+            var client = HttpClientFactory.CreateClient("AuthClient");
+            var url = $"api/Member?pageNumber={currentPage}&pageSize={pageSize}";
 
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+                url += $"&search={Uri.EscapeDataString(searchTerm)}";
 
-            var json = await appUser.Content.ReadAsStringAsync();
-            Console.WriteLine("API Response: " + json);
+            var response = await client.GetAsync(url);
 
-            if (appUser.IsSuccessStatusCode)
-                appUsers = await appUser.Content.ReadFromJsonAsync<List<AppUserDto>>();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<PagedResult<AppUserDto>>();
+
+                appUsers = result?.Items ?? new List<AppUserDto>();
+                totalUsers = result?.TotalCount ?? 0;
+            }
             else
-                message = $"Error: {appUser.StatusCode}";
+            {
+                
+                appUsers = new List<AppUserDto>();
+                totalUsers = 0;
+            }
         }
-        catch
+
+        catch (Exception ex)
         {
-            message = "Error loading members.";
+            Console.WriteLine($"Error loading users: {ex.Message}");
+            appUsers = new List<AppUserDto>();
+            totalUsers = 0;
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
         }
 
-        isLoading = false;
-        StateHasChanged();
 
 
+       
     }
+
     private void ShowAddForm()
     {
         currentUser = new AppUserDto();
@@ -440,14 +503,16 @@
             await Task.Delay(400);
             if (currentUser.Id == 0)
             {
-                var response = await Http.PostAsJsonAsync("api/Member", currentUser);
+                var client = HttpClientFactory.CreateClient("AuthClient");
+                var response = await client.PostAsJsonAsync("api/Member", currentUser);
                 if (response.IsSuccessStatusCode)
                     showForm = false;
                 await ShowToast("User added successfully.");
             }
             else
             {
-                var response = await Http.PutAsJsonAsync($"api/Member/{currentUser.Id}", currentUser);
+                var client = HttpClientFactory.CreateClient("AuthClient");
+                var response = await client.PutAsJsonAsync($"api/Member/{currentUser.Id}", currentUser);
                 if (response.IsSuccessStatusCode)
                     showForm = false;
                 await ShowToast("User updated successfully.");
@@ -458,13 +523,13 @@
         finally
         {
             spinner.Hide();
-            isLoading = true;
+
             await LoadappUsers();
         }
-           
 
-        
-   
+
+
+
     }
 
     private void ShowDeleteConfirm(int id)
@@ -479,7 +544,8 @@
 
         try
         {
-            var response = await Http.DeleteAsync($"api/Member/{userIdToDelete}");
+            var client = HttpClientFactory.CreateClient("AuthClient");
+            var response = await client.DeleteAsync($"api/Member/{userIdToDelete}");
             if (response.IsSuccessStatusCode)
             {
                 showForm = false;
@@ -487,7 +553,7 @@
             }
             else
                 message = "Failed to delete member.";
-            isLoading = true;
+
             await LoadappUsers();
 
         }
@@ -502,10 +568,12 @@
     }
     private async Task DeleteMember(int id)
     {
+
         var confirmed = await JS.InvokeAsync<bool>("confirm", "Are you sure you want to delete this member?");
         if (confirmed)
         {
-            var response = await Http.DeleteAsync($"api/Member/{id}");
+            var client = HttpClientFactory.CreateClient("AuthClient");
+            var response = await client.DeleteAsync($"api/Member/{id}");
             if (response.IsSuccessStatusCode)
                 message = "Member deleted.";
             else
@@ -517,59 +585,89 @@
     {
         nav.NavigateTo("/dashboard"); // change the route as per your dashboard page
     }
-    private IEnumerable<AppUserDto> GetPagedUsers()
-    {
-        if (appUsers == null || appUsers.Count == 0)
-        {
-            // No users to show
-            return Enumerable.Empty<AppUserDto>();
-        }
-        else
-        {
-            // Calculate the items to skip based on the current page
-            int skipCount = (currentPage - 1) * pageSize;
+    // private IEnumerable<AppUserDto> GetPagedUsers()
+    // {
+    //     if (appUsers == null || appUsers.Count == 0)
+    //     {
 
-            // Get the subset of users for the current page
-            var usersOnPage = appUsers
-                .Skip(skipCount)
-                .Take(pageSize)
-                .ToList();
+    //         return Enumerable.Empty<AppUserDto>();
+    //     }
+    //     else
+    //     {
 
-            return usersOnPage;
-        }
-    }
-    private int CalculateTotalPages()
+    //         int skipCount = (currentPage - 1) * pageSize;
+
+
+    //         var usersOnPage = appUsers
+    //             .Skip(skipCount)
+    //             .Take(pageSize)
+    //             .ToList();
+
+    //         return usersOnPage;
+    //     }
+    // }
+    // private int CalculateTotalPages()
+    // {
+    //     if (appUsers == null || appUsers.Count == 0)
+    //     {
+
+    //         return 1;
+    //     }
+    //     else
+    //     {
+
+    //         double totalUsers = appUsers.Count;
+    //         double totalPages = Math.Ceiling(totalUsers / pageSize);
+    //         return (int)totalPages;
+    //     }
+    // }
+    // private async  void NextPage()
+    // {
+    //     if (currentPage < TotalPages)
+
+    //     currentPage++;
+    //     isLoading = true;
+    //     await LoadappUsers();
+    // }
+
+    // private  async void  PreviousPage()
+    // {
+    //     if (currentPage > 1)
+
+    //     currentPage--;
+    //     isLoading = true;
+    //     await LoadappUsers();
+    // }
+    private int TotalPages =>
+    (int)Math.Ceiling((double)totalUsers / pageSize);
+
+    private List<int> GetVisiblePages()
     {
-        if (appUsers == null || appUsers.Count == 0)
-        {
-            // No pages if no users exist
-            return 1;
-        }
-        else
-        {
-            // Calculate total pages based on page size
-            double totalUsers = appUsers.Count;
-            double totalPages = Math.Ceiling(totalUsers / pageSize);
-            return (int)totalPages;
-        }
+        int max = 5;
+        int start = Math.Max(1, currentPage - 2);
+        int end = Math.Min(TotalPages, start + max - 1);
+        return Enumerable.Range(start, end - start + 1).ToList();
     }
-    private async  void NextPage()
+    private async Task NextPage()
     {
         if (currentPage < TotalPages)
-        
-        currentPage++;
-        isLoading = true;
+            currentPage++;
         await LoadappUsers();
     }
 
-    private  async void  PreviousPage()
+    private async Task PreviousPage()
     {
         if (currentPage > 1)
-          
-        currentPage--;
-        isLoading = true;
+            currentPage--;
         await LoadappUsers();
     }
+
+    private async Task GoToPage(int page)
+    {
+        currentPage = page;
+        await LoadappUsers();
+    }
+
     private async Task ShowToast(string msg)
     {
         toastMessage = msg;

@@ -163,6 +163,15 @@
         color: #e74c3c !important; /* red text */
         font-weight: 400;
     }
+
+    .pagination .page-link:focus {
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .pagination .page-link {
+        outline: none;
+    }
 </style>
 
 <div class="container mt-4" >
@@ -502,10 +511,15 @@
                             <button class="page-link" @onclick="PreviousPage">Previous</button>
                         </li>
 
-                        <li class="page-item active">
+                        @* <li class="page-item active">
                             <span class="page-link">@currentPage</span>
-                        </li>
-
+                        </li> *@
+                        @foreach (var i in GetVisiblePages())
+                        {
+                            <li class="page-item @(currentPage == i ? "active" : "")">
+                                <button class="page-link" @onclick="() => GoToPage(i)">@i</button>
+                            </li>
+                        }
                         <li class="page-item @(currentPage == GetTotalPages() ? "disabled" : "")">
                             <button class="page-link" @onclick="NextPage">Next</button>
                         </li>
@@ -525,7 +539,7 @@
 
     private DashboardSummaryDto stats = new();
     private int managerId;
- private bool showCreateForm = false;
+    private bool showCreateForm = false;
     private string search = "";
     private string? filterMemberId = "";
     private DateTime? filterCreatedDate;
@@ -574,14 +588,14 @@
             stats = await response.Content.ReadFromJsonAsync<DashboardSummaryDto>();
         }
 
-        
-       
+
+
     }
     private async Task LoadMembers()
     {
 
-            members = await Http.GetFromJsonAsync<List<MemberDto>>("api/Member/memberslist") ?? new List<MemberDto>();
-      
+        members = await Http.GetFromJsonAsync<List<MemberDto>>("api/Member/memberslist") ?? new List<MemberDto>();
+
     }
     private async Task ProjectCreatedEvent()
     {
@@ -615,14 +629,29 @@
     private async Task NextPage()
     {
         if (currentPage < GetTotalPages())
-            await FilterProjects(selectedFilter, currentPage + 1);
+            currentPage++;
+        await FilterProjects(selectedFilter, currentPage);
     }
 
 
     private async Task PreviousPage()
     {
         if (currentPage > 1)
-            await FilterProjects(selectedFilter, currentPage - 1);
+            currentPage--;
+        await FilterProjects(selectedFilter, currentPage);
+    }
+    private async Task GoToPage(int page)
+    {
+        currentPage = page;
+        await FilterProjects(selectedFilter, currentPage);
+    }
+    List<int> GetVisiblePages()
+    {
+        int maxPagesToShow = 5;
+        int start = Math.Max(1, currentPage - 2);
+        int end = Math.Min(GetTotalPages(), start + maxPagesToShow - 1);
+
+        return Enumerable.Range(start, end - start + 1).ToList();
     }
 
     private async Task OnPageSizeChanged()

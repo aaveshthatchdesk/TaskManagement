@@ -87,6 +87,15 @@
         .avatar-circle:first-child {
             margin-left: 0;
         }
+
+    .pagination .page-link:focus {
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .pagination .page-link {
+        outline: none;
+    }
 </style>
 
 <div class="container-fluid mt-4">
@@ -495,10 +504,15 @@
                             <button class="page-link" @onclick="PreviousPage">Previous</button>
                         </li>
 
-                        <li class="page-item active">
+                        @* <li class="page-item active">
                             <span class="page-link">@currentPage</span>
-                        </li>
-
+                        </li> *@
+                        @foreach (var i in GetVisiblePages())
+                        {
+                            <li class="page-item @(currentPage == i ? "active" : "")">
+                                <button class="page-link" @onclick="() => GoToPage(i)">@i</button>
+                            </li>
+                        }
                         <li class="page-item @(currentPage* pageSize >= pagedResult.TotalCount? "disabled" : "")">
                             <button class="page-link" @onclick="NextPage">Next</button>
                         </li>
@@ -601,6 +615,13 @@
         currentPage = 1;
         await LoadSprints();
     }
+    private async Task GoToPage(int page)
+    {
+        currentPage = page;
+        await LoadSprints();
+    }
+
+    private int TotalPages => (int)Math.Ceiling((double)pagedResult.TotalCount / pageSize);
     private async Task NextPage()
     {
         if (currentPage * pageSize < pagedResult.TotalCount)
@@ -618,7 +639,14 @@
             await LoadSprints();
         }
     }
+    List<int> GetVisiblePages()
+    {
+        int maxPagesToShow = 5;
+        int start = Math.Max(1, currentPage - 2);
+        int end = Math.Min(TotalPages, start + maxPagesToShow - 1);
 
+        return Enumerable.Range(start, end - start + 1).ToList();
+    }
 
     private double GetProgress(SprintDto sprint)
     {

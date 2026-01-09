@@ -5,6 +5,7 @@ using System.Security.Claims;
 using Task.Application.DTOs;
 using Task.Application.Interaces;
 using Task.Application.Services;
+using Task.Infrastructure.Repository;
 
 namespace TaskManagementServerAPi.Controllers
 {
@@ -21,28 +22,36 @@ namespace TaskManagementServerAPi.Controllers
             _emailService = emailService;
         }
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<AppUserDto>>> GetMembers()
+        public async Task<ActionResult<IEnumerable<AppUserDto>>> GetMembers(int pageNumber=1,int pageSize=5,string? search=null)
         {
-            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
-            if (userRole == "Admin")
-            {
-                var all = await _memberService.GetAppUsersAsync();
-                return Ok(all);
-            }
-            else if (userRole == "Manager")
-            {
-                var members = await _memberService.GetByRoleAsync("Member");
-                return Ok(members);
-            }
-            else if (userRole == "Member")
-            {
-                var email = User.FindFirst(ClaimTypes.Email)?.Value;
-                var all = await _memberService.GetAppUsersAsync();
-                var current = all.FirstOrDefault(m => m.Email == email);
-                return Ok(current == null ? new List<AppUserDto>() : new List<AppUserDto> { current });
+            //var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            //if (userRole == "Admin")
+            //{
+            //    var all = await _memberService.GetAppUsersAsync(pageNumber,pageSize,search);
+            //    return Ok(all);
+            //}
+            var all = await _memberService.GetAppUsersAsync(pageNumber, pageSize, search);
+            return Ok(all);
+            //else if (userRole == "Manager")
+            //{
+            //    var members = await _memberService.GetByRoleAsync("Member");
+            //    return Ok(members);
+            //}
+            //else if (userRole == "Member")
+            //{
+            //    var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            //    var all = await _memberService.GetAppUsersAsync(pageNumber,pageSize,search);
+            //    var current = all.FirstOrDefault(m => m.Email == email);
+            //    return Ok(current == null ? new List<AppUserDto>() : new List<AppUserDto> { current });
 
-            }
-            return Forbid();
+            //}
+            
+        }
+        [HttpGet("ForManager")]
+        public async Task<ActionResult<IEnumerable<AppUserDto>>>GetMembersForManagerAsync(int pageNumber,int pageSize,string? search)
+        {
+            var all = await _memberService.GetMembersForManagerAsync(pageNumber, pageSize, search);
+            return Ok(all);
         }
 
         [HttpGet("memberslist")]
@@ -165,3 +174,6 @@ namespace TaskManagementServerAPi.Controllers
 
     }
 }
+
+
+

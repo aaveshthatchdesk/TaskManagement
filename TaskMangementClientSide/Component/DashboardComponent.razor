@@ -446,6 +446,14 @@
         color:blue;
     }
 
+    .pagination .page-link:focus {
+        box-shadow: none !important;
+        outline: none !important;
+    }
+    .pagination .page-link {
+        outline: none;
+    }
+
 </style>
 
 
@@ -926,9 +934,15 @@
                         <button class="page-link" @onclick="PreviousPage">Previous</button>
                     </li>
 
-                    <li class="page-item active">
+                    @* <li class="page-item active">
                         <span class="page-link">@currentPage</span>
-                    </li>
+                    </li> *@
+                        @foreach (var i in GetVisiblePages())
+                        {
+                            <li class="page-item @(currentPage == i ? "active" : "")">
+                                <button class="page-link" @onclick="() => GoToPage(i)">@i</button>
+                            </li>
+                        }
 
                     <li class="page-item @(currentPage == GetTotalPages() ? "disabled" : "")">
                         <button class="page-link" @onclick="NextPage">Next</button>
@@ -1268,7 +1282,7 @@
                 {
                     if (!editProject.ManagerIds.Contains(manager.Id))
                         editProject.ManagerIds.Add(manager.Id);
-                         SyncManagerNames(editProject);  
+                    SyncManagerNames(editProject);  
 
                 }
                 showForm = false;
@@ -1582,7 +1596,7 @@
     {
         submitted = true;
 
-       
+
         // Run Blazor built-in validation
         if (context.Validate())
         {
@@ -1635,7 +1649,7 @@
                 editProject = updatedProject;
 
                 // Refresh dashboard
-               
+
                 await LoadDashboardStats();
 
                 showEditForm = false;
@@ -1659,23 +1673,38 @@
     }
     private int GetTotalPages()
     {
-        
+
         return (int)Math.Ceiling((double)totalProjects / pageSize);
     }
+
 
     private async Task NextPage()
     {
         if (currentPage < GetTotalPages())
-            await FilterProjects(selectedFilter, currentPage + 1);
+            currentPage++;
+        await FilterProjects(selectedFilter, currentPage);
     }
-    
+
 
     private async Task PreviousPage()
     {
         if (currentPage > 1)
-            await FilterProjects(selectedFilter, currentPage - 1);
+            currentPage--;
+        await FilterProjects(selectedFilter, currentPage );
     }
+    private async Task GoToPage(int page)
+    {
+        currentPage = page;
+        await FilterProjects(selectedFilter, currentPage );
+    }
+    List<int> GetVisiblePages()
+    {
+        int maxPagesToShow = 5;
+        int start = Math.Max(1, currentPage - 2);
+        int end = Math.Min(GetTotalPages(), start + maxPagesToShow - 1);
 
+        return Enumerable.Range(start, end - start + 1).ToList();
+    }
   
     private void ConfirmDelete(int projectId)
     {

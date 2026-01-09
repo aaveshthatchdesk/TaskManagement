@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens.Experimental;
 using System;
 using System.Collections.Generic;
@@ -23,16 +24,23 @@ namespace Task.Application.Services
             _emailService = emailService;
             _configuration = configuration;
         }
-        public async Task<IEnumerable<AppUserDto>> GetAppUsersAsync()
+        public async Task<PagedResult<AppUserDto>> GetAppUsersAsync(int pageNumber,int pageSize,string? search)
         {
-            var member = await _memberRepository.GetAppUsersAsync();
-            return member.Select(m => new AppUserDto
+            var (users, totalCount) = await _memberRepository.GetAppUsersAsync(pageNumber, pageSize, search);
+
+            return new PagedResult<AppUserDto>
             {
-                Id = m.Id,
-                Name = m.Name,
-                Email = m.Email,
-                Role = m.Role,
-            });
+
+                Items = users.Select(m => new AppUserDto
+                {
+                    Id = m.Id,
+                    Name = m.Name,
+                    Email = m.Email,
+                    Role = m.Role,
+                }).ToList(),
+                TotalCount = totalCount,
+               
+            };
 
         }
       
@@ -48,6 +56,28 @@ namespace Task.Application.Services
                 Role = m.Role,
             });
 
+        }
+        public async Task<PagedResult<AppUserDto>> GetMembersForManagerAsync(int pageNumber, int pageSize, string? search)
+        {
+
+            var (users, totalCount) = await _memberRepository.GetMembersForManagerAsync(pageNumber, pageSize, search);
+            {
+
+                return new PagedResult<AppUserDto>
+                {
+                    Items = users.Select(m => new AppUserDto
+                    {
+                        Id = m.Id,
+                        Name = m.Name,
+                        Email = m.Email,
+                        Role = m.Role,
+                    }).ToList(),
+                    TotalCount = totalCount,
+                    //PageNumber = pageNumber,
+                    //PageSize = pageSize
+                };
+
+            }
         }
         public async Task<AppUserDto> GetByIdAsync(int id)
         {
