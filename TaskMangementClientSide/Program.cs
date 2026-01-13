@@ -27,24 +27,24 @@ namespace TaskMangementClientSide
             builder.Services.AddScoped<CustomAuthStateProvider>();
 
 
-            //builder.Services.AddAuthorizationCore();
-            //builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
-
+        //builder.Services.AddAuthorizationCore();
+        //builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 
 
 
 
             builder.Services.AddScoped<AuthHttpClientHandler>();
 
+            //builder.Services.AddHttpClient("AuthClient", client =>
+            //{
+            //    client.BaseAddress = new Uri("https://localhost:7218/");
+            //}).AddHttpMessageHandler<AuthHttpClientHandler>();
+
             builder.Services.AddHttpClient("AuthClient", client =>
             {
-                client.BaseAddress = new Uri("https://localhost:7218/"); // your API base
+                client.BaseAddress = new Uri("http://aavtan04-001-site1.stempurl.com/");
             }).AddHttpMessageHandler<AuthHttpClientHandler>();
 
-            //builder.Services.AddScoped(sp => new HttpClient
-            //{
-            //    BaseAddress = new Uri("https://localhost:7218/")
-            //});
 
 
             builder.Services.AddScoped(sp =>

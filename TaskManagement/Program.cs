@@ -144,7 +144,7 @@ namespace TaskManagement
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowBlazorClient",
-                    policy => policy.WithOrigins("https://localhost:7142")
+                    policy => policy.AllowAnyOrigin()
                                     .AllowAnyHeader()
                                     .AllowAnyMethod());
             });
@@ -158,18 +158,29 @@ namespace TaskManagement
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-                app.UseSwagger();            // Generate swagger JSON
-                app.UseSwaggerUI(c =>
-                {
-                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Task Management API v1");
-                    c.RoutePrefix = string.Empty;
-                });
+               
             }
+            app.UseSwagger();            // Generate swagger JSON
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Task Management API v1");
+                c.RoutePrefix = string.Empty;
+            });
+            //app.UseStaticFiles();
+
+           
+
+            app.UseHttpsRedirection();
+
             app.UseStaticFiles();
+
+            app.UseRouting();
+
 
             app.UseCors("AllowBlazorClient");
 
-            app.UseHttpsRedirection();
+
+
 
             app.UseAuthentication();
             app.UseAuthorization();
