@@ -1,14 +1,18 @@
-
+﻿
 
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
 using Task.Application.Interaces;
 using Task.Application.Services;
+using Task.Domain.Entities;
+using Task.Infrastructure.DataSeeding;
 using Task.Infrastructure.DbContext;
 using Task.Infrastructure.Repository;
 
@@ -16,7 +20,7 @@ namespace TaskManagement
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async  System.Threading.Tasks.Task Main(string[] args)
         {
 
             var builder = WebApplication.CreateBuilder(args);
@@ -153,6 +157,80 @@ namespace TaskManagement
 
 
             var app = builder.Build();
+
+
+            //using(var scope= app.Services.CreateScope())
+            //{
+            //    var dbContext = scope.ServiceProvider.GetRequiredService<TaskDbContext>();
+            //    // Apply pending migrations
+            //    dbContext.Database.Migrate();
+            //    if (!dbContext.appUsers.Any(u => u.Role == "Admin"))
+            //    {
+
+            //        var adminUser = new AppUser
+            //        {
+            //            Name = "System Admin",
+            //            Email = "admin@taskmanagement.com",
+            //            Role = "Admin"
+            //        };
+
+            //        dbContext.appUsers.Add(adminUser);
+
+            //        await dbContext.SaveChangesAsync();
+
+            //        string tempPassword = builder.Configuration["AdminSeed:TempPassword"];
+
+            //        CreatePasswordHash(tempPassword, out byte[] hash, out byte[] salt);
+
+            //        var adminAuth = new AppUserAuth
+            //        {
+            //            AppUserId = adminUser.Id,
+            //            PasswordHash = hash,
+            //            PasswordSalt = salt,
+            //            IsTemporaryPassword = true
+            //        };
+
+            //        dbContext.appUserAuths.Add(adminAuth);
+            //        await dbContext.SaveChangesAsync();
+            //    }
+            //}
+            //static void CreatePasswordHash(string password, out byte[] hash, out byte[] salt)
+            //{
+            //    using var hmac = new HMACSHA512();
+            //    salt = hmac.Key;
+            //    hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
+            //}
+
+            //try
+            //{
+            //    using (var scope = app.Services.CreateScope())
+            //    {
+            //        var dbContext = scope.ServiceProvider.GetRequiredService<TaskDbContext>();
+            //        await Task.Infrastructure.DataSeeding.DataIntializer.Seed(dbContext);
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine("❌ Database seeding failed");
+            //    Console.WriteLine(ex.Message);
+            //    throw;
+            //}
+            await app.ConfigureDataContext();
+            using var scope = app.Services.CreateScope();
+            var services = scope.ServiceProvider;
+            try
+            {
+                var identityContext = services.GetRequiredService<TaskDbContext>();
+                //await identityContext.Database.MigrateAsync();
+                //await Task.Infrastructure.DataSeeding.DataIntializer.Seed(identityContext);
+                await identityContext.Database.MigrateAsync();
+            }
+            catch (Exception ex)
+            {
+                var logger = services.GetRequiredService<ILogger<Program>>();
+                logger.LogError(ex, "An error occursed during migration");
+            }
+
 
 
             // Configure the HTTP request pipeline.

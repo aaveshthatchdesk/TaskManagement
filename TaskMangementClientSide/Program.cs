@@ -35,15 +35,15 @@ namespace TaskMangementClientSide
 
             builder.Services.AddScoped<AuthHttpClientHandler>();
 
-            //builder.Services.AddHttpClient("AuthClient", client =>
-            //{
-            //    client.BaseAddress = new Uri("https://localhost:7218/");
-            //}).AddHttpMessageHandler<AuthHttpClientHandler>();
-
             builder.Services.AddHttpClient("AuthClient", client =>
             {
-                client.BaseAddress = new Uri("http://aavtan04-001-site1.stempurl.com/");
+                client.BaseAddress = new Uri("https://localhost:7218/");
             }).AddHttpMessageHandler<AuthHttpClientHandler>();
+
+            //builder.Services.AddHttpClient("AuthClient", client =>
+            //{
+            //    client.BaseAddress = new Uri("http://aavtan04-001-site1.stempurl.com/");
+            //}).AddHttpMessageHandler<AuthHttpClientHandler>();
 
 
 
