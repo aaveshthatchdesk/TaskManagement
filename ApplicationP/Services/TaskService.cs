@@ -22,6 +22,10 @@ namespace Task.Application.Services
         {
             var result = await taskRepository.GetAllProjectsPagedAsync(currentUserId, role, filter, page, pageSize, search, managerId,memberId, createdDate, startDate, endDate);
 
+            var projectIds = result.Items.Select(p => p.Id).ToList();
+
+            var progressMap = await taskRepository.GetProjectsProgressAsync(projectIds);
+
             return new PagedResult<ProjectDto>
             {
                 TotalCount = result.TotalCount,
@@ -34,7 +38,10 @@ namespace Task.Application.Services
                     CreatedDate = p.CreatedDate,
                     Priority = p.Priority,
                     Visibility = p.Visibility,
-                    Progress = p.Progress,
+                    //Progress = p.Progress,
+                    Progress = progressMap.TryGetValue(p.Id, out var progress)
+                ? progress
+                : 0,
                     MemberCount = p.ProjectMembers?.Count(u => u.AppUser != null) ?? 0,
                     MemberIntials = p.ProjectMembers?
     .Where(u => u != null && !string.IsNullOrWhiteSpace(u.AppUser.Name))

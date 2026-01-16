@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Task.Application.Interaces;
 using Task.Domain.Entities;
 using Task.Infrastructure.DbContext;
+using static Microsoft.AspNetCore.Hosting.Internal.HostingApplication;
 
 namespace Task.Infrastructure.Repository
 {
@@ -42,7 +43,7 @@ namespace Task.Infrastructure.Repository
                     query = query.Where(p => p.Status == ProjectStatus.Completed);
                     break;
                 case "archived":
-                    query = query.Where(p => p.Status == ProjectStatus.Archeived);
+                    query = query.Where(p => p.Status == ProjectStatus.Archived);
                     break;
             }
 
@@ -146,6 +147,10 @@ namespace Task.Infrastructure.Repository
 
             return true;
         }
+
+
+   
+
 
 
 

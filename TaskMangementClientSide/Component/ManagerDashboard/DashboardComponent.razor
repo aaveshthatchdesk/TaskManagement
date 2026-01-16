@@ -1,9 +1,13 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 @using Task.Application.DTOs
+@using TaskMangementClientSide.Services
 @inject HttpClient Http
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager nav
+@inject IHttpClientFactory HttpClientFactory
+@inject SpinnerService spinner
+
 <style>
 
     .clear-filter-btn {
@@ -171,6 +175,61 @@
 
     .pagination .page-link {
         outline: none;
+    }
+
+    .archive-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: none;
+        padding: 0;
+    }
+
+    .unarchive-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: none;
+        padding: 0;
+        padding-bottom: 1.05rem;
+    }
+
+    .archive-btn i {
+        font-size: 1.35rem;
+        color: #6c757d;
+        line-height: 1;
+        transition: color 0.2s ease;
+    }
+
+    .unarchive-btn i {
+        font-size: 1.35rem;
+        color: #6c757d;
+        line-height: 1;
+        transition: color 0.2s ease;
+    }
+
+    .archive-btn:hover i,
+    .archive-btn:focus-visible i {
+        color: #ffc107;
+    }
+
+    .unarchive-btn:hover i,
+    .unarchive-btn:focus-visible i {
+        color: #ffc107;
+    }
+
+    .archive-btn:focus,
+    .archive-btn:active {
+        outline: none;
+        box-shadow: none;
+    }
+
+    .unarchive-btn:focus,
+    .unarchive-btn:active {
+        outline: none;
+        box-shadow: none;
     }
 </style>
 
@@ -380,9 +439,26 @@
 
                                             <h5 class="fw-semibold text-dark mb-0 project-title"> @project.Name</h5>
 
+                                            <div class="d-flex justify-content-end gap-3">
+                                                @if (project.Status != "Archived")
+                                                {
+                                                    <button class="btn btn-sm archive-btn"
+                                                            @onclick="() => ArchiveProject(project.Id)">
+                                                        <i class="bi bi-box-arrow-down"></i>
+                                                    </button>
+                                                }
+                                                @if (selectedFilter == "Archived")
+                                                {
+                                                    <button class="btn btn-sm unarchive-btn "
+                                                            @onclick="() => UnarchiveProject(project.Id)">
+                                                        <i class="bi bi-box-arrow-up"></i>
+                                                    </button>
+                                                }
+
                                             <button class="btn btn-sm delete-btn " >
                                                 <i class="fas fa-trash-alt"></i>
                                             </button>
+                                            </div>
                                         </div>
                                         <p class="@GetVisibilityBadgeClass(project.Visibility) d-inline-flex align-items-center gap-1 px-3 py-1 rounded-pill">
                                             <i class="@GetVisibilityIcon(project.Visibility)"></i>
@@ -427,8 +503,8 @@
 
 
                                     <div class="progress mb-2" style="height: 8px;">
-                                        <div class="progress-bar bg-primary" role="progressbar"
-                                             style="width:@project.Progress%"
+                                        <div class="progress-bar"  role="progressbar"
+                                             style="background-color:#2c3e50; width:@project.Progress%"
                                              aria-valuenow="@project.Progress" aria-valuemin="0" aria-valuemax="100">
                                         </div>
                                     </div>
@@ -615,6 +691,64 @@
     private void HideCreateForm()
     {
         showCreateForm = false;
+    }
+
+    private async Task ArchiveProject(int projectId)
+    {
+        try
+        {
+            spinner.Show();
+
+            var client = HttpClientFactory.CreateClient("AuthClient");
+
+            var response = await client.PostAsync($"api/Archive/Archive/{projectId}", null);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Reload current filter
+                await FilterProjects(selectedFilter, currentPage);
+                await LoadDashboardStats();
+            }
+            else
+            {
+                Console.WriteLine("Failed to archive project");
+            }
+        }
+        finally
+        {
+            spinner.Hide();
+        }
+    }
+
+    private async Task UnarchiveProject(int projectId)
+    {
+        try
+        {
+
+            spinner.Show();
+            Task.Delay(400);
+
+            var client = HttpClientFactory.CreateClient("AuthClient");
+
+            var response = await client.PostAsync(
+                $"api/Archive/Restore/{projectId}",
+                null
+            );
+
+            if (response.IsSuccessStatusCode)
+            {
+                await FilterProjects(selectedFilter, currentPage);
+                await LoadDashboardStats();
+            }
+            else
+            {
+                Console.WriteLine("Failed to restore project");
+            }
+        }
+        finally
+        {
+            spinner.Hide();
+        }
     }
     void ToggleDescription()
     {

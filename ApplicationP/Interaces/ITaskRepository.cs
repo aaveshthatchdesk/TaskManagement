@@ -27,5 +27,7 @@ namespace Task.Application.Interaces
         Task<List<Project>> GetAllProjects();
         Task<bool> AssignProjectsToManagerAsync(int managerId, List<int> projectIds);
 
+        public Task<Dictionary<int, int>> GetProjectsProgressAsync(List<int> projectIds);
+
     }
 }

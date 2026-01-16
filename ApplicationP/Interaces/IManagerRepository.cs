@@ -18,6 +18,7 @@ namespace Task.Application.Interaces
         public Task<int> GetTeamCountByManagerAsync(int managerId);
         public Task<bool> AssignManagerAsync(int projectId, List<int> memberIds);
         public Task<bool> RemoveManagerAsync(int projectId, int managerId);
+       
 
     }
 }

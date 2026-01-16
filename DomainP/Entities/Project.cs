@@ -54,8 +54,8 @@ namespace Task.Domain.Entities
     }
     public enum ProjectStatus
     {
-        Active,
-        Completed,
-        Archeived
+        Active=0,
+        Completed=1,
+        Archived=2
     }
 }

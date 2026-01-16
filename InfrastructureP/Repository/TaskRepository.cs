@@ -31,8 +31,8 @@ namespace Task.Infrastructure.Repository
                 .Include(p => p.Managers)
                    .ThenInclude(m => m.AppUser)
                  .Include(p => p.ProjectMembers)
-                     .ThenInclude(m => m.AppUser);
-                //.Include(x => x.Boards)
+                     .ThenInclude(m => m.AppUser)
+                .Include(x => x.Boards);
                 //.ThenInclude(b => b.TaskItems)
                 //.ThenInclude(t => t.TaskAssignments)
                 //.ThenInclude(a => a.AppUser);
@@ -46,7 +46,7 @@ namespace Task.Infrastructure.Repository
                     query = query.Where(p => p.Status == ProjectStatus.Completed);
                     break;
                 case "archived":
-                    query = query.Where(p => p.Status == ProjectStatus.Archeived);
+                    query = query.Where(p => p.Status == ProjectStatus.Archived);
                     break;
                 default:
 
@@ -635,6 +635,23 @@ namespace Task.Infrastructure.Repository
             await _taskDbContext.SaveChangesAsync();
 
             return true;
+        }
+
+        public async Task<Dictionary<int, int>> GetProjectsProgressAsync(List<int> projectIds)
+        {
+            return await _taskDbContext.tasks
+                .Where(t => projectIds.Contains(t.Board.ProjectId))
+                .GroupBy(t => t.Board.ProjectId)
+                .Select(g => new
+                {
+                    ProjectId = g.Key,
+                    Progress = g.Count() == 0
+                        ? 0
+                        : (int)Math.Round(
+                            (double)g.Count(t => t.IsCompleted)
+                            / g.Count() * 100)
+                })
+                .ToDictionaryAsync(x => x.ProjectId, x => x.Progress);
         }
 
 

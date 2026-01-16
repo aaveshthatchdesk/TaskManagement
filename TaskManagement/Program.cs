@@ -61,6 +61,8 @@ namespace TaskManagement
 
             builder.Services.AddScoped<ITaskService, TaskService>();
             builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+            builder.Services.AddScoped<IArchiveService, ArchiveService>();
+            builder.Services.AddScoped<IArchiveRepository, ArchiveRepository>();
             //builder.Services.AddControllers();
             //builder.Services.AddEndpointsApiExplorer();
             //builder.Services.AddControllers().AddJsonOptions(options =>

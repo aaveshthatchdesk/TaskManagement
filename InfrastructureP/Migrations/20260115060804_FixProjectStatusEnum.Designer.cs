@@ -12,8 +12,8 @@ using Task.Infrastructure.DbContext;
 namespace Task.Infrastructure.Migrations
 {
     [DbContext(typeof(TaskDbContext))]
-    [Migration("20260113120304_AddDescriptioninProjectTable")]
-    partial class AddDescriptioninProjectTable
+    [Migration("20260115060804_FixProjectStatusEnum")]
+    partial class FixProjectStatusEnum
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

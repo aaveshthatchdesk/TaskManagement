@@ -26,6 +26,7 @@ namespace Task.Application.Interaces
         Task<List<TaskItem>> GetByIdsWithBoardAndProjectAsync(List<int> ids);
 
         Task<List<TaskItem>> GetUpcomingDeadlineTasksForMemberAsync(int memberId, int take);
+        System.Threading.Tasks.Task UpdateProjectStatusAsync(int projectId);
 
 
     }

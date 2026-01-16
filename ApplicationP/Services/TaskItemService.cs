@@ -179,6 +179,7 @@ namespace Task.Application.Services
 
 
             var updated = await _taskItemRepository.UpdateAsync(task);
+            await _taskItemRepository.UpdateProjectStatusAsync(task.Board.ProjectId);
             return new TaskItemDto
             {
                 Id = updated.Id,
@@ -249,37 +250,91 @@ namespace Task.Application.Services
                 }).ToList()
             };
         }
-        public async Task<bool> ReorderTasksAsync(List<TaskReorderDto> tasks,int userId)
+        //       public async Task<bool> ReorderTasksAsync(List<TaskReorderDto> tasks,int userId)
+        //       {
+
+
+        //           var taskIds = tasks.Select(t => t.TaskId).ToList();
+
+        //           var taskItems = await _taskItemRepository
+        //               .GetByIdsWithBoardAndProjectAsync(taskIds);
+
+        //           foreach (var task in taskItems)
+        //           {
+        //               var dto = tasks.First(t => t.TaskId == task.Id);
+
+        //               var oldBoardId = task.BoardId;
+        //               var oldBoardName = task.Board.Name;
+
+
+
+
+        //               bool boardChanged = oldBoardId != dto.BoardId;
+        //               bool movedToDone = boardChanged && dto.IsDoneBoard;
+        //               bool movedOutOfDone =
+        //                   boardChanged &&
+        //                   !dto.IsDoneBoard &&
+        //                   oldBoardName.Equals("Done", StringComparison.OrdinalIgnoreCase);
+
+
+        //               task.BoardId = dto.BoardId;
+        //               task.Order = dto.Order;
+
+        //               if (movedToDone)
+        //               {
+        //                   task.IsCompleted = true;
+        //                   task.CompletedDate ??= DateTime.UtcNow;
+
+
+        //                   await activityLogService.LogAsync(
+        //                       projectId: task.Board.ProjectId,
+        //                       userId: userId,
+        //                       actionType: "TaskCompleted",
+        //                       description: $"completed task '{task.Title}'",
+        //                       taskId: task.Id,
+        //                       boardId: dto.BoardId
+        //                   );
+        //               }
+        //               else
+        //               {
+        //                   if (movedOutOfDone)
+        //                   {
+        //                       task.IsCompleted = false;
+        //                       task.CompletedDate = null;
+        //                   }
+
+        //                   if (boardChanged)
+        //                   {
+        //                       await activityLogService.LogAsync(
+        //                           projectId: task.Board.ProjectId,
+        //                           userId: userId,
+        //                           actionType: "TaskMoved",
+        //                           description: $"moved  '{task.Title}' from {oldBoardName}",
+        //                           taskId: task.Id,
+        //                           boardId: dto.BoardId
+        //                       );
+        //                   }
+        //               }
+
+        //               task.LastUpdatedOn = DateTime.UtcNow;
+        //           }
+        //           var affectedProjectIds = taskItems
+        //.Select(t => t.Board.ProjectId)
+        //.Distinct()
+        //.ToList();
+
+        //           foreach (var projectId in affectedProjectIds)
+        //           {
+        //               await _taskItemRepository.UpdateProjectStatusAsync(projectId);
+        //           }
+
+        //           return await _taskItemRepository.SaveChangesAsync();
+        //       }
+
+        public async Task<bool> ReorderTasksAsync(List<TaskReorderDto> tasks, int userId)
         {
-            //var taskIds = tasks.Select(t => t.TaskId).ToList();
-            //var taskItems = await _taskItemRepository.GetByIdsAsync(taskIds);
-            //foreach (var task in taskItems)
-            //{
-            //    var dto = tasks.First(t => t.TaskId == task.Id);
-
-            //    task.BoardId = dto.BoardId;
-            //    task.Order = dto.Order;
-            //    if (dto.IsDoneBoard)
-            //    {
-
-            //        task.IsCompleted = true;
-            //        task.CompletedDate = DateTime.UtcNow;
-
-            //    }
-            //    else
-            //    {
-            //        task.IsCompleted = false;
-            //        task.CompletedDate = null;
-
-            //    }
-
-            //    task.LastUpdatedOn = DateTime.UtcNow;
-            //}
-            //return await _taskItemRepository.SaveChangesAsync();
-
             var taskIds = tasks.Select(t => t.TaskId).ToList();
 
-            // 🔑 Need Board + Project
             var taskItems = await _taskItemRepository
                 .GetByIdsWithBoardAndProjectAsync(taskIds);
 
@@ -287,57 +342,70 @@ namespace Task.Application.Services
             {
                 var dto = tasks.First(t => t.TaskId == task.Id);
 
-                var oldBoardId = task.BoardId;
                 var oldBoardName = task.Board.Name;
 
-                bool boardChanged = oldBoardId != dto.BoardId;
-                bool movedToDone = boardChanged && dto.IsDoneBoard;
-                bool movedOutOfDone =
-                    boardChanged &&
-                    !dto.IsDoneBoard &&
-                    oldBoardName.Equals("Done", StringComparison.OrdinalIgnoreCase);
+                // 🔑 Resolve target board name on SERVER
+                var targetBoard = await boardRepository.GetBoardByIdAsync(dto.BoardId);
+                if (targetBoard == null)
+                    continue;
 
-                // 🔁 Apply changes
-                task.BoardId = dto.BoardId;
+                bool boardChanged =
+                    !oldBoardName.Equals(targetBoard.Name, StringComparison.OrdinalIgnoreCase);
+
+                // Apply board + order
+                task.BoardId = targetBoard.Id;
                 task.Order = dto.Order;
 
-                if (movedToDone)
+                // ✅ COMPLETION IS SERVER-DECIDED
+                if (targetBoard.Name.Equals("Done", StringComparison.OrdinalIgnoreCase))
                 {
                     task.IsCompleted = true;
                     task.CompletedDate ??= DateTime.UtcNow;
-
-                    // ✅ LOG COMPLETION
-                    await activityLogService.LogAsync(
-                        projectId: task.Board.ProjectId,
-                        userId: userId,
-                        actionType: "TaskCompleted",
-                        description: $"completed task '{task.Title}'",
-                        taskId: task.Id,
-                        boardId: dto.BoardId
-                    );
                 }
                 else
                 {
-                    if (movedOutOfDone)
-                    {
-                        task.IsCompleted = false;
-                        task.CompletedDate = null;
-                    }
+                    task.IsCompleted = false;
+                    task.CompletedDate = null;
+                }
 
-                    if (boardChanged)
+                task.LastUpdatedOn = DateTime.UtcNow;
+
+                // Logging
+                if (boardChanged)
+                {
+                    if (task.IsCompleted)
+                    {
+                        await activityLogService.LogAsync(
+                            projectId: task.Board.ProjectId,
+                            userId: userId,
+                            actionType: "TaskCompleted",
+                            description: $"completed task '{task.Title}'",
+                            taskId: task.Id,
+                            boardId: targetBoard.Id
+                        );
+                    }
+                    else
                     {
                         await activityLogService.LogAsync(
                             projectId: task.Board.ProjectId,
                             userId: userId,
                             actionType: "TaskMoved",
-                            description: $"moved  '{task.Title}' from {oldBoardName}",
+                            description: $"moved '{task.Title}' from {oldBoardName} to {targetBoard.Name}",
                             taskId: task.Id,
-                            boardId: dto.BoardId
+                            boardId: targetBoard.Id
                         );
                     }
                 }
+            }
 
-                task.LastUpdatedOn = DateTime.UtcNow;
+            var affectedProjectIds = taskItems
+                .Select(t => t.Board.ProjectId)
+                .Distinct()
+                .ToList();
+
+            foreach (var projectId in affectedProjectIds)
+            {
+                await _taskItemRepository.UpdateProjectStatusAsync(projectId);
             }
 
             return await _taskItemRepository.SaveChangesAsync();
@@ -426,6 +494,16 @@ namespace Task.Application.Services
                     }
                 }
             }
+            var affectedProjectIds = taskItems
+    .Select(t => t.Board.ProjectId)
+    .Distinct()
+    .ToList();
+
+            foreach (var projectId in affectedProjectIds)
+            {
+                await _taskItemRepository.UpdateProjectStatusAsync(projectId);
+            }
+
 
             return await _taskItemRepository.SaveChangesAsync();
 
@@ -448,6 +526,9 @@ namespace Task.Application.Services
             })
             .ToList();
         }
+
+
+
     }
 }
 

@@ -3191,13 +3191,23 @@ dropdown-submenu {
 {
      bool isDoneBoard =
         board.Name.Equals("Done", StringComparison.OrdinalIgnoreCase);
-    var payload = board.TaskItems.Select(t => new TaskReorderDto
-    {
-        TaskId = t.Id,
-        BoardId = board.Id,
-        Order = t.Order,
-            IsDoneBoard = isDoneBoard
-    }).ToList();
+    // var payload = board.TaskItems.Select(t => new TaskReorderDto
+    // {
+    //     TaskId = t.Id,
+    //     BoardId = board.Id,
+    //     Order = t.Order,
+    //         IsDoneBoard = isDoneBoard
+    // }).ToList();
+        var payload = board.TaskItems
+          .Select((t, index) => new TaskReorderDto   // ✅ USE INDEX
+          {
+              TaskId = t.Id,
+              BoardId = board.Id,
+              Order = index,                         // ✅ FIXED
+              IsDoneBoard = isDoneBoard
+          })
+          .ToList();
+
 
     await Http.PutAsJsonAsync("api/TaskItem/tasks/reorder", payload);
 }

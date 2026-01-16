@@ -8,6 +8,7 @@ using Task.Application.DTOs;
 using Task.Application.Interaces;
 using Task.Domain.Entities;
 using Task.Infrastructure.DbContext;
+using static Microsoft.AspNetCore.Hosting.Internal.HostingApplication;
 
 namespace Task.Infrastructure.Repository
 {
@@ -37,6 +38,7 @@ namespace Task.Infrastructure.Repository
         {
             return await _taskDbContext.tasks
                 .Include(t=>t.Board)
+                .ThenInclude(b=>b.Project)
                 .Include(t=>t.TaskCreators)
                   .ThenInclude(c=>c.AppUser)
                 .Include(t => t.TaskAssignments)
@@ -131,6 +133,28 @@ namespace Task.Infrastructure.Repository
                   .Take(take)
                   .ToListAsync();
 
+        }
+        public async System.Threading.Tasks.Task UpdateProjectStatusAsync(int projectId)
+        {
+            var project = await _taskDbContext.projects
+                .Include(p => p.Boards)
+                    .ThenInclude(b => b.TaskItems)
+                .FirstOrDefaultAsync(p => p.Id == projectId);
+
+            if (project == null)
+                return;
+
+            var allTasks = project.Boards
+                .SelectMany(b => b.TaskItems)
+                .ToList();
+
+            project.Status = !allTasks.Any()
+                ? ProjectStatus.Active
+                : allTasks.All(t => t.IsCompleted)
+                    ? ProjectStatus.Completed
+                    : ProjectStatus.Active;
+
+            await  _taskDbContext.SaveChangesAsync();
         }
 
 
